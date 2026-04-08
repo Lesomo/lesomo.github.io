@@ -1,0 +1,2962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1F3864">
+<title>PMT Asset Tracking Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f0f2f5;
+  color: #1a1a1a;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  background: #1F3864;
+  color: white;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.3px; }
+.header-sub { font-size: 12px; opacity: 0.6; margin-top: 1px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.live-dot {
+  width: 7px; height: 7px;
+  background: #70AD47;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+.live-dot.paused { background: #aaa; animation: none; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.refresh-btn {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px;
+  color: white;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: background 0.2s;
+}
+.refresh-btn:hover { background: rgba(255,255,255,0.25); }
+.refresh-btn svg { width: 14px; height: 14px; }
+.refresh-btn.spinning svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.auto-toggle {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: white;
+  padding: 7px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.auto-toggle.active { background: rgba(112,173,71,0.4); border-color: #70AD47; }
+
+/* MAIN LAYOUT */
+.main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+
+/* FILTER BAR */
+.filter-bar {
+  background: white;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.filter-bar label { font-size: 13px; font-weight: 600; color: #555; white-space: nowrap; }
+.filter-bar input[type="date"] {
+  padding: 8px 12px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: white;
+  cursor: pointer;
+}
+.filter-bar input[type="date"]:focus { outline: none; border-color: #2E5597; }
+.filter-sep { color: #aaa; font-size: 13px; }
+.filter-clear {
+  padding: 8px 14px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-clear:hover { border-color: #2E5597; color: #2E5597; }
+.filter-info { margin-left: auto; font-size: 12px; color: #888; }
+
+/* KPI CARDS */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.kpi-card {
+  background: white;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-left: 4px solid #ddd;
+}
+.kpi-card.blue { border-left-color: #2E5597; }
+.kpi-card.green { border-left-color: #70AD47; }
+.kpi-card.orange { border-left-color: #ED7D31; }
+.kpi-card.grey { border-left-color: #888; }
+
+.storage-bar-card {
+  background: white;
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.storage-label { font-size: 12px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+.storage-track { flex: 1; min-width: 200px; height: 10px; background: #f0f2f5; border-radius: 10px; overflow: hidden; }
+.storage-fill { height: 100%; border-radius: 10px; transition: width 0.6s ease; background: #70AD47; }
+.storage-fill.warn { background: #ED7D31; }
+.storage-fill.danger { background: #C00000; }
+.storage-text { font-size: 13px; font-weight: 600; color: #333; white-space: nowrap; }
+.storage-pct { font-size: 12px; color: #aaa; white-space: nowrap; }
+.kpi-label { font-size: 12px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.kpi-value { font-size: 32px; font-weight: 700; color: #1a1a1a; line-height: 1; }
+.kpi-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+
+/* CHART GRID */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.chart-grid.three { grid-template-columns: 2fr 1fr; }
+
+@media (max-width: 900px) {
+  .chart-grid, .chart-grid.three { grid-template-columns: 1fr; }
+}
+
+.chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+.chart-sub {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 16px;
+}
+.chart-wrap { position: relative; }
+.chart-wrap.tall { height: 320px; }
+.chart-wrap.medium { height: 260px; }
+
+/* SCANS TABLE */
+.table-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-bottom: 18px;
+  overflow-x: auto;
+}
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.table-title { font-size: 14px; font-weight: 600; color: #333; }
+.table-count { font-size: 12px; color: #aaa; }
+
+table { width: 100%; border-collapse: collapse; min-width: 600px; }
+thead tr { border-bottom: 2px solid #f0f2f5; }
+thead th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 8px 12px;
+}
+tbody tr {
+  border-bottom: 1px solid #f5f5f5;
+  transition: background 0.1s;
+}
+tbody tr:hover { background: #fafafa; }
+tbody tr:last-child { border-bottom: none; }
+tbody td {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #333;
+}
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.status-badge.active { background: #E2EFDA; color: #3B6D11; }
+.status-badge.maintenance { background: #FCE4D6; color: #843C0C; }
+.status-badge.stored { background: #DEEAF1; color: #1F497D; }
+
+.view-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.view-tab { padding: 7px 18px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; color: #666; background: white; transition: all 0.15s; }
+.view-tab.active { background: #1F3864; color: white; border-color: #1F3864; }
+.view-tab:hover:not(.active) { background: #f5f5f5; }
+.tab-view { display: none; }
+.tab-view.active { display: block; }
+
+.hm-wrap { overflow-x: auto; }
+.hm-table { border-collapse: separate; border-spacing: 3px; min-width: 700px; }
+.hm-table th { font-size: 11px; font-weight: 600; color: #888; padding: 4px 6px; text-align: center; white-space: nowrap; }
+.hm-table th.row-hdr { text-align: left; min-width: 140px; padding-right: 10px; }
+.hm-cell { width: 40px; height: 34px; border-radius: 4px; text-align: center; vertical-align: middle; font-size: 11px; font-weight: 600; cursor: default; }
+.hm-cell.c-empty { background: #f5f5f5; color: #ccc; }
+.hm-cell.c-all-active { background: #E2EFDA; color: #27500A; }
+.hm-cell.c-mostly { background: #C0DD97; color: #27500A; }
+.hm-cell.c-mixed { background: #FAEEDA; color: #633806; }
+.hm-cell.c-some-maint { background: #F5C4B3; color: #712B13; }
+.hm-cell.c-high-maint { background: #F0997B; color: #4A1B0C; }
+.hm-row-label { font-size: 12px; font-weight: 500; color: #333; padding: 4px 10px 4px 0; white-space: nowrap; }
+.hm-legend { display: flex; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
+.hm-leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #666; }
+.hm-leg-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+.sl-table { width: 100%; border-collapse: collapse; }
+.sl-table th { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 12px; text-align: left; border-bottom: 2px solid #f0f2f5; }
+.sl-table th.num { text-align: center; }
+.sl-table td { padding: 10px 12px; font-size: 13px; color: #333; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+.sl-table tr:last-child td { border-bottom: none; }
+.sl-table tr:hover td { background: #fafafa; }
+.count-pill { display: inline-block; min-width: 28px; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; text-align: center; }
+.pill-a { background: #E2EFDA; color: #27500A; }
+.pill-m { background: #F5C4B3; color: #712B13; }
+.pill-s { background: #DEEAF1; color: #0C447C; }
+.mini-bar-wrap { display: flex; align-items: center; gap: 3px; }
+.mini-bar { height: 8px; border-radius: 2px; min-width: 3px; }
+.mb-a { background: #639922; }
+.mb-m { background: #D85A30; }
+.mb-s { background: #185FA5; }
+
+.search-section { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+
+.dash-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.dash-tab { padding: 9px 22px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: #666; background: white; transition: all 0.15s; }
+.dash-tab.active { background: #1F3864; color: white; border-color: #1F3864; }
+.dash-tab:hover:not(.active) { background: #f5f5f5; border-color: #aaa; }
+.dash-panel { display: none; }
+.dash-panel.active { display: block; }
+
+.incident-card { background: white; border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 4px solid #ED7D31; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.incident-card.investigating { border-left-color: #2E5597; }
+.incident-left { flex: 1; }
+.incident-asset { font-size: 15px; font-weight: 700; color: #1F3864; }
+.incident-detail { font-size: 12px; color: #666; margin-top: 3px; }
+.incident-time { font-size: 11px; color: #aaa; margin-top: 4px; }
+.incident-right { text-align: right; flex-shrink: 0; }
+.inc-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.inc-open { background: #FCE4D6; color: #843C0C; }
+.inc-investigating { background: #DEEAF1; color: #1F497D; }
+.inc-duration { font-size: 12px; font-weight: 600; color: #ED7D31; margin-top: 6px; }
+
+.dt-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.dt-kpi { background: white; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 4px solid #ED7D31; }
+.dt-kpi.blue { border-left-color: #2E5597; }
+.dt-kpi.green { border-left-color: #70AD47; }
+.dt-kpi.orange { border-left-color: #ED7D31; }
+.dt-kpi.red { border-left-color: #C00000; }
+
+.section-btn {
+  padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  cursor: pointer; border: 2px solid var(--sc); background: white;
+  color: var(--sc); transition: all 0.15s; white-space: nowrap;
+}
+.section-btn:hover { background: var(--sc); color: white; }
+.section-btn.active { background: var(--sc); color: white; }
+
+.repeat-alert { background: #FFF5F5; border: 1px solid #F7C1C1; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+.repeat-alert:last-child { margin-bottom: 0; }
+.repeat-alert-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.repeat-alert-asset { font-size: 15px; font-weight: 700; color: #C00000; }
+.repeat-alert-count { font-size: 11px; font-weight: 700; background: #C00000; color: white; padding: 2px 8px; border-radius: 10px; }
+.repeat-alert-row { font-size: 12px; color: #555; margin-bottom: 3px; display: flex; gap: 8px; align-items: baseline; }
+.repeat-alert-time { font-size: 11px; color: #aaa; }
+.repeat-alert-gap { font-size: 11px; font-weight: 700; color: #ED7D31; background: #FFF2CC; padding: 2px 8px; border-radius: 4px; }
+.repeat-alert-warn { font-size: 11px; color: #C00000; font-style: italic; margin-top: 6px; }
+
+.req-card { background: white; border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; border-left: 4px solid #ED7D31; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.req-card.issued { border-left-color: #70AD47; }
+.req-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.req-part { font-size: 14px; font-weight: 700; color: #1F3864; }
+.req-qty { font-size: 13px; font-weight: 700; color: #2E5597; }
+.req-detail { font-size: 12px; color: #666; margin-bottom: 3px; }
+.req-meta { font-size: 11px; color: #aaa; }
+.issue-btn { padding: 7px 16px; background: #70AD47; border: none; border-radius: 8px; color: white; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.issue-btn:hover { background: #5A9438; }
+
+.low-stock-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+.low-stock-row:last-child { border-bottom: none; }
+.low-stock-name { font-weight: 600; color: #1a1a1a; }
+.low-stock-part { font-size: 11px; color: #888; }
+.stock-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.stock-zero { background: #FCEBEB; color: #A32D2D; }
+.stock-low  { background: #FCE4D6; color: #843C0C; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: #e0e0e0; }
+.tl-item { position: relative; margin-bottom: 20px; }
+.tl-item:last-child { margin-bottom: 0; }
+.tl-dot { position: absolute; left: -24px; top: 4px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; }
+.tl-dot.scan { background: #2E5597; }
+.tl-dot.incident { background: #ED7D31; }
+.tl-dot.resolved { background: #70AD47; }
+.tl-date { font-size: 11px; color: #aaa; font-weight: 600; margin-bottom: 3px; }
+.tl-card { background: #f8f9fa; border-radius: 8px; padding: 10px 14px; border-left: 3px solid #ddd; }
+.tl-card.scan-card { border-left-color: #2E5597; }
+.tl-card.incident-card-tl { border-left-color: #ED7D31; }
+.tl-card.resolved-card { border-left-color: #70AD47; }
+.tl-title { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+.tl-detail { font-size: 12px; color: #555; margin-top: 3px; }
+.tl-meta { font-size: 11px; color: #aaa; margin-top: 4px; }
+.tl-downtime { display: inline-block; background: #FCE4D6; color: #843C0C; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-top: 4px; }
+.dt-kpi-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.dt-kpi-value { font-size: 28px; font-weight: 700; color: #1a1a1a; line-height: 1; }
+.dt-kpi-sub { font-size: 11px; color: #aaa; margin-top: 3px; }
+.search-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.search-row label { font-size: 13px; font-weight: 600; color: #555; white-space: nowrap; }
+.search-row select { padding: 10px 36px 10px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 14px; color: #1a1a1a; background: white; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath fill='%23999' d='M7 9L2 4h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; cursor: pointer; min-width: 240px; }
+.search-row select:focus { outline: none; border-color: #2E5597; }
+.search-placeholder { text-align: center; padding: 40px; color: #aaa; font-size: 14px; }
+.search-title { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 4px; }
+.search-sub { font-size: 12px; color: #aaa; margin-bottom: 16px; }
+
+/* LOADING / EMPTY */
+.loading-state, .empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #aaa;
+}
+.loading-state .spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #f0f2f5;
+  border-top-color: #2E5597;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 14px;
+}
+.empty-state p { font-size: 14px; }
+
+/* LAST UPDATED */
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: #bbb;
+  padding: 12px 0 24px;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s;
+  z-index: 999;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.toast.success { background: #3B6D11; }
+.toast.error { background: #A32D2D; }
+.toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div class="header h1" style="font-size:18px;font-weight:600;">PMT Asset Tracking</div>
+      <div class="header-sub">Production Floor Dashboard</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge">
+      <div class="live-dot" id="liveDot"></div>
+      <span id="liveLabel">Live</span>
+    </div>
+    <button class="auto-toggle active" id="autoToggle" onclick="toggleAuto()">Auto 30s</button>
+    <button class="refresh-btn" id="exportBtn" onclick="exportCSV()" style="background:rgba(112,173,71,0.25);border-color:rgba(112,173,71,0.5);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+        <polyline points="7,10 12,15 17,10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Export CSV
+    </button>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M23 4v6h-6M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+      </svg>
+      Refresh
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- DASHBOARD TABS -->
+  <div class="dash-tabs">
+    <div class="dash-tab active" onclick="switchDashTab('assets')">Asset Tracking</div>
+    <div class="dash-tab" onclick="switchDashTab('downtime')">Downtime</div>
+    <div class="dash-tab" onclick="switchDashTab('lifecycle')">Asset Lifecycle</div>
+    <div class="dash-tab" onclick="switchDashTab('inventory')">Inventory</div>
+  </div>
+
+  <!-- ═══ ASSET TRACKING PANEL ═══ -->
+  <div class="dash-panel active" id="panel-assets">
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <label>Filter by date:</label>
+    <input type="date" id="dateFrom" onchange="applyFilter()">
+    <span class="filter-sep">to</span>
+    <input type="date" id="dateTo" onchange="applyFilter()">
+    <button class="filter-clear" onclick="clearFilter()">Clear</button>
+    <span class="filter-info" id="filterInfo"></span>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Total Scanned</div>
+      <div class="kpi-value" id="kpiTotal">—</div>
+      <div class="kpi-sub">all records</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Active / In Use</div>
+      <div class="kpi-value" id="kpiActive">—</div>
+      <div class="kpi-sub">currently active</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-label">Maintenance — Minor</div>
+      <div class="kpi-value" id="kpiMinor">—</div>
+      <div class="kpi-sub">minor servicing</div>
+    </div>
+    <div class="kpi-card" style="border-left-color:#C00000;">
+      <div class="kpi-label">Maintenance — Major</div>
+      <div class="kpi-value" id="kpiMajor">—</div>
+      <div class="kpi-sub">major repair</div>
+    </div>
+    <div class="kpi-card grey">
+      <div class="kpi-label">Stored</div>
+      <div class="kpi-value" id="kpiStored">—</div>
+      <div class="kpi-sub">Pool A + Pool B</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 1: Location bar + Status pie -->
+  <div class="chart-grid" style="margin-bottom:16px;">
+    <div class="chart-card">
+      <div class="chart-title">Assets per Location</div>
+      <div class="chart-sub">Total scans by production line and pool</div>
+      <div class="chart-wrap tall">
+        <canvas id="locationChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Assets by Status</div>
+      <div class="chart-sub">Breakdown of current asset conditions</div>
+      <div class="chart-wrap medium" style="display:flex;align-items:center;justify-content:center;">
+        <canvas id="statusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS PER LINE: toggling heatmap / table -->
+  <div class="chart-card" style="margin-bottom:16px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <div>
+        <div class="chart-title">Asset status per line</div>
+        <div class="chart-sub">Toggle between heatmap and table view</div>
+      </div>
+      <div class="view-tabs">
+        <div class="view-tab active" onclick="switchStatusView('heatmap')">Heatmap</div>
+        <div class="view-tab" onclick="switchStatusView('table')">Table</div>
+      </div>
+    </div>
+
+    <!-- Heatmap view -->
+    <div class="tab-view active" id="statusView-heatmap">
+      <div class="hm-legend">
+        <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#E2EFDA;"></div> All active</div>
+        <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#C0DD97;"></div> Mostly active</div>
+        <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#FAEEDA;"></div> Mixed</div>
+        <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#F5C4B3;"></div> Some maintenance</div>
+        <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#F0997B;"></div> High maintenance</div>
+        <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#f5f5f5;border:1px solid #ddd;"></div> No assets</div>
+      </div>
+      <div class="hm-wrap" id="heatmapContainer">
+        <div style="text-align:center;padding:40px;color:#aaa;font-size:14px;">Loading...</div>
+      </div>
+      <div style="font-size:11px;color:#bbb;margin-top:8px;">Hover over any cell for exact counts</div>
+    </div>
+
+    <!-- Table view -->
+    <div class="tab-view" id="statusView-table">
+      <div style="overflow-x:auto;" id="statusTableContainer">
+        <div style="text-align:center;padding:40px;color:#aaa;font-size:14px;">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MACHINE TYPE SEARCH -->
+  <div class="search-section">
+    <div class="search-title">Machine type distribution</div>
+    <div class="search-sub">Select a machine type to see how it is distributed across all lines</div>
+    <div class="search-row">
+      <label>Machine type:</label>
+      <select id="machineTypeSearch" onchange="renderMachineSearch()">
+        <option value="">— Select a machine type —</option>
+      </select>
+    </div>
+    <div id="machineSearchResult">
+      <div class="search-placeholder">Select a machine type above to see its distribution</div>
+    </div>
+  </div>
+
+  <!-- RECENT SCANS TABLE -->
+  <div class="table-card">
+    <div class="table-header">
+      <div>
+        <div class="table-title">Recent Scans</div>
+        <div class="table-count" id="tableCount"></div>
+      </div>
+    </div>
+    <div id="tableContainer">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading scan data...</p>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- end panel-assets -->
+
+  <!-- ═══ DOWNTIME PANEL ═══ -->
+  <div class="dash-panel" id="panel-downtime">
+
+    <!-- Downtime filters -->
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;">
+      <div class="filter-bar" style="margin:0;flex:1;min-width:260px;">
+        <label>Filter by date:</label>
+        <input type="date" id="dtDateFrom" onchange="applyDtFilter()">
+        <span class="filter-sep">to</span>
+        <input type="date" id="dtDateTo" onchange="applyDtFilter()">
+        <button class="filter-clear" onclick="clearDtFilter()">Clear</button>
+        <span class="filter-info" id="dtFilterInfo"></span>
+      </div>
+      <!-- Section filter buttons -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:12px;font-weight:700;color:#555;white-space:nowrap;">Section:</span>
+        <button id="sectionAll"    onclick="setSectionFilter('all')"    class="section-btn active"   style="--sc:#1F3864;">All lines</button>
+        <button id="sectionGreen"  onclick="setSectionFilter('green')"  class="section-btn"          style="--sc:#2D7D46;">Green (L1–6)</button>
+        <button id="sectionYellow" onclick="setSectionFilter('yellow')" class="section-btn"          style="--sc:#C9A84C;">Yellow (L7–11)</button>
+        <button id="sectionPurple" onclick="setSectionFilter('purple')" class="section-btn"          style="--sc:#6B3FA0;">Purple (L14–18)</button>
+        <button id="sectionBlue"   onclick="setSectionFilter('blue')"   class="section-btn"          style="--sc:#1B4F8A;">Blue (L19–24)</button>
+      </div>
+    </div>
+
+    <!-- Downtime KPIs -->
+    <div class="dt-kpi-grid">
+      <div class="dt-kpi red">
+        <div class="dt-kpi-label">Open incidents</div>
+        <div class="dt-kpi-value" id="dtKpiOpen">—</div>
+        <div class="dt-kpi-sub">right now</div>
+      </div>
+      <div class="dt-kpi orange">
+        <div class="dt-kpi-label">Total incidents</div>
+        <div class="dt-kpi-value" id="dtKpiTotal">—</div>
+        <div class="dt-kpi-sub">selected period</div>
+      </div>
+      <div class="dt-kpi blue">
+        <div class="dt-kpi-label">Avg response time</div>
+        <div class="dt-kpi-value" id="dtKpiResponse">—</div>
+        <div class="dt-kpi-sub">minutes to investigate</div>
+      </div>
+      <div class="dt-kpi green">
+        <div class="dt-kpi-label">Avg repair time</div>
+        <div class="dt-kpi-value" id="dtKpiRepair">—</div>
+        <div class="dt-kpi-sub">minutes to resolve</div>
+      </div>
+      <div class="dt-kpi blue">
+        <div class="dt-kpi-label">Avg MTBF today</div>
+        <div class="dt-kpi-value" id="dtKpiMtbf">—</div>
+        <div class="dt-kpi-sub">mins between failures</div>
+      </div>
+      <div class="dt-kpi green">
+        <div class="dt-kpi-label">Efficiency today</div>
+        <div class="dt-kpi-value" id="dtKpiEfficiency">—</div>
+        <div class="dt-kpi-sub">uptime % current shift</div>
+      </div>
+      <div class="dt-kpi green">
+        <div class="dt-kpi-label">Avg efficiency</div>
+        <div class="dt-kpi-value" id="dtKpiAvgEfficiency">—</div>
+        <div class="dt-kpi-sub">selected period</div>
+      </div>
+    </div>
+
+    <!-- Repeat incidents alert -->
+    <div id="repeatAlertsSection" style="display:none;margin-bottom:16px;">
+      <div class="chart-card" style="border-left:4px solid #C00000;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:10px;height:10px;background:#C00000;border-radius:50%;"></div>
+          <div class="chart-title" style="color:#C00000;margin:0;">Repeat incident alerts</div>
+        </div>
+        <div class="chart-sub" style="margin-bottom:12px;">Assets with multiple incidents today — possible misdiagnosis or cascade failure</div>
+        <div id="repeatAlertsList"></div>
+      </div>
+    </div>
+
+    <!-- Top offenders -->
+    <div class="chart-card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div>
+          <div class="chart-title">Top offending assets</div>
+          <div class="chart-sub">Top 10 assets by incidents and downtime — based on date filter</div>
+        </div>
+        <div class="view-tabs" style="margin:0;">
+          <div class="view-tab active" onclick="switchOffenderView('incidents')">By incidents</div>
+          <div class="view-tab" onclick="switchOffenderView('downtime')">By downtime</div>
+        </div>
+      </div>
+      <div class="tab-view active" id="offenderView-incidents">
+        <div id="offenderByIncidents"></div>
+      </div>
+      <div class="tab-view" id="offenderView-downtime">
+        <div id="offenderByDowntime"></div>
+      </div>
+    </div>
+
+    <!-- Open incidents board -->
+    <div class="chart-card" style="margin-bottom:16px;">
+      <div class="chart-title">Open incidents</div>
+      <div class="chart-sub">All job cards currently open or under investigation</div>
+      <div id="openIncidentsList"><div class="loading-state"><div class="spinner"></div><p>Loading...</p></div></div>
+    </div>
+
+    <!-- Charts row: downtime per line + downtime trend + efficiency trend -->
+    <div class="chart-grid" style="margin-bottom:16px;grid-template-columns:1fr 1fr 1fr;">
+      <div class="chart-card">
+        <div class="chart-title">Downtime per line</div>
+        <div class="chart-sub">Total downtime minutes by production line</div>
+        <div class="chart-wrap tall"><canvas id="dtLineChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Downtime trend</div>
+        <div class="chart-sub">Total downtime minutes per day</div>
+        <div class="chart-wrap tall"><canvas id="dtTrendChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Efficiency trend</div>
+        <div class="chart-sub">Daily operating efficiency % — weekends excluded</div>
+        <div class="chart-wrap tall"><canvas id="dtEfficiencyChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Faults per line heatmap / table toggle -->
+    <div class="chart-card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div>
+          <div class="chart-title">Faults per line</div>
+          <div class="chart-sub">Which faults are hitting which lines</div>
+        </div>
+        <div class="view-tabs">
+          <div class="view-tab active" onclick="switchFaultView('heatmap')">Heatmap</div>
+          <div class="view-tab" onclick="switchFaultView('table')">Table</div>
+        </div>
+      </div>
+      <div class="tab-view active" id="faultView-heatmap">
+        <div class="hm-legend">
+          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#f5f5f5;border:1px solid #ddd;"></div> None</div>
+          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#FAEEDA;"></div> Low</div>
+          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#F5C4B3;"></div> Medium</div>
+          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#F0997B;"></div> High</div>
+          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#D85A30;"></div> Very high</div>
+        </div>
+        <div class="hm-wrap" id="faultHeatmapContainer">
+          <div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">Loading...</div>
+        </div>
+        <div style="font-size:11px;color:#bbb;margin-top:8px;">Hover over any cell for exact count</div>
+      </div>
+      <div class="tab-view" id="faultView-table">
+        <div style="overflow-x:auto;" id="faultTableContainer">
+          <div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end panel-downtime -->
+
+  <!-- ═══ ASSET LIFECYCLE PANEL ═══ -->
+  <div class="dash-panel" id="panel-lifecycle">
+
+    <div class="chart-card" style="margin-bottom:16px;">
+      <div class="chart-title">Asset lifecycle search</div>
+      <div class="chart-sub">Type an asset number to see its complete history — scans and downtime incidents combined</div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+        <input type="text" id="lcAssetInput" placeholder="Type asset number e.g. 71270..."
+          oninput="lcSearchDebounce()"
+          style="flex:1;min-width:200px;padding:11px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:15px;font-family:inherit;"
+          onkeydown="if(event.key==='Enter') loadLifecycle()">
+        <button onclick="loadLifecycle()"
+          style="padding:11px 20px;background:#1F3864;border:none;border-radius:8px;color:white;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;">
+          Search
+        </button>
+        <div id="lcAssetType" style="font-size:13px;color:#888;font-style:italic;width:100%;"></div>
+      </div>
+      <!-- Suggestions dropdown -->
+      <div id="lcSuggestions" style="display:none;border:1px solid #ddd;border-radius:8px;margin-top:4px;max-height:200px;overflow-y:auto;background:white;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
+    </div>
+
+    <!-- Lifecycle summary KPIs -->
+    <div id="lcKpiRow" style="display:none">
+      <div class="dt-kpi-grid" style="margin-bottom:16px;">
+        <div class="dt-kpi blue">
+          <div class="dt-kpi-label">Total scans</div>
+          <div class="dt-kpi-value" id="lcKpiScans">—</div>
+          <div class="dt-kpi-sub">all time</div>
+        </div>
+        <div class="dt-kpi orange">
+          <div class="dt-kpi-label">Downtime incidents</div>
+          <div class="dt-kpi-value" id="lcKpiIncidents">—</div>
+          <div class="dt-kpi-sub">all time</div>
+        </div>
+        <div class="dt-kpi red">
+          <div class="dt-kpi-label">Total downtime</div>
+          <div class="dt-kpi-value" id="lcKpiDowntime">—</div>
+          <div class="dt-kpi-sub">minutes</div>
+        </div>
+        <div class="dt-kpi green">
+          <div class="dt-kpi-label">Last seen</div>
+          <div class="dt-kpi-value" id="lcKpiLastSeen" style="font-size:16px;">—</div>
+          <div class="dt-kpi-sub" id="lcKpiLastLine"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div id="lcTimeline" style="display:none">
+      <div class="chart-card">
+        <div class="chart-title">Full history timeline</div>
+        <div class="chart-sub" id="lcTimelineSub"></div>
+        <div id="lcTimelineContent" style="margin-top:14px;"></div>
+      </div>
+    </div>
+
+    <div id="lcEmpty" style="text-align:center;padding:60px;color:#aaa;font-size:14px;">
+      Select an asset above to view its complete history
+    </div>
+
+  </div><!-- end panel-lifecycle -->
+
+  <!-- ═══ INVENTORY PANEL ═══ -->
+  <div class="dash-panel" id="panel-inventory">
+
+    <!-- Clerk name selector (remembered per device) -->
+    <div class="filter-bar" style="margin-bottom:16px;">
+      <label>Clerk on duty:</label>
+      <select id="clerkNameSelect" onchange="saveClerkName()" style="padding:8px 36px 8px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;min-width:160px;">
+        <option value="">— Select your name —</option>
+        <option>Mary-Ann</option>
+        <option>Jolene</option>
+      </select>
+      <span style="font-size:12px;color:#aaa;font-style:italic;">Name is remembered on this device</span>
+    </div>
+
+    <!-- Inventory KPIs -->
+    <div class="dt-kpi-grid">
+      <div class="dt-kpi orange">
+        <div class="dt-kpi-label">Pending requests</div>
+        <div class="dt-kpi-value" id="invKpiPending">—</div>
+        <div class="dt-kpi-sub">awaiting issue</div>
+      </div>
+      <div class="dt-kpi red">
+        <div class="dt-kpi-label">Low stock parts</div>
+        <div class="dt-kpi-value" id="invKpiLowStock">—</div>
+        <div class="dt-kpi-sub">below minimum qty</div>
+      </div>
+      <div class="dt-kpi blue">
+        <div class="dt-kpi-label">Issued today</div>
+        <div class="dt-kpi-value" id="invKpiIssuedToday">—</div>
+        <div class="dt-kpi-sub">parts handed out</div>
+      </div>
+      <div class="dt-kpi orange" style="border-left-color:#C00000;">
+        <div class="dt-kpi-label">Awaiting supplier</div>
+        <div class="dt-kpi-value" id="invKpiSupplier">—</div>
+        <div class="dt-kpi-sub">faulty returns</div>
+      </div>
+      <div class="dt-kpi green">
+        <div class="dt-kpi-label">Total parts</div>
+        <div class="dt-kpi-value" id="invKpiTotal">—</div>
+        <div class="dt-kpi-sub">in catalogue</div>
+      </div>
+    </div>
+
+    <!-- Pending requests — clerk queue -->
+    <div class="chart-card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div class="chart-title">Pending part requests</div>
+        <button onclick="loadInventoryData()" style="background:none;border:1px solid #ddd;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;color:#555;">Refresh</button>
+      </div>
+      <div class="chart-sub">Tap Issue to confirm part has been handed to mechanic</div>
+      <div id="pendingRequestsList" style="margin-top:12px;"><div class="loading-state"><div class="spinner"></div><p>Loading...</p></div></div>
+    </div>
+
+    <!-- Low stock warnings -->
+    <div class="chart-card" style="margin-bottom:16px;" id="lowStockCard">
+      <div class="chart-title" style="color:#C00000;">Low stock warnings</div>
+      <div class="chart-sub">Parts at or below minimum quantity</div>
+      <div id="lowStockList" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- Inner tabs -->
+    <div class="view-tabs" style="margin-bottom:14px;" id="invInnerTabs">
+      <div class="view-tab active" onclick="switchInvTab('today')">Today's Issues</div>
+      <div class="view-tab" onclick="switchInvTab('byline')">Search by Line</div>
+      <div class="view-tab" onclick="switchInvTab('stock')">Stock Search</div>
+      <div class="view-tab" onclick="switchInvTab('reorder')">Reorder List</div>
+      <div class="view-tab" onclick="switchInvTab('returns')">Returns</div>
+    </div>
+
+    <!-- Today's Issues -->
+    <div class="tab-view active" id="invTab-today">
+      <div class="chart-card" style="margin-bottom:16px;">
+        <div class="chart-title">Parts issued today</div>
+        <div class="chart-sub">All parts handed out during today's shift</div>
+        <div style="overflow-x:auto;margin-top:12px;" id="todayIssuesTable"></div>
+      </div>
+    </div>
+
+    <!-- Search by Line -->
+    <div class="tab-view" id="invTab-byline">
+      <div class="chart-card" style="margin-bottom:16px;">
+        <div class="chart-title">Parts issued by line</div>
+        <div class="chart-sub">Select a line to see all parts issued to it</div>
+        <div style="margin:12px 0;">
+          <select id="lineSearchSelect" onchange="searchByLine()" style="padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;min-width:200px;">
+            <option value="">— Select a line —</option>
+            <option>Line 1</option><option>Line 2</option><option>Line 3</option>
+            <option>Line 4</option><option>Line 5</option><option>Line 6</option>
+            <option>Line 7</option><option>Line 8</option><option>Line 9</option>
+            <option>Line 10</option><option>Line 11</option><option>Line 12</option>
+            <option>Line 13</option><option>Line 14</option><option>Line 15</option>
+            <option>Line 16</option><option>Line 17</option><option>Line 18</option>
+            <option>Line 19</option><option>Line 20</option><option>Line 21</option>
+            <option>Line 22</option><option>Line 23</option><option>Line 24</option>
+            <option>Pool A</option><option>Pool B</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto;" id="byLineTable"><div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">Select a line above</div></div>
+      </div>
+    </div>
+
+    <!-- Stock Search -->
+    <div class="tab-view" id="invTab-stock">
+      <div class="chart-card" style="margin-bottom:16px;">
+        <div class="chart-title">Stock search</div>
+        <div class="chart-sub">Search by part name or number</div>
+        <input type="text" id="stockSearchInput" placeholder="Type part name or number..."
+          oninput="searchStock()"
+          style="width:100%;padding:11px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin:12px 0;">
+        <div id="stockSearchResults"></div>
+      </div>
+    </div>
+
+    <!-- Reorder List -->
+    <div class="tab-view" id="invTab-reorder">
+      <div class="chart-card" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div class="chart-title">Reorder list</div>
+          <button onclick="exportReorderList()" style="background:#70AD47;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;color:white;cursor:pointer;">Export CSV</button>
+        </div>
+        <div class="chart-sub">Parts below minimum quantity — sorted by urgency</div>
+        <div id="reorderList" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- Returns -->
+    <div class="tab-view" id="invTab-returns">
+      <div class="chart-card" style="margin-bottom:16px;">
+        <div class="chart-title">Parts returns</div>
+        <div class="chart-sub">All returned parts — clerk can initiate a return from here</div>
+        <div style="margin:12px 0;display:flex;gap:10px;flex-wrap:wrap;">
+          <button onclick="showClerkReturnForm()" style="padding:8px 16px;background:#ED7D31;border:none;border-radius:8px;color:white;font-size:13px;font-weight:600;cursor:pointer;">+ Initiate Return</button>
+        </div>
+        <div style="overflow-x:auto;" id="returnsTable"><div class="loading-state"><div class="spinner"></div><p>Loading...</p></div></div>
+      </div>
+      <!-- Awaiting supplier -->
+      <div class="chart-card" id="supplierReturnCard" style="display:none;margin-bottom:16px;border-left:4px solid #C00000;">
+        <div class="chart-title" style="color:#C00000;">Awaiting supplier return</div>
+        <div class="chart-sub">Faulty parts to be returned to supplier</div>
+        <div id="supplierReturnList" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-grid" style="margin-bottom:16px;margin-top:16px;">
+      <div class="chart-card">
+        <div class="chart-title">Most requested parts</div>
+        <div class="chart-sub">Top 10 parts by total quantity requested</div>
+        <div class="chart-wrap tall"><canvas id="topPartsChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Parts usage by line</div>
+        <div class="chart-sub">Which lines consume the most parts</div>
+        <div class="chart-wrap tall"><canvas id="partsLineChart"></canvas></div>
+      </div>
+    </div>
+
+  </div><!-- end panel-inventory -->
+
+  <!-- STORAGE INDICATOR -->
+  <div class="storage-bar-card">
+    <div class="storage-label">Database storage</div>
+    <div class="storage-track">
+      <div class="storage-fill" id="storageFill" style="width:0%"></div>
+    </div>
+    <div class="storage-text" id="storageText">Checking...</div>
+    <div class="storage-pct" id="storagePct"></div>
+  </div>
+
+  <div class="footer" id="lastUpdated">Last updated: —</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://tdrlvyblmcqctifcikhq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkcmx2eWJsbWNxY3RpZmNpa2hxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NzYwNzEsImV4cCI6MjA4OTM1MjA3MX0.pZKNtb_CzDEPYk90sx0JRhsv1MOV75S3gv2oYFqVOWw';
+
+const ALL_LOCS = [
+  'Line 1','Line 2','Line 3','Line 4','Line 5','Line 6','Line 7','Line 8',
+  'Line 9','Line 10','Line 11','Line 12','Line 13','Line 14','Line 15',
+  'Line 16','Line 17','Line 18','Line 19','Line 20','Line 21','Line 22',
+  'Line 23','Line 24','Pool A','Pool B'
+];
+
+let allData = [];
+let filteredData = [];
+let autoInterval = null;
+let autoEnabled = true;
+let locationChart = null;
+let statusChart = null;
+
+// ── FETCH DATA ───────────────────────────────────────────────────────────────
+async function loadData() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/scan_log?select=asset_no,machine_type,mechanic,location,status,scan_timestamp,shift_date&order=scan_timestamp.desc&limit=1000',
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY
+        }
+      }
+    );
+
+    if (!res.ok) throw new Error('Status ' + res.status);
+
+    allData = await res.json();
+    applyFilter();
+
+    const now = new Date();
+    document.getElementById('lastUpdated').textContent =
+      'Last updated: ' + now.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    showToast('Data refreshed — ' + allData.length + ' records', 'success');
+    fetchStorageUsage();
+
+  } catch (e) {
+    showToast('Connection error. Retrying...', 'error');
+  }
+
+  btn.classList.remove('spinning');
+}
+
+// ── FILTER ───────────────────────────────────────────────────────────────────
+function applyFilter() {
+  const from = document.getElementById('dateFrom').value;
+  const to   = document.getElementById('dateTo').value;
+
+  if (from || to) {
+    filteredData = allData.filter(r => {
+      const d = (r.shift_date || (r.scan_timestamp || '').split('T')[0]);
+      if (from && d < from) return false;
+      if (to   && d > to)   return false;
+      return true;
+    });
+    const info = from && to
+      ? 'Showing ' + filteredData.length + ' records from ' + fmt(from) + ' to ' + fmt(to)
+      : from
+        ? 'Showing ' + filteredData.length + ' records from ' + fmt(from)
+        : 'Showing ' + filteredData.length + ' records up to ' + fmt(to);
+    document.getElementById('filterInfo').textContent = info;
+  } else {
+    filteredData = allData;
+    document.getElementById('filterInfo').textContent = '';
+  }
+
+  renderAll();
+}
+
+function fmt(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  return day + '/' + m + '/' + y;
+}
+
+function clearFilter() {
+  document.getElementById('dateFrom').value = '';
+  document.getElementById('dateTo').value = '';
+  filteredData = allData;
+  document.getElementById('filterInfo').textContent = '';
+  renderAll();
+}
+
+// ── RENDER ALL ───────────────────────────────────────────────────────────────
+function renderAll() {
+  renderKPIs();
+  renderLocationChart();
+  renderStatusChart();
+  renderStatusHeatmap();
+  renderStatusTable();
+  populateMachineTypeDropdown();
+  renderMachineSearch();
+  renderTable();
+}
+
+// ── KPIs ─────────────────────────────────────────────────────────────────────
+function renderKPIs() {
+  const d = filteredData;
+  document.getElementById('kpiTotal').textContent  = d.length;
+  document.getElementById('kpiActive').textContent  = d.filter(r => r.status === 'Active / In Use').length;
+  document.getElementById('kpiMinor').textContent   = d.filter(r => (r.status||'') === 'Under Maintenance — Minor').length;
+  document.getElementById('kpiMajor').textContent   = d.filter(r => (r.status||'') === 'Under Maintenance — Major').length;
+  document.getElementById('kpiMaint') && (document.getElementById('kpiMaint').textContent = d.filter(r => (r.status||'').startsWith('Under Maintenance')).length);
+  document.getElementById('kpiStored').textContent  = d.filter(r => r.location === 'Pool A' || r.location === 'Pool B').length;
+}
+
+// ── LOCATION BAR CHART ───────────────────────────────────────────────────────
+function renderLocationChart() {
+  const counts = ALL_LOCS.map(loc => filteredData.filter(r => r.location === loc).length);
+  const ctx = document.getElementById('locationChart').getContext('2d');
+
+  if (locationChart) locationChart.destroy();
+  locationChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ALL_LOCS,
+      datasets: [{
+        label: 'Assets',
+        data: counts,
+        backgroundColor: '#2E5597',
+        borderRadius: 4,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => items[0].label,
+            label: (item) => ' ' + item.raw + ' assets'
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: { size: 10 },
+            color: '#888',
+            maxRotation: 45,
+            minRotation: 45,
+            autoSkip: false
+          }
+        },
+        y: {
+          grid: { color: '#f0f2f5' },
+          ticks: { font: { size: 11 }, color: '#888', stepSize: 1 },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+// ── STATUS PIE CHART ─────────────────────────────────────────────────────────
+function renderStatusChart() {
+  const active = filteredData.filter(r => r.status === 'Active / In Use').length;
+  const minor  = filteredData.filter(r => (r.status||'') === 'Under Maintenance — Minor').length;
+  const major  = filteredData.filter(r => (r.status||'') === 'Under Maintenance — Major').length;
+  const maint  = filteredData.filter(r => (r.status||'').startsWith('Under Maintenance') && !r.status.includes('Minor') && !r.status.includes('Major')).length;
+  const stored = filteredData.filter(r => r.location === 'Pool A' || r.location === 'Pool B').length;
+  const ctx = document.getElementById('statusChart').getContext('2d');
+
+  // Build dynamic labels — only show segments with data
+  const labels = ['Active / In Use'];
+  const data   = [active];
+  const colors = ['#70AD47'];
+  if (minor > 0)  { labels.push('Maintenance — Minor'); data.push(minor); colors.push('#F5C518'); }
+  if (major > 0)  { labels.push('Maintenance — Major'); data.push(major); colors.push('#C00000'); }
+  if (maint > 0)  { labels.push('Under Maintenance');   data.push(maint); colors.push('#ED7D31'); }
+  if (stored > 0) { labels.push('Stored');               data.push(stored); colors.push('#2E5597'); }
+
+  if (statusChart) statusChart.destroy();
+  statusChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors,
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 12 }, padding: 16, usePointStyle: true }
+        },
+        tooltip: {
+          callbacks: {
+            label: (item) => ' ' + item.label + ': ' + item.raw
+          }
+        }
+      }
+    }
+  });
+}
+
+// ── CONDITION PER LOCATION (STACKED BAR) ─────────────────────────────────────
+function switchStatusView(name) {
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  document.querySelector(`.view-tab[onclick*="${name}"]`).classList.add('active');
+  document.getElementById('statusView-' + name).classList.add('active');
+}
+
+function cellClass(a, m, s) {
+  const total = a + m + s;
+  if (total === 0) return 'c-empty';
+  const mp = m / total;
+  if (mp === 0) return 'c-all-active';
+  if (mp < 0.2) return 'c-mostly';
+  if (mp < 0.4) return 'c-mixed';
+  if (mp < 0.7) return 'c-some-maint';
+  return 'c-high-maint';
+}
+
+function renderStatusHeatmap() {
+  const types = [...new Set(filteredData.map(r => r.machine_type).filter(Boolean))].sort();
+  if (types.length === 0) {
+    document.getElementById('heatmapContainer').innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;font-size:14px;">No data available</div>';
+    return;
+  }
+
+  let html = '<table class="hm-table"><thead><tr><th class="row-hdr">Machine type</th>';
+  ALL_LOCS.forEach(l => { html += `<th>${l.replace('Line ','L').replace('Pool ','P')}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  types.forEach(type => {
+    html += `<tr><td class="hm-row-label">${type}</td>`;
+    ALL_LOCS.forEach(loc => {
+      const recs = filteredData.filter(r => r.machine_type === type && r.location === loc);
+      const a = recs.filter(r => r.status === 'Active / In Use').length;
+      const m = recs.filter(r => (r.status||'').startsWith('Under Maintenance')).length;
+      const s = recs.filter(r => r.location === 'Pool A' || r.location === 'Pool B').length;
+      const total = a + m + s;
+      const cls = cellClass(a, m, s);
+      const tip = total === 0 ? 'No assets' : `Active:${a} Maint:${m} Stored:${s}`;
+      html += `<td class="hm-cell ${cls}" title="${loc} — ${type}: ${tip}">${total > 0 ? total : ''}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('heatmapContainer').innerHTML = html;
+}
+
+function renderStatusTable() {
+  let html = '<table class="sl-table"><thead><tr><th>Line</th><th class="num">Active</th><th class="num">Maintenance</th><th class="num">Stored</th><th class="num">Total</th><th>Breakdown</th></tr></thead><tbody>';
+  let hasData = false;
+
+  ALL_LOCS.forEach(loc => {
+    const a = filteredData.filter(r => r.location === loc && r.status === 'Active / In Use').length;
+    const m = filteredData.filter(r => r.location === loc && (r.status||'').startsWith('Under Maintenance')).length;
+    const s = filteredData.filter(r => (r.location === 'Pool A' || r.location === 'Pool B') && r.location === loc).length;
+    const total = a + m + s;
+    if (total === 0) return;
+    hasData = true;
+    const aW = Math.round((a / total) * 100);
+    const mW = Math.round((m / total) * 100);
+    const sW = 100 - aW - mW;
+    html += `<tr>
+      <td style="font-weight:600;">${loc}</td>
+      <td style="text-align:center;"><span class="count-pill pill-a">${a}</span></td>
+      <td style="text-align:center;"><span class="count-pill pill-m">${m}</span></td>
+      <td style="text-align:center;"><span class="count-pill pill-s">${s}</span></td>
+      <td style="text-align:center;font-weight:600;">${total}</td>
+      <td><div class="mini-bar-wrap">
+        ${aW > 0 ? `<div class="mini-bar mb-a" style="width:${aW}px;" title="Active: ${a}"></div>` : ''}
+        ${mW > 0 ? `<div class="mini-bar mb-m" style="width:${mW}px;" title="Maintenance: ${m}"></div>` : ''}
+        ${sW > 0 ? `<div class="mini-bar mb-s" style="width:${sW}px;" title="Stored: ${s}"></div>` : ''}
+      </div></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+
+  if (!hasData) {
+    document.getElementById('statusTableContainer').innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;font-size:14px;">No data available</div>';
+    return;
+  }
+  document.getElementById('statusTableContainer').innerHTML = html;
+}
+
+function populateMachineTypeDropdown() {
+  const types = [...new Set(filteredData.map(r => r.machine_type).filter(Boolean))].sort();
+  const sel = document.getElementById('machineTypeSearch');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Select a machine type —</option>';
+  types.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    if (t === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function renderMachineSearch() {
+  const type = document.getElementById('machineTypeSearch').value;
+  const container = document.getElementById('machineSearchResult');
+  if (!type) {
+    container.innerHTML = '<div class="search-placeholder">Select a machine type above to see its distribution</div>';
+    return;
+  }
+
+  const recs = filteredData.filter(r => r.machine_type === type);
+  const total = recs.length;
+  if (total === 0) {
+    container.innerHTML = `<div class="search-placeholder">No scans found for "${type}" in the selected period</div>`;
+    return;
+  }
+
+  let rows = '';
+  let hasData = false;
+  ALL_LOCS.forEach(loc => {
+    const a = recs.filter(r => r.location === loc && r.status === 'Active / In Use').length;
+    const m = recs.filter(r => r.location === loc && (r.status||'').startsWith('Under Maintenance')).length;
+    const s = recs.filter(r => r.location === 'Pool A' || r.location === 'Pool B').length;
+    const t = a + m + s;
+    if (t === 0) return;
+    hasData = true;
+    const pct = Math.round((t / total) * 100);
+    const aW = Math.round((a / t) * 120);
+    const mW = Math.round((m / t) * 120);
+    const sW = 120 - aW - mW;
+    rows += `<tr>
+      <td style="font-weight:600;">${loc}</td>
+      <td style="text-align:center;"><span class="count-pill pill-a">${a}</span></td>
+      <td style="text-align:center;"><span class="count-pill pill-m">${m}</span></td>
+      <td style="text-align:center;"><span class="count-pill pill-s">${s}</span></td>
+      <td style="text-align:center;font-weight:600;">${t}</td>
+      <td style="font-size:12px;color:#888;">${pct}%</td>
+      <td><div class="mini-bar-wrap">
+        ${aW > 0 ? `<div class="mini-bar mb-a" style="width:${aW}px;"></div>` : ''}
+        ${mW > 0 ? `<div class="mini-bar mb-m" style="width:${mW}px;"></div>` : ''}
+        ${sW > 0 ? `<div class="mini-bar mb-s" style="width:${sW}px;"></div>` : ''}
+      </div></td>
+    </tr>`;
+  });
+
+  if (!hasData) {
+    container.innerHTML = `<div class="search-placeholder">No location data found for "${type}"</div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+      <div style="background:#f5f5f5;border-radius:8px;padding:10px 16px;font-size:13px;">
+        <div style="font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Total</div>
+        <div style="font-size:22px;font-weight:700;color:#1a1a1a;">${total}</div>
+      </div>
+      <div style="background:#E2EFDA;border-radius:8px;padding:10px 16px;font-size:13px;">
+        <div style="font-size:11px;color:#3B6D11;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Active</div>
+        <div style="font-size:22px;font-weight:700;color:#27500A;">${recs.filter(r=>r.status==='Active / In Use').length}</div>
+      </div>
+      <div style="background:#F5C4B3;border-radius:8px;padding:10px 16px;font-size:13px;">
+        <div style="font-size:11px;color:#712B13;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Maintenance</div>
+        <div style="font-size:22px;font-weight:700;color:#4A1B0C;">${recs.filter(r=>r.status==='Under Maintenance').length}</div>
+      </div>
+      <div style="background:#DEEAF1;border-radius:8px;padding:10px 16px;font-size:13px;">
+        <div style="font-size:11px;color:#185FA5;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Stored</div>
+        <div style="font-size:22px;font-weight:700;color:#0C447C;">${recs.filter(r=>r.location==='Pool A'||r.location==='Pool B').length}</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="sl-table">
+        <thead><tr>
+          <th>Line</th>
+          <th class="num">Active</th>
+          <th class="num">Maintenance</th>
+          <th class="num">Stored</th>
+          <th class="num">Total</th>
+          <th class="num">Share</th>
+          <th>Breakdown</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+
+// ── RECENT SCANS TABLE ───────────────────────────────────────────────────────
+function renderTable() {
+  const container = document.getElementById('tableContainer');
+  const display = filteredData.slice(0, 100);
+  document.getElementById('tableCount').textContent =
+    'Showing ' + display.length + ' of ' + filteredData.length + ' records';
+
+  if (display.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>No scan records found for the selected period.</p></div>';
+    return;
+  }
+
+  let rows = display.map(r => {
+    const ts = r.scan_timestamp
+      ? new Date(r.scan_timestamp).toLocaleString('en-ZA', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        })
+      : '—';
+    const sd = r.shift_date || '—';
+    const badgeClass = r.status === 'Active / In Use' ? 'active'
+                     : (r.status||'').startsWith('Under Maintenance') ? 'maintenance'
+                     : 'stored';
+    return `<tr>
+      <td><strong>${r.asset_no || '—'}</strong></td>
+      <td>${r.machine_type || '—'}</td>
+      <td>${r.mechanic || '—'}</td>
+      <td>${r.location || '—'}</td>
+      <td><span class="status-badge ${badgeClass}">${r.status || '—'}</span></td>
+      <td>${ts}</td>
+      <td>${sd}</td>
+    </tr>`;
+  }).join('');
+
+  container.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Asset No</th>
+          <th>Machine Type</th>
+          <th>Mechanic</th>
+          <th>Location</th>
+          <th>Status</th>
+          <th>Scan Timestamp</th>
+          <th>Shift Date</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── AUTO REFRESH ──────────────────────────────────────────────────────────────
+function toggleAuto() {
+  autoEnabled = !autoEnabled;
+  const btn   = document.getElementById('autoToggle');
+  const dot   = document.getElementById('liveDot');
+  const label = document.getElementById('liveLabel');
+
+  if (autoEnabled) {
+    btn.classList.add('active');
+    btn.textContent = 'Auto 30s';
+    dot.classList.remove('paused');
+    label.textContent = 'Live';
+    startAutoRefresh();
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = 'Auto off';
+    dot.classList.add('paused');
+    label.textContent = 'Paused';
+    clearInterval(autoInterval);
+  }
+}
+
+function startAutoRefresh() {
+  clearInterval(autoInterval);
+  autoInterval = setInterval(loadData, 30000);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── EXPORT CSV ───────────────────────────────────────────────────────────────
+function exportCSV() {
+  if (filteredData.length === 0) {
+    showToast('No data to export.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('exportBtn');
+  btn.textContent = 'Exporting...';
+
+  const headers = ['Asset No', 'Machine Type', 'Mechanic', 'Location', 'Status', 'Scan Timestamp', 'Shift Date'];
+
+  const rows = filteredData.map(r => {
+    const ts = r.scan_timestamp
+      ? new Date(r.scan_timestamp).toLocaleString('en-ZA', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        })
+      : '';
+    const sd = r.shift_date || '';
+    return [
+      '"' + (r.asset_no     || '').replace(/"/g, '""') + '"',
+      '"' + (r.machine_type || '').replace(/"/g, '""') + '"',
+      '"' + (r.mechanic     || '').replace(/"/g, '""') + '"',
+      '"' + (r.location     || '').replace(/"/g, '""') + '"',
+      '"' + (r.status       || '').replace(/"/g, '""') + '"',
+      '"' + ts + '"',
+      '"' + sd + '"'
+    ].join(',');
+  });
+
+  const csv = [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+
+  const now = new Date();
+  const datePart = now.getFullYear() + '-' +
+    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+    String(now.getDate()).padStart(2, '0');
+  const fileName = 'PMT_Scan_Log_' + datePart + '.csv';
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('Exported ' + filteredData.length + ' records to ' + fileName, 'success');
+
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV`;
+}
+
+// ── STORAGE USAGE ─────────────────────────────────────────────────────────────
+async function fetchStorageUsage() {
+  const fillEl  = document.getElementById('storageFill');
+  const textEl  = document.getElementById('storageText');
+  const pctEl   = document.getElementById('storagePct');
+
+  try {
+    // Query Supabase pg_database_size via the rpc endpoint
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/rpc/get_db_size',
+      {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      }
+    );
+
+    if (res.ok) {
+      const bytes = await res.json();
+      renderStorage(bytes);
+      return;
+    }
+  } catch(e) {}
+
+  // Fallback: estimate from scan count (each row ~500 bytes avg)
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/scan_log?select=id',
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Prefer': 'count=exact',
+          'Range': '0-0'
+        }
+      }
+    );
+    const countHeader = res.headers.get('content-range');
+    if (countHeader) {
+      const total = parseInt(countHeader.split('/')[1]) || 0;
+      // master_data ~11000 rows * 100 bytes + scan rows * 500 bytes
+      const estimatedBytes = (11000 * 100) + (total * 500);
+      renderStorage(estimatedBytes, true);
+      return;
+    }
+  } catch(e) {}
+
+  textEl.textContent = 'Storage data unavailable';
+  pctEl.textContent = '';
+}
+
+function renderStorage(bytes, estimated = false) {
+  const fillEl = document.getElementById('storageFill');
+  const textEl = document.getElementById('storageText');
+  const pctEl  = document.getElementById('storagePct');
+
+  const LIMIT_BYTES = 500 * 1024 * 1024; // 500 MB
+  const usedMB  = (bytes / (1024 * 1024)).toFixed(1);
+  const limitMB = 500;
+  const pct     = Math.min(100, Math.round((bytes / LIMIT_BYTES) * 100));
+  const freeMB  = (limitMB - parseFloat(usedMB)).toFixed(1);
+
+  fillEl.style.width = pct + '%';
+  fillEl.className   = 'storage-fill' + (pct >= 80 ? ' danger' : pct >= 60 ? ' warn' : '');
+
+  textEl.textContent = usedMB + ' MB used of 500 MB' + (estimated ? ' (estimated)' : '');
+  pctEl.textContent  = freeMB + ' MB free — ' + pct + '%';
+
+  if (pct >= 80) {
+    pctEl.style.color = '#C00000';
+    pctEl.textContent += ' ⚠ Consider upgrading Supabase plan';
+  } else if (pct >= 60) {
+    pctEl.style.color = '#ED7D31';
+  } else {
+    pctEl.style.color = '#aaa';
+  }
+}
+
+// ── DOWNTIME DATA & RENDERING ─────────────────────────────────────────────────
+let allDowntime = [];
+let filteredDowntime = [];
+let dtLineChart = null;
+let dtTrendChart = null;
+let dtEfficiencyChart = null;
+let activeDtSection = 'all';
+
+const SECTIONS = {
+  all:    null,
+  green:  ['Line 1','Line 2','Line 3','Line 4','Line 5','Line 6'],
+  yellow: ['Line 7','Line 8','Line 9','Line 10','Line 11'],
+  purple: ['Line 14','Line 15','Line 16','Line 17','Line 18'],
+  blue:   ['Line 19','Line 20','Line 21','Line 22','Line 23','Line 24'],
+};
+
+const SECTION_LABELS = {
+  all: 'All lines', green: 'Green (Lines 1–6)',
+  yellow: 'Yellow (Lines 7–11)', purple: 'Purple (Lines 14–18)',
+  blue: 'Blue (Lines 19–24)'
+};
+
+function setSectionFilter(section) {
+  activeDtSection = section;
+  // Update button styles
+  ['all','green','yellow','purple','blue'].forEach(s => {
+    const btn = document.getElementById('section' + s.charAt(0).toUpperCase() + s.slice(1));
+    if (btn) btn.classList.toggle('active', s === section);
+  });
+  applyDtFilter();
+}
+
+async function loadDowntimeData() {
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/downtime_log?select=*&order=reported_time.desc&limit=500',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    allDowntime = await res.json();
+    applyDtFilter();
+  } catch(e) { console.error('Downtime fetch error', e); }
+}
+
+function applyDtFilter() {
+  const from = document.getElementById('dtDateFrom').value;
+  const to   = document.getElementById('dtDateTo').value;
+  const sectionLines = SECTIONS[activeDtSection];
+
+  let base = allDowntime;
+
+  // Apply date filter
+  if (from || to) {
+    base = base.filter(r => {
+      const d = (r.reported_time || '').split('T')[0];
+      if (from && d < from) return false;
+      if (to   && d > to)   return false;
+      return true;
+    });
+  }
+
+  // Apply section filter
+  if (sectionLines) {
+    base = base.filter(r => sectionLines.includes(r.line));
+  }
+
+  filteredDowntime = base;
+
+  // Update filter info
+  const parts = [];
+  if (from || to) parts.push((from || '…') + ' to ' + (to || '…'));
+  if (activeDtSection !== 'all') parts.push(SECTION_LABELS[activeDtSection]);
+  document.getElementById('dtFilterInfo').textContent = parts.length
+    ? 'Showing ' + filteredDowntime.length + ' records — ' + parts.join(' | ')
+    : '';
+
+  renderDowntime();
+}
+
+function clearDtFilter() {
+  document.getElementById('dtDateFrom').value = '';
+  document.getElementById('dtDateTo').value = '';
+  activeDtSection = 'all';
+  ['all','green','yellow','purple','blue'].forEach(s => {
+    const btn = document.getElementById('section' + s.charAt(0).toUpperCase() + s.slice(1));
+    if (btn) btn.classList.toggle('active', s === 'all');
+  });
+  filteredDowntime = allDowntime;
+  document.getElementById('dtFilterInfo').textContent = '';
+  renderDowntime();
+}
+
+function renderDowntime() {
+  renderDtKPIs();
+  renderTopOffenders();
+  renderOpenIncidents();
+  renderDtLineChart();
+  renderDtTrendChart();
+  renderDtEfficiencyChart();
+  renderFaultHeatmap();
+  renderFaultTable();
+}
+
+function fmtMins(mins) {
+  if (!mins && mins !== 0) return '—';
+  const h = Math.floor(mins / 60);
+  const m = Math.round(mins % 60);
+  return h > 0 ? h + 'h ' + m + 'm' : m + 'm';
+}
+
+// Shift operating minutes for a given date
+function getShiftMinutes(dateStr) {
+  if (!dateStr) return 540;
+  const d = new Date(dateStr);
+  const dow = d.getDay(); // 0=Sun, 1=Mon, 5=Fri, 6=Sat
+  if (dow === 0) return null;   // Sunday — no shift ever
+  if (dow === 6) return null;   // Saturday — standard is no shift (overtime possible but not default)
+  if (dow === 5) return 465;    // Friday: 07:45-15:30 = 465 min
+  return 540;                   // Mon-Thu: 07:45-16:45 = 540 min
+}
+
+function getTodayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function renderDtKPIs() {
+  // Apply section filter to allDowntime for section-aware KPIs
+  const sectionLines = SECTIONS[activeDtSection];
+  const sectionAll = sectionLines
+    ? allDowntime.filter(r => sectionLines.includes(r.line))
+    : allDowntime;
+
+  const open     = sectionAll.filter(r => r.status === 'Open' || r.status === 'Investigating');
+  const resolved = filteredDowntime.filter(r => r.status === 'Resolved');
+  const responseTimes = resolved.filter(r => r.response_minutes != null).map(r => r.response_minutes);
+  const repairTimes   = resolved.filter(r => r.repair_minutes != null).map(r => r.repair_minutes);
+  const avgResponse = responseTimes.length ? Math.round(responseTimes.reduce((a,b)=>a+b,0)/responseTimes.length) : null;
+  const avgRepair   = repairTimes.length   ? Math.round(repairTimes.reduce((a,b)=>a+b,0)/repairTimes.length)   : null;
+
+  // MTBF & efficiency — today's incidents scoped to active section
+  const today = getTodayStr();
+  const todayResolved = sectionAll.filter(r => r.status === 'Resolved' && (r.reported_time||'').startsWith(today));
+  const shiftMins = getShiftMinutes(today);
+  const noShift = shiftMins === null;
+
+  const totalDowntimeToday = todayResolved.reduce((s,r) => s+(r.total_downtime_minutes||0), 0);
+  const operatingMins = shiftMins != null ? Math.max(0, shiftMins - totalDowntimeToday) : 0;
+  const failures = todayResolved.length;
+  const mtbf = failures > 0 ? Math.round(operatingMins / failures) : null;
+  const efficiency = noShift ? null : shiftMins > 0 ? Math.round((operatingMins / shiftMins) * 100) : 100;
+
+  // Period avg efficiency — scoped to filtered + section data, full shift mins
+  const dayMap = {};
+  filteredDowntime.filter(r => r.status === 'Resolved' && r.reported_time).forEach(r => {
+    const d = r.reported_time.split('T')[0];
+    if (!dayMap[d]) dayMap[d] = 0;
+    dayMap[d] += r.total_downtime_minutes || 0;
+  });
+  const dayEfficiencies = Object.entries(dayMap)
+    .map(([d, dtMins]) => {
+      const sm = getShiftMinutes(d);
+      if (!sm) return null;
+      return Math.round(((sm - Math.min(dtMins, sm)) / sm) * 100);
+    })
+    .filter(v => v !== null);
+  const avgEfficiency = dayEfficiencies.length > 0
+    ? Math.round(dayEfficiencies.reduce((a,b) => a+b, 0) / dayEfficiencies.length)
+    : null;
+
+  // Update KPI sub-labels to show section context
+  const sectionLabel = activeDtSection === 'all' ? 'factory-wide' : SECTION_LABELS[activeDtSection];
+  document.getElementById('dtKpiOpen').closest('.dt-kpi').querySelector('.dt-kpi-sub').textContent     = sectionLabel;
+  document.getElementById('dtKpiTotal').closest('.dt-kpi').querySelector('.dt-kpi-sub').textContent    = sectionLabel;
+  document.getElementById('dtKpiMtbf').closest('.dt-kpi').querySelector('.dt-kpi-sub').textContent     = 'today — ' + sectionLabel;
+  document.getElementById('dtKpiEfficiency').closest('.dt-kpi').querySelector('.dt-kpi-sub').textContent = 'today — ' + sectionLabel;
+  document.getElementById('dtKpiAvgEfficiency').closest('.dt-kpi').querySelector('.dt-kpi-sub').textContent = sectionLabel;
+
+  document.getElementById('dtKpiOpen').textContent           = open.length;
+  document.getElementById('dtKpiTotal').textContent          = filteredDowntime.length;
+  document.getElementById('dtKpiResponse').textContent       = avgResponse != null ? avgResponse + ' min' : '—';
+  document.getElementById('dtKpiRepair').textContent         = avgRepair   != null ? avgRepair   + ' min' : '—';
+  document.getElementById('dtKpiMtbf').textContent           = noShift ? 'No shift' : mtbf != null ? mtbf + ' min' : 'No failures';
+  document.getElementById('dtKpiEfficiency').textContent     = noShift ? 'No shift' : efficiency + '%';
+  document.getElementById('dtKpiAvgEfficiency').textContent  = avgEfficiency != null ? avgEfficiency + '%' : '—';
+
+  // Colour today's efficiency KPI
+  const effEl = document.getElementById('dtKpiEfficiency').closest('.dt-kpi');
+  effEl.style.borderLeftColor = noShift ? '#888' : efficiency >= 90 ? '#70AD47' : efficiency >= 75 ? '#ED7D31' : '#C00000';
+
+  // Colour period avg efficiency KPI
+  const avgEl = document.getElementById('dtKpiAvgEfficiency').closest('.dt-kpi');
+  avgEl.style.borderLeftColor = avgEfficiency == null ? '#888' : avgEfficiency >= 90 ? '#70AD47' : avgEfficiency >= 75 ? '#ED7D31' : '#C00000';
+
+  renderRepeatAlerts();
+}
+
+function switchOffenderView(name) {
+  document.querySelectorAll('#offenderView-incidents, #offenderView-downtime').forEach(el => el.classList.remove('active'));
+  document.getElementById('offenderView-' + name).classList.add('active');
+  document.querySelectorAll('.chart-card .view-tab').forEach(t => {
+    if (t.getAttribute('onclick') && t.getAttribute('onclick').includes('switchOffenderView')) {
+      t.classList.toggle('active', t.getAttribute('onclick').includes(name));
+    }
+  });
+}
+
+function renderTopOffenders() {
+  const resolved = filteredDowntime.filter(r => r.status === 'Resolved');
+
+  // Group by asset
+  const byAsset = {};
+  filteredDowntime.forEach(r => {
+    if (!r.asset_no) return;
+    if (!byAsset[r.asset_no]) {
+      byAsset[r.asset_no] = {
+        asset_no: r.asset_no,
+        machine_type: r.machine_type || '—',
+        incidents: 0,
+        total_downtime: 0,
+        lines: new Set()
+      };
+    }
+    byAsset[r.asset_no].incidents++;
+    byAsset[r.asset_no].total_downtime += r.total_downtime_minutes || 0;
+    if (r.line) byAsset[r.asset_no].lines.add(r.line);
+  });
+
+  const assets = Object.values(byAsset);
+  if (assets.length === 0) {
+    const empty = '<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">No downtime data for selected period</div>';
+    document.getElementById('offenderByIncidents').innerHTML = empty;
+    document.getElementById('offenderByDowntime').innerHTML = empty;
+    return;
+  }
+
+  // Sort by incidents
+  const byInc = [...assets].sort((a,b) => b.incidents - a.incidents).slice(0, 10);
+  // Sort by downtime
+  const byDt  = [...assets].sort((a,b) => b.total_downtime - a.total_downtime).slice(0, 10);
+
+  document.getElementById('offenderByIncidents').innerHTML = offenderTable(byInc, 'incidents');
+  document.getElementById('offenderByDowntime').innerHTML  = offenderTable(byDt, 'downtime');
+}
+
+function offenderTable(assets, sortBy) {
+  const maxVal = sortBy === 'incidents'
+    ? Math.max(...assets.map(a => a.incidents))
+    : Math.max(...assets.map(a => a.total_downtime));
+
+  let html = '<table style="width:100%;border-collapse:collapse;">';
+  html += '<thead><tr style="border-bottom:2px solid #f0f2f5;">';
+  html += '<th style="text-align:left;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;padding:6px 8px;">Rank</th>';
+  html += '<th style="text-align:left;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;padding:6px 8px;">Asset</th>';
+  html += '<th style="text-align:left;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;padding:6px 8px;">Machine type</th>';
+  html += '<th style="text-align:left;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;padding:6px 8px;">Lines</th>';
+  html += '<th style="text-align:center;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;padding:6px 8px;">Incidents</th>';
+  html += '<th style="text-align:center;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;padding:6px 8px;">Downtime</th>';
+  html += '<th style="text-align:left;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;padding:6px 8px;min-width:100px;"></th>';
+  html += '</tr></thead><tbody>';
+
+  assets.forEach((a, i) => {
+    const rankColor = i === 0 ? '#C00000' : i === 1 ? '#ED7D31' : i === 2 ? '#C9A84C' : '#888';
+    const barVal = sortBy === 'incidents' ? a.incidents : a.total_downtime;
+    const barPct = maxVal > 0 ? Math.round((barVal / maxVal) * 100) : 0;
+    const barColor = i < 3 ? '#C00000' : i < 6 ? '#ED7D31' : '#2E5597';
+    const lines = [...a.lines].join(', ') || '—';
+
+    html += `<tr style="border-bottom:1px solid #f5f5f5;">
+      <td style="padding:10px 8px;text-align:center;">
+        <span style="font-size:13px;font-weight:700;color:${rankColor};">#${i+1}</span>
+      </td>
+      <td style="padding:10px 8px;font-size:13px;font-weight:700;color:#1F3864;">${a.asset_no}</td>
+      <td style="padding:10px 8px;font-size:12px;color:#555;">${a.machine_type}</td>
+      <td style="padding:10px 8px;font-size:11px;color:#888;">${lines}</td>
+      <td style="padding:10px 8px;text-align:center;">
+        <span style="font-size:13px;font-weight:700;color:#C00000;">${a.incidents}</span>
+      </td>
+      <td style="padding:10px 8px;text-align:center;">
+        <span style="font-size:12px;font-weight:600;color:#ED7D31;">${fmtMins(a.total_downtime)}</span>
+      </td>
+      <td style="padding:10px 8px;">
+        <div style="background:#f0f2f5;border-radius:4px;height:8px;overflow:hidden;">
+          <div style="background:${barColor};height:100%;width:${barPct}%;border-radius:4px;"></div>
+        </div>
+      </td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  return html;
+}
+
+function renderRepeatAlerts() {
+  const today = getTodayStr();
+  const sectionLines = SECTIONS[activeDtSection];
+  const todayAll = allDowntime.filter(r =>
+    (r.reported_time||'').startsWith(today) &&
+    (!sectionLines || sectionLines.includes(r.line))
+  );
+
+  // Group by asset
+  const byAsset = {};
+  todayAll.forEach(r => {
+    if (!r.asset_no) return;
+    if (!byAsset[r.asset_no]) byAsset[r.asset_no] = [];
+    byAsset[r.asset_no].push(r);
+  });
+
+  // Find assets with 2+ incidents today
+  const repeats = Object.entries(byAsset)
+    .filter(([_, recs]) => recs.length >= 2)
+    .sort((a, b) => b[1].length - a[1].length);
+
+  const section = document.getElementById('repeatAlertsSection');
+  const list    = document.getElementById('repeatAlertsList');
+
+  if (repeats.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+  list.innerHTML = repeats.map(([assetNo, recs]) => {
+    // Sort by reported time
+    const sorted = [...recs].sort((a,b) => new Date(a.reported_time) - new Date(b.reported_time));
+    const totalDt = sorted.reduce((s,r) => s+(r.total_downtime_minutes||0), 0);
+
+    const rows = sorted.map((r, i) => {
+      const t = r.reported_time ? new Date(r.reported_time).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : '—';
+      const rt = r.resolved_time ? new Date(r.resolved_time).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : null;
+      let gapHtml = '';
+      if (i > 0 && sorted[i-1].resolved_time && r.reported_time) {
+        const gapMins = Math.round((new Date(r.reported_time) - new Date(sorted[i-1].resolved_time)) / 60000);
+        if (gapMins >= 0) gapHtml = `<span class="repeat-alert-gap">${gapMins} min after last fix</span>`;
+      }
+      return `<div class="repeat-alert-row">
+        <span class="repeat-alert-time">${t}${rt ? ' → ' + rt : ''}</span>
+        <span>${r.fault || '—'}</span>
+        ${r.error_code ? `<span style="color:#888;">/ ${r.error_code}</span>` : ''}
+        ${gapHtml}
+      </div>`;
+    }).join('');
+
+    const warnMsg = sorted.length >= 2 && sorted[0].resolved_time && sorted[1].reported_time
+      ? Math.round((new Date(sorted[1].reported_time) - new Date(sorted[0].resolved_time)) / 60000) < 120
+        ? 'Broke down within 2 hours of last fix — possible misdiagnosis or cascade failure. Recommend full inspection.'
+        : 'Multiple incidents today — monitor closely.'
+      : 'Multiple incidents today — monitor closely.';
+
+    return `<div class="repeat-alert">
+      <div class="repeat-alert-top">
+        <div>
+          <span class="repeat-alert-asset">${assetNo}</span>
+          <span style="font-size:12px;color:#888;margin-left:8px;">${recs[0].machine_type || ''}</span>
+        </div>
+        <span class="repeat-alert-count">${recs.length} incidents today</span>
+      </div>
+      ${rows}
+      ${totalDt > 0 ? `<div style="font-size:11px;color:#843C0C;margin-top:6px;">Total downtime today: ${fmtMins(totalDt)}</div>` : ''}
+      <div class="repeat-alert-warn">${warnMsg}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderOpenIncidents() {
+  const open = allDowntime.filter(r => r.status === 'Open' || r.status === 'Investigating');
+  const el = document.getElementById('openIncidentsList');
+  if (open.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">No open incidents — all clear!</div>';
+    return;
+  }
+  el.innerHTML = open.map(r => {
+    const t = r.reported_time ? new Date(r.reported_time).toLocaleString('en-ZA',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+    const elapsed = r.reported_time ? Math.round((Date.now() - new Date(r.reported_time)) / 60000) : null;
+    const cls = r.status === 'Investigating' ? 'investigating' : '';
+    const pillCls = r.status === 'Investigating' ? 'inc-investigating' : 'inc-open';
+    return `<div class="incident-card ${cls}">
+      <div class="incident-left">
+        <div class="incident-asset">${r.asset_no || '—'} <span style="font-size:12px;font-weight:400;color:#888;">${r.machine_type || ''}</span></div>
+        <div class="incident-detail">${r.line || '—'} &nbsp;|&nbsp; ${r.fault || '—'}</div>
+        <div class="incident-time">Reported: ${t}${r.mechanic ? ' &nbsp;|&nbsp; Mechanic: ' + r.mechanic : ''}</div>
+      </div>
+      <div class="incident-right">
+        <span class="inc-pill ${pillCls}">${r.status}</span>
+        ${elapsed != null ? `<div class="inc-duration">${fmtMins(elapsed)} ago</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDtLineChart() {
+  // Show only lines relevant to active section
+  const sectionLines = SECTIONS[activeDtSection];
+  const ALL_LINES = sectionLines || Array.from({length:24},(_,i)=>'Line '+(i+1));
+  const resolved = filteredDowntime.filter(r => r.status === 'Resolved');
+
+  const counts = ALL_LINES.map(l => {
+    const recs = resolved.filter(r => r.line === l);
+    return recs.reduce((sum, r) => sum + (r.total_downtime_minutes || 0), 0);
+  });
+
+  // Colour bars by section
+  const sectionColor = {
+    green: '#2D7D46', yellow: '#C9A84C', purple: '#6B3FA0', blue: '#1B4F8A', all: '#ED7D31'
+  };
+  const barColor = ALL_LINES.map(l => {
+    if (SECTIONS.green  && SECTIONS.green.includes(l))  return '#2D7D46';
+    if (SECTIONS.yellow && SECTIONS.yellow.includes(l)) return '#C9A84C';
+    if (SECTIONS.purple && SECTIONS.purple.includes(l)) return '#6B3FA0';
+    if (SECTIONS.blue   && SECTIONS.blue.includes(l))   return '#1B4F8A';
+    return '#888'; // Lines 12, 13 — not in any section
+  });
+
+  const ctx = document.getElementById('dtLineChart').getContext('2d');
+  if (dtLineChart) dtLineChart.destroy();
+  dtLineChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: ALL_LINES, datasets: [{ label: 'Downtime (min)', data: counts,
+      backgroundColor: activeDtSection === 'all' ? barColor : sectionColor[activeDtSection],
+      borderRadius: 4, borderSkipped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#888', maxRotation: 45, minRotation: 45 } },
+                y: { grid: { color: '#f0f2f5' }, ticks: { font: { size: 10 }, color: '#888' }, beginAtZero: true } } }
+  });
+}
+
+function renderDtTrendChart() {
+  const resolved = filteredDowntime.filter(r => r.status === 'Resolved' && r.reported_time);
+  const byDay = {};
+  resolved.forEach(r => {
+    const d = r.reported_time.split('T')[0];
+    byDay[d] = (byDay[d] || 0) + (r.total_downtime_minutes || 0);
+  });
+  const days = Object.keys(byDay).sort();
+  const ctx = document.getElementById('dtTrendChart').getContext('2d');
+  if (dtTrendChart) dtTrendChart.destroy();
+  dtTrendChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: days.map(d => { const p=d.split('-'); return p[2]+'/'+p[1]; }),
+      datasets: [{ label: 'Downtime (min)', data: days.map(d=>byDay[d]), borderColor: '#ED7D31', backgroundColor: 'rgba(237,125,49,0.1)', borderWidth: 2, pointRadius: 4, fill: true, tension: 0.3 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#888' } }, y: { grid: { color: '#f0f2f5' }, ticks: { font: { size: 10 }, color: '#888' }, beginAtZero: true } } }
+  });
+}
+
+const FAULT_TYPES = [
+  'Thread breaking', 'Needle breaking', 'Skipped stitches',
+  'Machine not feeding', 'Machine not sewing',
+  'Unusual noise / vibration', 'Machine stopped — error light'
+];
+const DT_LINES_ALL = Array.from({length:24}, (_,i) => 'Line '+(i+1));
+// DT_LINES is computed dynamically in render functions based on active section
+
+function faultCellClass(count, max) {
+  if (count === 0) return 'c-empty';
+  const pct = count / Math.max(max, 1);
+  if (pct < 0.25) return 'c-mostly';
+  if (pct < 0.5)  return 'c-mixed';
+  if (pct < 0.75) return 'c-some-maint';
+  return 'c-high-maint';
+}
+
+function renderDtEfficiencyChart() {
+  // Build daily efficiency from filteredDowntime
+  const dayMap = {};
+  filteredDowntime.filter(r => r.status === 'Resolved' && r.reported_time).forEach(r => {
+    const d = r.reported_time.split('T')[0];
+    if (!dayMap[d]) dayMap[d] = 0;
+    dayMap[d] += r.total_downtime_minutes || 0;
+  });
+
+  // Get all weekdays in the filtered range
+  const days = Object.keys(dayMap).sort().filter(d => getShiftMinutes(d) !== null);
+
+  if (days.length === 0) {
+    // No data — destroy chart and show placeholder
+    if (dtEfficiencyChart) { dtEfficiencyChart.destroy(); dtEfficiencyChart = null; }
+    return;
+  }
+
+  const efficiencies = days.map(d => {
+    const sm = getShiftMinutes(d);
+    const dtMins = dayMap[d] || 0;
+    return Math.round(((sm - Math.min(dtMins, sm)) / sm) * 100);
+  });
+
+  const labels = days.map(d => {
+    const p = d.split('-');
+    return p[2] + '/' + p[1];
+  });
+
+  const ctx = document.getElementById('dtEfficiencyChart').getContext('2d');
+  if (dtEfficiencyChart) dtEfficiencyChart.destroy();
+  dtEfficiencyChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Efficiency %',
+        data: efficiencies,
+        borderColor: '#70AD47',
+        backgroundColor: 'rgba(112,173,71,0.1)',
+        borderWidth: 2,
+        pointRadius: 5,
+        pointBackgroundColor: efficiencies.map(e =>
+          e >= 90 ? '#70AD47' : e >= 75 ? '#ED7D31' : '#C00000'
+        ),
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: item => ' ' + item.raw + '% efficiency'
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 10 }, color: '#888' }
+        },
+        y: {
+          min: 0, max: 100,
+          grid: { color: '#f0f2f5' },
+          ticks: {
+            font: { size: 10 }, color: '#888',
+            callback: val => val + '%'
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderFaultHeatmap() {
+  const container = document.getElementById('faultHeatmapContainer');
+  const DT_LINES = SECTIONS[activeDtSection] || DT_LINES_ALL;
+  if (filteredDowntime.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">No data for selected period</div>';
+    return;
+  }
+
+  // Find max count for colour scaling
+  let maxCount = 0;
+  FAULT_TYPES.forEach(ft => {
+    DT_LINES.forEach(line => {
+      const cnt = filteredDowntime.filter(r => r.fault === ft && r.line === line).length;
+      if (cnt > maxCount) maxCount = cnt;
+    });
+  });
+
+  let html = '<table class="hm-table"><thead><tr><th class="row-hdr">Fault</th>';
+  DT_LINES.forEach(l => { html += `<th>${l.replace('Line ','L')}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  FAULT_TYPES.forEach(ft => {
+    html += `<tr><td class="hm-row-label" style="font-size:11px;">${ft}</td>`;
+    DT_LINES.forEach(line => {
+      const cnt = filteredDowntime.filter(r => r.fault === ft && r.line === line).length;
+      const cls = faultCellClass(cnt, maxCount);
+      html += `<td class="hm-cell ${cls}" title="${line} — ${ft}: ${cnt} incident${cnt !== 1 ? 's' : ''}">${cnt > 0 ? cnt : ''}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderFaultTable() {
+  const container = document.getElementById('faultTableContainer');
+  if (filteredDowntime.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">No data for selected period</div>';
+    return;
+  }
+
+  // Build table: rows = lines, cols = faults + total
+  const DT_LINES = SECTIONS[activeDtSection] || DT_LINES_ALL;
+  const lines = DT_LINES.filter(l => filteredDowntime.some(r => r.line === l));
+  if (lines.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">No data for selected period</div>';
+    return;
+  }
+
+  let html = '<table class="sl-table"><thead><tr><th>Line</th>';
+  FAULT_TYPES.forEach(ft => { html += `<th class="num" style="font-size:10px;">${ft.length > 20 ? ft.substring(0,18)+'…' : ft}</th>`; });
+  html += '<th class="num">Total</th></tr></thead><tbody>';
+
+  lines.forEach(line => {
+    const lineRecs = filteredDowntime.filter(r => r.line === line);
+    html += `<tr><td style="font-weight:600;white-space:nowrap;">${line}</td>`;
+    FAULT_TYPES.forEach(ft => {
+      const cnt = lineRecs.filter(r => r.fault === ft).length;
+      html += `<td style="text-align:center;">${cnt > 0 ? `<span class="count-pill" style="background:#F5C4B3;color:#712B13;">${cnt}</span>` : '<span style="color:#ccc;">—</span>'}</td>`;
+    });
+    html += `<td style="text-align:center;font-weight:700;">${lineRecs.length}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function switchFaultView(name) {
+  document.querySelectorAll('.view-tab').forEach(t => {
+    if (t.getAttribute('onclick') && t.getAttribute('onclick').includes('switchFaultView')) {
+      t.classList.toggle('active', t.getAttribute('onclick').includes(name));
+    }
+  });
+  document.getElementById('faultView-heatmap').classList.toggle('active', name === 'heatmap');
+  document.getElementById('faultView-table').classList.toggle('active', name === 'table');
+}
+
+// ── ASSET LIFECYCLE ───────────────────────────────────────────────────────────
+let lcDebounceTimer = null;
+let lcAssets = []; // cached unique asset numbers from scan data
+
+function lcSearchDebounce() {
+  clearTimeout(lcDebounceTimer);
+  lcDebounceTimer = setTimeout(showLcSuggestions, 250);
+}
+
+function showLcSuggestions() {
+  const q = document.getElementById('lcAssetInput').value.trim().toLowerCase();
+  const box = document.getElementById('lcSuggestions');
+  if (q.length < 2) { box.style.display = 'none'; return; }
+
+  // Build asset list from scan data if not cached
+  if (lcAssets.length === 0) {
+    lcAssets = [...new Set(allData.map(r => r.asset_no).filter(Boolean))].sort((a,b) => {
+      const na = parseFloat(a), nb = parseFloat(b);
+      return (!isNaN(na) && !isNaN(nb)) ? na - nb : String(a).localeCompare(String(b));
+    });
+  }
+
+  const matches = lcAssets.filter(a => String(a).toLowerCase().includes(q)).slice(0, 10);
+  if (matches.length === 0) { box.style.display = 'none'; return; }
+
+  box.innerHTML = matches.map(a =>
+    `<div onclick="selectLcAsset('${a}')"
+      style="padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid #f5f5f5;"
+      onmouseover="this.style.background='#f0f2f5'" onmouseout="this.style.background='white'">
+      ${a}
+    </div>`
+  ).join('');
+  box.style.display = 'block';
+}
+
+function selectLcAsset(assetNo) {
+  document.getElementById('lcAssetInput').value = assetNo;
+  document.getElementById('lcSuggestions').style.display = 'none';
+  loadLifecycle();
+}
+
+// Hide suggestions when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('#lcAssetInput') && !e.target.closest('#lcSuggestions')) {
+    const box = document.getElementById('lcSuggestions');
+    if (box) box.style.display = 'none';
+  }
+});
+
+async function loadLifecycle() {
+  const assetNo = document.getElementById('lcAssetInput').value.trim();
+  document.getElementById('lcSuggestions').style.display = 'none';
+  document.getElementById('lcKpiRow').style.display = 'none';
+  document.getElementById('lcTimeline').style.display = 'none';
+  document.getElementById('lcEmpty').style.display = 'block';
+  document.getElementById('lcAssetType').textContent = '';
+
+  if (!assetNo) return;
+
+  // Get machine type from master data
+  try {
+    const mtRes = await fetch(
+      SUPABASE_URL + '/rest/v1/master_data?asset_no=eq.' + encodeURIComponent(assetNo) + '&select=asset_type',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    const mtData = await mtRes.json();
+    if (mtData.length > 0 && mtData[0].asset_type) {
+      document.getElementById('lcAssetType').textContent = mtData[0].asset_type;
+    }
+  } catch(e) {}
+
+  // Fetch all scans for this asset
+  const [scanRes, dtRes] = await Promise.all([
+    fetch(SUPABASE_URL + '/rest/v1/scan_log?asset_no=eq.' + encodeURIComponent(assetNo) + '&select=*&order=scan_timestamp.asc',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }),
+    fetch(SUPABASE_URL + '/rest/v1/downtime_log?asset_no=eq.' + encodeURIComponent(assetNo) + '&select=*&order=reported_time.asc',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } })
+  ]);
+
+  const scans    = await scanRes.json();
+  const incidents = await dtRes.json();
+
+  if (scans.length === 0 && incidents.length === 0) {
+    document.getElementById('lcEmpty').innerHTML = '<div style="text-align:center;padding:60px;color:#aaa;font-size:14px;">No records found for asset ' + assetNo + '</div>';
+    return;
+  }
+
+  // Render KPIs
+  const totalDowntime = incidents.filter(i => i.status === 'Resolved').reduce((s, i) => s + (i.total_downtime_minutes || 0), 0);
+
+  // Last seen — whichever is more recent: last scan or last incident
+  const lastScan     = scans.length > 0     ? scans[scans.length - 1]         : null;
+  const lastIncident = incidents.length > 0  ? incidents[incidents.length - 1] : null;
+
+  let lastActivity = null;
+  let lastActivityType = '';
+  let lastActivityDate = null;
+  let lastActivityLocation = '—';
+
+  if (lastScan && lastIncident) {
+    const scanTime     = new Date(lastScan.scan_timestamp);
+    const incidentTime = new Date(lastIncident.reported_time);
+    if (scanTime >= incidentTime) {
+      lastActivity = lastScan;
+      lastActivityType = 'Scan';
+      lastActivityDate = lastScan.scan_timestamp;
+      lastActivityLocation = lastScan.location || '—';
+    } else {
+      lastActivity = lastIncident;
+      lastActivityType = 'Downtime';
+      lastActivityDate = lastIncident.reported_time;
+      lastActivityLocation = lastIncident.line || '—';
+    }
+  } else if (lastScan) {
+    lastActivity = lastScan;
+    lastActivityType = 'Scan';
+    lastActivityDate = lastScan.scan_timestamp;
+    lastActivityLocation = lastScan.location || '—';
+  } else if (lastIncident) {
+    lastActivity = lastIncident;
+    lastActivityType = 'Downtime';
+    lastActivityDate = lastIncident.reported_time;
+    lastActivityLocation = lastIncident.line || '—';
+  }
+
+  document.getElementById('lcKpiScans').textContent     = scans.length;
+  document.getElementById('lcKpiIncidents').textContent = incidents.length;
+  document.getElementById('lcKpiDowntime').textContent  = totalDowntime + ' min';
+  document.getElementById('lcKpiLastSeen').textContent  = lastActivityDate ? formatShortDate(lastActivityDate) : '—';
+  document.getElementById('lcKpiLastLine').textContent  = lastActivity
+    ? lastActivityLocation + ' (' + lastActivityType + ')'
+    : '—';
+  document.getElementById('lcKpiRow').style.display = 'block';
+
+  // Build merged timeline
+  const events = [];
+  scans.forEach(s => events.push({ type: 'scan', time: s.scan_timestamp, data: s }));
+  incidents.forEach(i => events.push({ type: 'incident', time: i.reported_time, data: i }));
+  events.sort((a, b) => new Date(b.time) - new Date(a.time)); // newest first
+
+  document.getElementById('lcTimelineSub').textContent =
+    scans.length + ' scan' + (scans.length !== 1 ? 's' : '') + ' and ' +
+    incidents.length + ' incident' + (incidents.length !== 1 ? 's' : '') + ' — newest first';
+
+  document.getElementById('lcTimelineContent').innerHTML =
+    '<div class="timeline">' + events.map(e => renderTimelineItem(e)).join('') + '</div>';
+
+  document.getElementById('lcTimeline').style.display = 'block';
+  document.getElementById('lcEmpty').style.display = 'none';
+}
+
+function formatShortDate(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-ZA', { day: '2-digit', month: 'short' });
+}
+
+function formatDateTime(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' +
+         d.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
+}
+
+function renderTimelineItem(e) {
+  if (e.type === 'scan') {
+    const s = e.data;
+    const statusColor = s.status === 'Active / In Use' ? '#70AD47' : s.status === 'Under Maintenance' ? '#ED7D31' : '#2E5597';
+    return `<div class="tl-item">
+      <div class="tl-dot scan"></div>
+      <div class="tl-date">${formatDateTime(s.scan_timestamp)}</div>
+      <div class="tl-card scan-card">
+        <div class="tl-title">
+          <span style="color:${statusColor};font-size:12px;">&#9679;</span>
+          &nbsp;Scanned — ${s.status || '—'}
+        </div>
+        <div class="tl-detail">Location: ${s.location || '—'}</div>
+        <div class="tl-meta">By: ${s.mechanic || '—'} &nbsp;|&nbsp; Shift: ${s.shift_date || '—'}</div>
+      </div>
+    </div>`;
+  } else {
+    const i = e.data;
+    const isResolved = i.status === 'Resolved';
+    const cardClass = isResolved ? 'resolved-card' : 'incident-card-tl';
+    const dotClass  = isResolved ? 'resolved' : 'incident';
+    return `<div class="tl-item">
+      <div class="tl-dot ${dotClass}"></div>
+      <div class="tl-date">${formatDateTime(i.reported_time)}</div>
+      <div class="tl-card ${cardClass}">
+        <div class="tl-title">${isResolved ? '&#10003; Resolved' : '&#9888; Machine down'} — ${i.fault || '—'}</div>
+        <div class="tl-detail">Line: ${i.line || '—'}</div>
+        ${i.error_code ? `<div class="tl-detail">Root cause: ${i.error_code}</div>` : ''}
+        ${i.mechanic ? `<div class="tl-detail">Fixed by: ${i.mechanic}</div>` : ''}
+        ${i.corrective_measures ? `<div class="tl-detail">Action: ${i.corrective_measures}</div>` : ''}
+        ${i.total_downtime_minutes ? `<div><span class="tl-downtime">Downtime: ${fmtMins(i.total_downtime_minutes)}</span></div>` : ''}
+        <div class="tl-meta">${i.status}${i.resolved_time ? ' at ' + formatDateTime(i.resolved_time) : ''}</div>
+      </div>
+    </div>`;
+  }
+}
+
+// ── INVENTORY ─────────────────────────────────────────────────────────────────
+let allRequests  = [];
+let allInventory = [];
+let allReturns   = [];
+let topPartsChart = null;
+let partsLineChart = null;
+
+function saveClerkName() {
+  const name = document.getElementById('clerkNameSelect').value;
+  try { localStorage.setItem('pmt_clerk_name', name); } catch(e) {}
+}
+
+function loadClerkName() {
+  try {
+    const saved = localStorage.getItem('pmt_clerk_name');
+    if (saved) {
+      const sel = document.getElementById('clerkNameSelect');
+      sel.value = saved;
+    }
+  } catch(e) {}
+}
+
+async function loadInventoryData() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const [reqRes, invRes, retRes] = await Promise.all([
+      fetch(SUPABASE_URL + '/rest/v1/parts_requests?select=*&order=requested_time.desc',
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }),
+      fetch(SUPABASE_URL + '/rest/v1/parts_inventory?select=*&order=description.asc&limit=500',
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }),
+      fetch(SUPABASE_URL + '/rest/v1/parts_returns?select=*&order=return_time.desc',
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } })
+    ]);
+    allRequests  = await reqRes.json();
+    allInventory = await invRes.json();
+    allReturns   = await retRes.json();
+    loadClerkName();
+    renderInventory();
+  } catch(e) { showToast('Could not load inventory data.', 'error'); }
+}
+
+function renderInventory() {
+  const today = new Date().toISOString().split('T')[0];
+  const pending      = allRequests.filter(r => r.status === 'Pending');
+  const issuedToday  = allRequests.filter(r => r.status === 'Issued' && (r.issued_time||'').startsWith(today));
+  const lowStock     = allInventory.filter(p => p.min_qty > 0 && p.stock_qty <= p.min_qty);
+  const awaitSupplier = allReturns.filter(r => r.supplier_return_status === 'Awaiting supplier return');
+
+  document.getElementById('invKpiPending').textContent     = pending.length;
+  document.getElementById('invKpiLowStock').textContent    = lowStock.length;
+  document.getElementById('invKpiTotal').textContent       = allInventory.length;
+  document.getElementById('invKpiIssuedToday').textContent = issuedToday.length;
+  document.getElementById('invKpiSupplier').textContent    = awaitSupplier.length;
+
+  renderPendingRequests(pending);
+  renderLowStock(lowStock);
+  renderTodayIssues(issuedToday);
+  renderReorderList(lowStock);
+  renderReturnsTable();
+  renderSupplierReturns(awaitSupplier);
+  renderTopPartsChart();
+  renderPartsLineChart();
+}
+
+function getClerkName() {
+  return document.getElementById('clerkNameSelect').value;
+}
+
+function renderPendingRequests(pending) {
+  const el = document.getElementById('pendingRequestsList');
+  if (pending.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">No pending requests — all clear!</div>';
+    return;
+  }
+  el.innerHTML = pending.map(r => {
+    const t = r.requested_time ? new Date(r.requested_time).toLocaleString('en-ZA',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+    return `<div class="req-card">
+      <div class="req-top">
+        <div>
+          <div class="req-part">${r.part_description || r.part_no || '—'}</div>
+          ${r.part_no ? '<div style="font-size:11px;color:#888;">' + r.part_no + '</div>' : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="req-qty">x${r.quantity}</span>
+          <button class="issue-btn" onclick="issuePart(${r.id})">Issue</button>
+        </div>
+      </div>
+      <div class="req-detail">Asset: ${r.asset_no||'—'} | ${r.line||'—'} | ${r.machine_type||'—'}</div>
+      <div class="req-meta">By ${r.mechanic||'—'} at ${t}</div>
+    </div>`;
+  }).join('');
+}
+
+async function issuePart(requestId) {
+  const req = allRequests.find(r => r.id === requestId);
+  if (!req) return;
+  const clerkName = getClerkName();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'issueOverlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:white;border-radius:14px;padding:20px;width:100%;max-width:440px;box-shadow:0 8px 32px rgba(0,0,0,0.2);max-height:90vh;overflow-y:auto;">
+      <div style="font-size:16px;font-weight:700;color:#1F3864;margin-bottom:4px;">Issue Part</div>
+      <div style="font-size:13px;color:#666;margin-bottom:4px;">Requested: <strong>${req.part_description||req.part_no||'—'}</strong> x${req.quantity}</div>
+      <div style="font-size:11px;color:#888;margin-bottom:16px;">Asset: ${req.asset_no||'—'} | ${req.machine_type||'—'} | ${req.line||'—'}</div>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Search &amp; match part number (optional)</label>
+        <input type="text" id="issuePartSearch" placeholder="Type part name or number to search..."
+          oninput="filterIssuePartList()"
+          style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;margin-bottom:6px;">
+        <select id="issuePartNo" size="5" style="width:100%;padding:6px;border:1.5px solid #ddd;border-radius:8px;font-size:12px;height:120px;">
+          <option value="">— No part number match —</option>
+          ${allInventory.map(p => `<option value="${p.part_no}">${p.description} (${p.part_no}) — Stock: ${p.stock_qty}</option>`).join('')}
+        </select>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Issuing clerk</label>
+        <select id="issueClerkName" style="width:100%;padding:11px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;">
+          <option value="">— Select name —</option>
+          <option ${clerkName==='Mary-Ann'?'selected':''}>Mary-Ann</option>
+          <option ${clerkName==='Jolene'?'selected':''}>Jolene</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button onclick="document.getElementById('issueOverlay').remove()"
+          style="padding:12px;border:1.5px solid #ddd;border-radius:8px;background:white;font-size:14px;cursor:pointer;">Cancel</button>
+        <button onclick="confirmIssue(${requestId}, this)"
+          style="padding:12px;background:#70AD47;border:none;border-radius:8px;color:white;font-size:14px;font-weight:700;cursor:pointer;">Confirm Issue</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function filterIssuePartList() {
+  const q   = (document.getElementById('issuePartSearch').value || '').trim().toLowerCase();
+  const sel = document.getElementById('issuePartNo');
+  const filtered = q.length < 2
+    ? allInventory
+    : allInventory.filter(p =>
+        (p.description||'').toLowerCase().includes(q) ||
+        (p.part_no||'').toLowerCase().includes(q)
+      );
+  sel.innerHTML = '<option value="">— No part number match —</option>' +
+    filtered.map(p =>
+      `<option value="${p.part_no}">${p.description} (${p.part_no}) — Stock: ${p.stock_qty}</option>`
+    ).join('');
+}
+
+async function confirmIssue(requestId, btn) {
+  const clerkName = document.getElementById('issueClerkName').value;
+  const partNo    = document.getElementById('issuePartNo').value;
+  if (!clerkName) { showToast('Please select your name.', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Issuing...';
+  const req = allRequests.find(r => r.id === requestId);
+  try {
+    const payload = { status: 'Issued', issued_time: new Date().toISOString(), issued_by: clerkName };
+    if (partNo) payload.part_no = partNo;
+    await fetch(SUPABASE_URL + '/rest/v1/parts_requests?id=eq.' + requestId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    if (partNo && req) {
+      const part = allInventory.find(p => p.part_no === partNo);
+      if (part && part.stock_qty > 0) {
+        await fetch(SUPABASE_URL + '/rest/v1/parts_inventory?part_no=eq.' + encodeURIComponent(partNo), {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ stock_qty: Math.max(0, part.stock_qty - req.quantity), updated_at: new Date().toISOString() })
+        });
+      }
+    }
+    // Remember clerk name
+    try { localStorage.setItem('pmt_clerk_name', clerkName); } catch(e) {}
+    document.getElementById('clerkNameSelect').value = clerkName;
+    document.getElementById('issueOverlay').remove();
+    showToast('Part issued!', 'success');
+    await loadInventoryData();
+  } catch(e) { showToast('Issue failed.', 'error'); btn.disabled = false; btn.textContent = 'Confirm Issue'; }
+}
+
+function renderLowStock(lowStock) {
+  const card = document.getElementById('lowStockCard');
+  const el   = document.getElementById('lowStockList');
+  if (lowStock.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  el.innerHTML = lowStock.map(p => {
+    const cls  = p.stock_qty === 0 ? 'stock-zero' : 'stock-low';
+    const text = p.stock_qty === 0 ? 'OUT OF STOCK' : p.stock_qty + ' left';
+    return `<div class="low-stock-row">
+      <div>
+        <div class="low-stock-name">${p.description}</div>
+        <div class="low-stock-part">${p.part_no} | ${p.machine_type||'—'} | ${p.supplier||'—'}</div>
+      </div>
+      <span class="stock-badge ${cls}">${text}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderTodayIssues(issued) {
+  const el = document.getElementById('todayIssuesTable');
+  if (issued.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">No parts issued today yet.</div>';
+    return;
+  }
+  let html = '<table class="sl-table"><thead><tr><th>Time</th><th>Part</th><th>Qty</th><th>Mechanic</th><th>Asset</th><th>Line</th><th>Clerk</th></tr></thead><tbody>';
+  issued.forEach(r => {
+    const t = r.issued_time ? new Date(r.issued_time).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const consumed = r.quantity_consumed != null ? r.quantity_consumed : '—';
+    const returned = r.quantity_returned || 0;
+    html += `<tr>
+      <td>${t}</td>
+      <td><strong>${r.part_description||r.part_no||'—'}</strong></td>
+      <td style="text-align:center;">
+        <span style="color:#2E5597;font-weight:600;">x${r.quantity}</span>
+        ${returned > 0 ? '<br><span style="color:#ED7D31;font-size:10px;">returned x' + returned + '</span>' : ''}
+      </td>
+      <td>${r.mechanic||'—'}</td>
+      <td>${r.asset_no||'—'}</td>
+      <td>${r.line||'—'}</td>
+      <td>${r.issued_by||'—'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function switchInvTab(tab) {
+  const tabs = ['today','byline','stock','reorder','returns'];
+  document.querySelectorAll('#invInnerTabs .view-tab').forEach((t,i) => t.classList.toggle('active', tabs[i] === tab));
+  tabs.forEach(t => {
+    const el = document.getElementById('invTab-' + t);
+    if (el) el.classList.toggle('active', t === tab);
+  });
+  if (tab === 'returns') renderReturnsTable();
+}
+
+function searchByLine() {
+  const line = document.getElementById('lineSearchSelect').value;
+  const el   = document.getElementById('byLineTable');
+  if (!line) { el.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">Select a line above</div>'; return; }
+  const lineReqs = allRequests.filter(r => r.line === line && r.status === 'Issued');
+  if (lineReqs.length === 0) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:14px;">No parts issued to ' + line + ' yet.</div>'; return; }
+  let html = '<table class="sl-table"><thead><tr><th>Date</th><th>Part</th><th>Part No</th><th>Qty</th><th>Used</th><th>Returned</th><th>Mechanic</th><th>Asset</th></tr></thead><tbody>';
+  lineReqs.forEach(r => {
+    const d = r.issued_time ? new Date(r.issued_time).toLocaleDateString('en-ZA',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+    html += `<tr>
+      <td>${d}</td>
+      <td>${r.part_description||'—'}</td>
+      <td style="font-size:11px;color:#888;">${r.part_no||'—'}</td>
+      <td style="text-align:center;font-weight:600;">${r.quantity}</td>
+      <td style="text-align:center;color:#3B6D11;">${r.quantity_consumed!=null?r.quantity_consumed:'—'}</td>
+      <td style="text-align:center;color:#ED7D31;">${r.quantity_returned||0}</td>
+      <td>${r.mechanic||'—'}</td>
+      <td>${r.asset_no||'—'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function searchStock() {
+  const q   = document.getElementById('stockSearchInput').value.trim().toLowerCase();
+  const el  = document.getElementById('stockSearchResults');
+  if (q.length < 2) { el.innerHTML = '<div style="color:#aaa;font-size:13px;padding:8px 0;">Type at least 2 characters...</div>'; return; }
+  const results = allInventory.filter(p =>
+    (p.description||'').toLowerCase().includes(q) || (p.part_no||'').toLowerCase().includes(q)
+  ).slice(0, 20);
+  if (results.length === 0) { el.innerHTML = '<div style="color:#aaa;font-size:13px;padding:8px 0;">No parts found.</div>'; return; }
+  let html = '<table class="sl-table"><thead><tr><th>Description</th><th>Part No</th><th>Machine type</th><th>Supplier</th><th>Stock</th><th>Min qty</th></tr></thead><tbody>';
+  results.forEach(p => {
+    const low = p.min_qty > 0 && p.stock_qty <= p.min_qty;
+    html += `<tr>
+      <td><strong>${p.description}</strong></td>
+      <td style="font-size:11px;color:#888;">${p.part_no}</td>
+      <td>${p.machine_type||'—'}</td>
+      <td>${p.supplier||'—'}</td>
+      <td style="text-align:center;"><span class="stock-badge ${p.stock_qty===0?'stock-zero':low?'stock-low':''}" style="${!low&&p.stock_qty>0?'background:#E2EFDA;color:#3B6D11;':''}">${p.stock_qty}</span></td>
+      <td style="text-align:center;color:#888;">${p.min_qty||'—'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function renderReorderList(lowStock) {
+  const el = document.getElementById('reorderList');
+  if (lowStock.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">All parts above minimum stock — nothing to reorder.</div>';
+    return;
+  }
+  // Sort by urgency: out of stock first, then by how far below minimum
+  const sorted = [...lowStock].sort((a,b) => {
+    if (a.stock_qty === 0 && b.stock_qty > 0) return -1;
+    if (b.stock_qty === 0 && a.stock_qty > 0) return 1;
+    return (a.stock_qty/Math.max(a.min_qty,1)) - (b.stock_qty/Math.max(b.min_qty,1));
+  });
+  let html = '<table class="sl-table"><thead><tr><th>Part</th><th>Part No</th><th>Supplier</th><th>Stock</th><th>Min qty</th><th>Status</th></tr></thead><tbody>';
+  sorted.forEach(p => {
+    const urgency = p.stock_qty === 0 ? '<span class="stock-badge stock-zero">Order now</span>' : '<span class="stock-badge stock-low">Running low</span>';
+    html += `<tr>
+      <td><strong>${p.description}</strong><br><span style="font-size:11px;color:#888;">${p.machine_type||'—'}</span></td>
+      <td style="font-size:12px;">${p.part_no}</td>
+      <td>${p.supplier||'—'}</td>
+      <td style="text-align:center;font-weight:700;color:#C00000;">${p.stock_qty}</td>
+      <td style="text-align:center;color:#888;">${p.min_qty}</td>
+      <td>${urgency}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function exportReorderList() {
+  const lowStock = allInventory.filter(p => p.min_qty > 0 && p.stock_qty <= p.min_qty);
+  if (lowStock.length === 0) { showToast('Nothing to reorder.', 'error'); return; }
+  const headers = ['Description','Part No','Machine Type','Supplier','Current Stock','Min Qty','Status'];
+  const rows = lowStock.map(p => [
+    '"' + (p.description||'').replace(/"/g,'""') + '"',
+    '"' + (p.part_no||'') + '"',
+    '"' + (p.machine_type||'') + '"',
+    '"' + (p.supplier||'') + '"',
+    p.stock_qty, p.min_qty,
+    '"' + (p.stock_qty===0?'Out of stock':'Running low') + '"'
+  ].join(','));
+  const csv = [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const now  = new Date();
+  const fname = 'PMT_Reorder_List_' + now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + '.csv';
+  const a = document.createElement('a');
+  a.href = url; a.download = fname;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast('Reorder list exported!', 'success');
+}
+
+function renderReturnsTable() {
+  const el = document.getElementById('returnsTable');
+  if (allReturns.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">No returns recorded yet.</div>';
+    return;
+  }
+  let html = '<table class="sl-table"><thead><tr><th>Date</th><th>Part</th><th>Qty returned</th><th>Consumed</th><th>Reason</th><th>Returned by</th><th>Stock restored</th></tr></thead><tbody>';
+  allReturns.filter(r => r.supplier_return_status !== 'Awaiting supplier return').forEach(r => {
+    const d = r.return_time ? new Date(r.return_time).toLocaleDateString('en-ZA',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+    html += `<tr>
+      <td>${d}</td>
+      <td><strong>${r.part_description||r.part_no||'—'}</strong></td>
+      <td style="text-align:center;color:#ED7D31;font-weight:600;">${r.quantity_returned}</td>
+      <td style="text-align:center;color:#3B6D11;">${r.quantity_consumed||0}</td>
+      <td>${r.return_reason||'—'}</td>
+      <td>${r.returned_by||'—'}</td>
+      <td style="text-align:center;">${r.stock_restored?'<span style="color:#3B6D11;">Yes</span>':'<span style="color:#C00000;">No</span>'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function renderSupplierReturns(awaitSupplier) {
+  const card = document.getElementById('supplierReturnCard');
+  const el   = document.getElementById('supplierReturnList');
+  if (awaitSupplier.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  let html = '<table class="sl-table"><thead><tr><th>Part</th><th>Part No</th><th>Qty</th><th>Asset</th><th>Line</th><th>Date</th><th>Action</th></tr></thead><tbody>';
+  awaitSupplier.forEach(r => {
+    const d = r.return_time ? new Date(r.return_time).toLocaleDateString('en-ZA',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+    html += `<tr>
+      <td><strong>${r.part_description||'—'}</strong></td>
+      <td style="font-size:11px;color:#888;">${r.part_no||'—'}</td>
+      <td style="text-align:center;">${r.quantity_returned}</td>
+      <td>${r.asset_no||'—'}</td>
+      <td>${r.line||'—'}</td>
+      <td>${d}</td>
+      <td><button onclick="markSupplierReturned(${r.id})" style="padding:4px 10px;background:#1F3864;border:none;border-radius:6px;color:white;font-size:11px;font-weight:600;cursor:pointer;">Mark returned</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+async function markSupplierReturned(returnId) {
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/parts_returns?id=eq.' + returnId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ supplier_return_status: 'Returned to supplier' })
+    });
+    showToast('Marked as returned to supplier.', 'success');
+    await loadInventoryData();
+  } catch(e) { showToast('Update failed.', 'error'); }
+}
+
+function showClerkReturnForm() {
+  const issued = allRequests.filter(r => r.status === 'Issued');
+  const options = issued.map(r =>
+    `<option value="${r.id}">${r.part_description||r.part_no} x${r.quantity} — ${r.asset_no||'?'} ${r.line||''} (${r.mechanic||'?'})</option>`
+  ).join('');
+  const overlay = document.createElement('div');
+  overlay.id = 'clerkReturnOverlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:white;border-radius:14px;padding:20px;width:100%;max-width:440px;box-shadow:0 8px 32px rgba(0,0,0,0.2);max-height:90vh;overflow-y:auto;">
+      <div style="font-size:16px;font-weight:700;color:#1F3864;margin-bottom:16px;">Receive Return</div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Select issued part</label>
+        <select id="clerkReturnSelect" style="width:100%;padding:11px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;">
+          <option value="">— Select part —</option>
+          ${options}
+        </select>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Quantity returned</label>
+        <input type="number" id="clerkReturnQty" value="1" min="1" style="width:100%;padding:11px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:15px;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Reason</label>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="radio" name="clerkReturnReason" value="Wrong part issued"> Wrong part issued</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="radio" name="clerkReturnReason" value="Not needed"> Not needed</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="radio" name="clerkReturnReason" value="Partial return"> Partial return</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="radio" name="clerkReturnReason" value="Faulty / defective"> Faulty / defective <span style="font-size:10px;color:#888;"> — awaiting supplier</span></label>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button onclick="document.getElementById('clerkReturnOverlay').remove()" style="padding:12px;border:1.5px solid #ddd;border-radius:8px;background:white;font-size:14px;cursor:pointer;">Cancel</button>
+        <button onclick="submitClerkReturn()" style="padding:12px;background:#ED7D31;border:none;border-radius:8px;color:white;font-size:14px;font-weight:700;cursor:pointer;">Confirm Return</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function submitClerkReturn() {
+  const reqId  = document.getElementById('clerkReturnSelect').value;
+  const qty    = parseInt(document.getElementById('clerkReturnQty').value) || 1;
+  const reason = document.querySelector('input[name="clerkReturnReason"]:checked');
+  if (!reqId)  { showToast('Please select a part.', 'error'); return; }
+  if (!reason) { showToast('Please select a reason.', 'error'); return; }
+
+  const req      = allRequests.find(r => r.id == reqId);
+  const isFaulty = reason.value === 'Faulty / defective';
+  const consumed = Math.max(0, (req.quantity||1) - qty);
+
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/parts_returns', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        request_id: req.id, job_card_id: req.job_card_id,
+        asset_no: req.asset_no, machine_type: req.machine_type, line: req.line,
+        part_no: req.part_no||'', part_description: req.part_description||'',
+        quantity_issued: req.quantity, quantity_returned: qty, quantity_consumed: consumed,
+        return_reason: reason.value, stock_restored: !isFaulty,
+        received_by: getClerkName(), return_time: new Date().toISOString(),
+        supplier_return_status: isFaulty ? 'Awaiting supplier return' : null
+      })
+    });
+    await fetch(SUPABASE_URL + '/rest/v1/parts_requests?id=eq.' + req.id, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ quantity_returned: qty, quantity_consumed: consumed })
+    });
+    if (!isFaulty && req.part_no) {
+      const inv = allInventory.find(p => p.part_no === req.part_no);
+      if (inv) {
+        await fetch(SUPABASE_URL + '/rest/v1/parts_inventory?part_no=eq.' + encodeURIComponent(req.part_no), {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ stock_qty: inv.stock_qty + qty, updated_at: new Date().toISOString() })
+        });
+      }
+    }
+    document.getElementById('clerkReturnOverlay').remove();
+    showToast(isFaulty ? 'Logged as faulty — awaiting supplier.' : 'Return received — stock restored.', 'success');
+    await loadInventoryData();
+  } catch(e) { showToast('Return failed.', 'error'); }
+}
+
+function renderTopPartsChart() {
+  const counts = {};
+  allRequests.forEach(r => { const k=r.part_description||r.part_no; counts[k]=(counts[k]||0)+r.quantity; });
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const ctx = document.getElementById('topPartsChart').getContext('2d');
+  if (topPartsChart) topPartsChart.destroy();
+  topPartsChart = new Chart(ctx, {
+    type:'bar', data:{ labels:sorted.map(e=>e[0].length>25?e[0].substring(0,23)+'…':e[0]),
+      datasets:[{label:'Qty',data:sorted.map(e=>e[1]),backgroundColor:'#2E5597',borderRadius:4,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'#f0f2f5'},ticks:{font:{size:10},color:'#888'},beginAtZero:true},
+              y:{grid:{display:false},ticks:{font:{size:10},color:'#444'}}}}
+  });
+}
+
+function renderPartsLineChart() {
+  const counts = {};
+  allRequests.filter(r=>r.status==='Issued').forEach(r => { if(r.line) counts[r.line]=(counts[r.line]||0)+r.quantity; });
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const ctx = document.getElementById('partsLineChart').getContext('2d');
+  if (partsLineChart) partsLineChart.destroy();
+  partsLineChart = new Chart(ctx, {
+    type:'bar', data:{ labels:sorted.map(e=>e[0]),
+      datasets:[{label:'Parts used',data:sorted.map(e=>e[1]),backgroundColor:'#ED7D31',borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#888',maxRotation:45,minRotation:45}},
+              y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10},color:'#888'},beginAtZero:true}}}
+  });
+}
+
+function switchDashTab(tab) {
+  const tabs = ['assets','downtime','lifecycle','inventory'];
+  document.querySelectorAll('.dash-tab').forEach((t,i) => t.classList.toggle('active', tabs[i] === tab));
+  document.querySelectorAll('.dash-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'downtime')   loadDowntimeData();
+  if (tab === 'lifecycle')  { lcAssets = []; } // reset cache so it rebuilds from latest data
+  if (tab === 'inventory')  loadInventoryData();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadData();
+startAutoRefresh();
+fetchStorageUsage();
+</script>
+</body>
+</html>
