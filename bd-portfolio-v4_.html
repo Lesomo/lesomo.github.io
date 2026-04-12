@@ -836,8 +836,8 @@ function openModal(id){
   document.getElementById('fext').value=p.extCollabs||'';
   document.getElementById('fprob').value=p.problem||'';
   document.getElementById('fout').value=p.outcome||'';
-  document.getElementById('frisk').value=p.risks||'';
-  document.getElementById('fdep').value=p.deps||'';
+  if(document.getElementById('frisk')) document.getElementById('frisk').value=p.risks||'';
+  if(document.getElementById('fdep')) document.getElementById('fdep').value=p.deps||'';
   document.getElementById('fnotes').value=p.notes||'';
   document.querySelectorAll('#collab-checks input[type=checkbox]').forEach(cb=>{
     cb.checked=(p.collaborators||[]).includes(cb.value)&&cb.value!==p.lead;
@@ -863,8 +863,8 @@ function saveProj(){
     extCollabs:document.getElementById('fext').value,
     problem:document.getElementById('fprob').value,
     outcome:document.getElementById('fout').value,
-    risks:document.getElementById('frisk').value,
-    deps:document.getElementById('fdep').value,
+    risks:(document.getElementById('frisk')||{value:''}).value,
+    deps:(document.getElementById('fdep')||{value:''}).value,
     notes:document.getElementById('fnotes').value,
   };
   if(editId){
