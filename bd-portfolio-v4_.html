@@ -988,8 +988,8 @@ function renderDash(){
   var onTrack=projects.filter(function(p){return projectHealth(p).label==='On Track';}).length;
   var atRisk=projects.filter(function(p){return projectHealth(p).label==='At Risk';}).length;
   var behind=projects.filter(function(p){return projectHealth(p).label==='Behind';}).length;
-  var headEl=document.getElementById('dash-headline');
-  if(headEl) headEl.textContent=total+' Projects - '+Math.round(projects.reduce(function(a,p){return a+p.pct;},0)/total)+'% Avg Progress';
+  var headEl2=document.getElementById('dash-headline');
+  if(headEl2) headEl2.textContent=total+' Projects - '+Math.round(projects.reduce(function(a,p){return a+p.pct;},0)/total)+'% Avg Progress';
   if(urgEl){
     const recs=genRecs().filter(r=>r.severity==='critical'||r.severity==='high').slice(0,3);
     urgEl.innerHTML=recs.length?recs.map(r=>`<div style="background:rgba(255,255,255,.12);border-radius:7px;padding:7px 10px;max-width:200px"><div style="font-size:8px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">${r.severity.toUpperCase()}</div><div style="font-size:9px;color:#fff;line-height:1.3">${esc(r.title)}</div></div>`).join(''):'<div style="font-size:10px;color:rgba(255,255,255,.7)">No urgent issues - portfolio is healthy</div>';
