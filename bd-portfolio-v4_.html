@@ -1,0 +1,2928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Business Development — Project Portfolio</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F5F0F7;min-height:100vh;font-size:13px}
+:root{
+  --primary:#68217D;--pd:#4A1759;--pl:#E8D5EE;
+  --sb:#7A92AC;--sbl:#DDE4EC;--sg:#CFCFB7;--sgd:#7A7A58;
+  --sp:#E1C6CD;--spd:#8C5060;--sm:#D5A99C;--smd:#7A4A40;
+  --sc:#FCF5E3;--tsky:#A6C4CF;--tskyd:#2F6070;
+  --tg:#DBC25D;--tgd:#6B5A10;--tst:#89AB90;--tstd:#2E4F34;
+  --tsl:#8B90B0;--tsld:#3A3F60;--tl:#A98FA8;--tld:#5C3D5B;
+  --red:#C00000;--redl:#FFDCE0;--amb:#C55A11;--ambl:#FCE4D6;
+  --grn:#375623;--grnl:#E2EFDA;
+  --wh:#FFFFFF;--gl:#F5F0F7;--gm:#D6C8DB;--gt:#595959;
+}
+/* ── Nav ── */
+.nav{background:var(--primary);padding:0 14px;display:flex;align-items:center;gap:2px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(74,23,89,.3);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;padding:9px 0;margin-right:12px;flex-shrink:0}
+.brand-icon{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:11px}
+.brand-name{color:#fff;font-weight:800;font-size:11px;line-height:1.1}
+.brand-sub{color:rgba(255,255,255,.5);font-size:8px;letter-spacing:1.5px;text-transform:uppercase}
+.nb{background:transparent;border:none;color:rgba(255,255,255,.6);padding:7px 9px;border-radius:6px;cursor:pointer;font-size:10px;font-weight:400;display:flex;align-items:center;gap:3px;white-space:nowrap;font-family:inherit}
+.nb.active{background:rgba(255,255,255,.18);color:#fff;font-weight:700}
+.nb:hover{background:rgba(255,255,255,.1);color:#fff}
+.nbadge{background:var(--red);color:#fff;font-size:8px;font-weight:800;border-radius:8px;padding:1px 5px}
+.role-wrap{display:flex;align-items:center;gap:5px;margin-left:auto;padding:7px 0;flex-shrink:0}
+.role-sel{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:6px;padding:3px 8px;font-size:10px;cursor:pointer;font-family:inherit}
+/* ── Page hdr ── */
+.phdr{background:var(--pd);padding:14px 16px 0}
+.ptitle{color:#fff;font-weight:800;font-size:16px;letter-spacing:-.3px}
+.psub{color:rgba(255,255,255,.45);font-size:10px;margin-top:2px}
+.tabs-bar{display:flex;gap:0;margin-top:11px;overflow-x:auto}
+.tb{background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,.4);padding:7px 11px;cursor:pointer;font-size:10px;font-weight:400;white-space:nowrap;display:flex;align-items:center;gap:3px;font-family:inherit}
+.tb.active{border-bottom:3px solid var(--tg);color:#fff;font-weight:700}
+/* ── Views ── */
+.view{display:none;padding:14px;max-width:1280px;margin:0 auto}
+.view.active{display:grid;gap:12px}
+/* ── Cards ── */
+.card{background:#fff;border-radius:10px;border:1px solid var(--gm);overflow:hidden}
+.ch{background:var(--primary);padding:8px 14px;display:flex;justify-content:space-between;align-items:center}
+.ch span{color:#fff;font-weight:800;font-size:10px;letter-spacing:.4px;text-transform:uppercase}
+/* ── Badges ── */
+.pill{padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;white-space:nowrap;display:inline-block}
+/* ── Progress ── */
+.pb{display:flex;align-items:center;gap:4px}
+.pb-bg{flex:1;height:5px;background:var(--gm);border-radius:3px;overflow:hidden;min-width:36px}
+.wph .pb-bg{background:rgba(255,255,255,.6)}
+.wph .pb-fill{background:#2F6070 !important}
+.wph .pb-txt{color:#2F6070;font-weight:700}
+.pb-fill{height:100%;border-radius:3px;background:var(--primary)}
+.pb-txt{font-size:9px;color:var(--gt);min-width:22px}
+/* ── KPI row ── */
+.krow{display:flex;gap:8px;flex-wrap:wrap}
+.kcard{border-radius:10px;padding:11px 13px;flex:1;min-width:85px}
+.klbl{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;opacity:.75;margin-bottom:2px}
+.kval{font-size:22px;font-weight:800;line-height:1}
+/* ── Filter row ── */
+.frow{background:#fff;border-radius:10px;padding:9px 12px;border:1px solid var(--gm);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.fsel{border:1px solid var(--gm);border-radius:6px;padding:4px 7px;font-size:10px;color:var(--pd);background:#fff;cursor:pointer;font-family:inherit}
+.sinp{border:1px solid var(--gm);border-radius:6px;padding:4px 8px;font-size:10px;color:var(--pd);flex:1;min-width:130px;font-family:inherit}
+.abtn{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 11px;cursor:pointer;font-weight:700;font-size:10px;margin-left:auto;font-family:inherit}
+.abtn:hover{background:var(--pd)}
+/* ── Table ── */
+.thdr{display:grid;background:var(--primary);padding:8px 14px;gap:7px}
+.thdr span{font-size:9px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.4px}
+.trow{display:grid;padding:9px 14px;gap:7px;align-items:center;border-top:1px solid var(--gm)}
+.trow:hover{filter:brightness(.97)}
+.pname{font-weight:700;font-size:11px;color:var(--pd);margin-bottom:1px}
+.psub{font-size:9px;color:var(--gt)}
+.tcols{grid-template-columns:2fr 1fr 1fr 1fr 1fr 90px 90px 28px}
+@media(max-width:750px){.tcols{grid-template-columns:1fr 1fr}.hm{display:none}}
+/* ── Avatar ── */
+.av{width:20px;height:20px;border-radius:50%;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:var(--primary);flex-shrink:0;border:1.5px solid #fff}
+.av-sm{width:16px;height:16px;font-size:6px}
+/* ── Modal ── */
+.mo{position:fixed;inset:0;background:rgba(74,23,89,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:14px}
+.mo.open{display:flex}
+.mbox{background:#fff;border-radius:13px;width:100%;max-width:660px;max-height:93vh;overflow-y:auto;box-shadow:0 24px 64px rgba(74,23,89,.35)}
+.mhdr{background:var(--primary);padding:14px 18px;border-radius:13px 13px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+.mhdr span{color:#fff;font-weight:800;font-size:12px}
+.mbody{padding:18px;display:grid;gap:11px}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+@media(max-width:480px){.mrow{grid-template-columns:1fr}}
+.fl{font-size:9px;font-weight:700;color:var(--pd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;display:block}
+.fi{border:1px solid var(--gm);border-radius:5px;padding:5px 9px;font-size:11px;color:var(--pd);width:100%;background:#fff;font-family:inherit}
+.fi:focus{outline:none;border-color:var(--primary)}
+.mact{display:flex;justify-content:flex-end;gap:7px;padding-top:4px}
+.bcan{padding:6px 16px;border-radius:6px;border:1px solid var(--gm);background:#fff;color:var(--gt);cursor:pointer;font-size:11px;font-family:inherit}
+.bsav{padding:6px 20px;border-radius:6px;border:none;background:var(--primary);color:#fff;cursor:pointer;font-size:11px;font-weight:700;font-family:inherit}
+.bdel{padding:6px 12px;border-radius:6px;border:none;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;font-size:10px;font-family:inherit}
+.bcls{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;font-family:inherit}
+/* ── Stat grid ── */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+@media(max-width:580px){.sgrid{grid-template-columns:1fr}}
+.mbar{padding:13px;display:grid;gap:9px}
+.mbi{display:flex;flex-direction:column;gap:2px}
+.mbl{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.mbb{height:5px;background:var(--gm);border-radius:3px;overflow:hidden}
+/* ── WBS ── */
+.wph{padding:7px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--tsky);user-select:none}
+.wph:hover{filter:brightness(.95)}
+.wphase{display:grid;grid-template-columns:16px 1fr 90px 110px 36px 28px;gap:8px;padding:7px 11px 7px 26px;background:#FAFAFA;border-top:1px solid #E8E0EC;align-items:center;cursor:pointer;user-select:none}
+.wtask{display:grid;grid-template-columns:16px 1fr 90px 90px 105px 105px 28px;gap:5px;padding:6px 11px 6px 40px;border-top:1px solid var(--gm);align-items:center}
+@media(max-width:680px){.wphase{grid-template-columns:16px 1fr 85px}.wph-hide{display:none}.wtask{grid-template-columns:16px 1fr 85px}.wt-hide{display:none}}
+/* ── KPI tiles ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:9px;padding:12px;background:#fff;border:1px solid var(--gm);border-top:none;border-radius:0 0 10px 10px}
+.kpi-tile{border-radius:8px;padding:11px;border:1px solid var(--gm)}
+.kpi-cat{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.kpi-nm{font-size:10px;font-weight:700;color:var(--pd);margin-bottom:7px;line-height:1.3}
+.kpi-vals{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:7px}
+.kpi-vbox{text-align:center;padding:5px;border-radius:5px}
+.kpi-vlbl{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:1px}
+.kpi-vnum{font-size:15px;font-weight:800;line-height:1}
+.kpi-bbg{height:4px;background:var(--gm);border-radius:3px;overflow:hidden}
+.kpi-bfill{height:100%;border-radius:3px}
+.kpi-pct{font-size:9px;font-weight:700;margin-top:3px}
+.rag{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:3px}
+/* ── Gantt ── */
+.gw{overflow-x:auto}
+.gi{min-width:580px}
+.ghdr{display:grid;grid-template-columns:170px 1fr}
+.glh{padding:7px 9px;background:var(--pd)}
+.gth{background:var(--pd);display:flex}
+.gm2{flex:1;padding:6px 2px;font-size:8px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.3px;border-left:1px solid rgba(255,255,255,.15);text-align:center}
+.grow{display:grid;grid-template-columns:170px 1fr;border-top:1px solid var(--gm)}
+.gl{padding:7px 9px}
+.gln{font-size:10px;font-weight:700;color:var(--pd);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
+.gba{position:relative;min-height:34px;overflow:hidden}
+/* ── Recs ── */
+.hbox{border-radius:11px;padding:13px 15px;display:flex;align-items:center;gap:14px}
+.hsnum{font-size:38px;font-weight:900;line-height:1;text-align:center}
+.hslbl{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;text-align:center;margin-top:1px}
+.hbbg{height:7px;background:rgba(0,0,0,.1);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.hbfill{height:100%;border-radius:3px}
+.srow{display:flex;gap:7px;flex-wrap:wrap}
+.sc2{border-radius:9px;padding:9px 13px;flex:1;min-width:75px;display:flex;align-items:center;gap:7px;border:1px solid rgba(0,0,0,.06)}
+.sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cfrow{display:flex;gap:5px;flex-wrap:wrap}
+.cfb{border-radius:20px;padding:3px 11px;cursor:pointer;font-size:10px;font-weight:400;border:1px solid var(--gm);background:#fff;color:var(--pd);font-family:inherit}
+.cfb.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:700}
+.rc{border-radius:9px;overflow:hidden;border:1.5px solid rgba(0,0,0,.08);margin-bottom:7px}
+.rh{padding:11px 13px;cursor:pointer;display:flex;align-items:flex-start;gap:9px;user-select:none}
+.rt{font-weight:800;font-size:11px;color:var(--pd);margin-bottom:2px}
+.rd{font-size:10px;color:var(--gt);line-height:1.5}
+.rb{border-top:1px solid rgba(0,0,0,.08);background:rgba(255,255,255,.65);padding:11px 13px}
+.ral{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.ra{font-size:10px;color:var(--pd);line-height:1.6}
+.rcs{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.rch{background:#fff;border:1px solid var(--gm);color:var(--pd);font-size:9px;padding:2px 7px;border-radius:4px}
+/* ── Task Board ── */
+.tog-bar{background:#fff;border-radius:10px;border:1px solid var(--gm);padding:9px 12px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.togb{border-radius:6px;padding:4px 12px;border:1px solid var(--gm);background:#fff;color:var(--pd);font-size:10px;cursor:pointer;font-weight:400;font-family:inherit}
+.togb.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:700}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+@media(max-width:680px){.board{grid-template-columns:repeat(2,1fr)}}
+.bcol-hdr{padding:7px 9px;border-radius:7px 7px 0 0;display:flex;justify-content:space-between;align-items:center}
+.bcol-body{background:#F5F0F7;border-radius:0 0 7px 7px;padding:7px;display:grid;gap:5px;min-height:100px}
+.tcard{background:#fff;border-radius:7px;border:1px solid var(--gm);padding:9px;cursor:pointer;transition:border-color .15s}
+.tcard:hover{border-color:var(--primary)}
+.tcard-name{font-size:10px;font-weight:700;color:var(--pd);margin-bottom:4px;line-height:1.3}
+.tcard-proj{font-size:9px;color:var(--gt);margin-bottom:4px}
+.tcard-meta{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.adhoc-badge{font-size:8px;padding:1px 5px;border-radius:8px;background:var(--tg);color:var(--tgd);font-weight:700}
+.due-warn{font-size:8px;color:var(--red);font-weight:700}
+/* ── Benefits ── */
+.brow{display:flex;gap:8px;flex-wrap:wrap}
+.bkpi{border-radius:10px;padding:11px 13px;flex:1;min-width:90px}
+.bklbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:2px}
+.bkval{font-size:20px;font-weight:800;line-height:1}
+.lgrow{display:grid;grid-template-columns:1fr auto auto;gap:9px;padding:8px 12px;align-items:center;border-top:1px solid var(--gm)}
+.lgbar-bg{height:5px;background:var(--gm);border-radius:3px;overflow:hidden;margin-top:2px}
+/* ── KPI add modal ── */
+.info-box{background:var(--pl);border-radius:7px;padding:8px 12px;font-size:10px;color:var(--pd)}
+/* ── Collab chips ── */
+.collab-wrap{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.collab-chip{display:flex;align-items:center;gap:3px;background:var(--pl);border-radius:10px;padding:2px 7px 2px 3px;font-size:9px;color:var(--pd)}
+/* ── Scrollbar ── */
+@media print{.nav,.phdr,.frow,.tog-bar,#panel-overlay,#slide-panel{display:none!important}.view{display:grid!important}body{background:#fff}.card{break-inside:avoid}}
+.ts-tbl{width:100%;border-collapse:collapse;font-size:10px}
+.ts-tbl th{background:#E8D5EE;color:#4A1759;padding:5px 8px;text-align:left;font-weight:700;font-size:9px;text-transform:uppercase}
+.ts-tbl td{padding:5px 8px;border-top:1px solid #D6C8DB;color:#4A1759}
+.ts-tbl tr:nth-child(even) td{background:#FCF5E3}
+.add-row-btn{background:#E8D5EE;color:#68217D;border:none;border-radius:5px;padding:3px 9px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit;margin-top:6px}
+@media(max-width:600px){#chart-top-grid{grid-template-columns:1fr!important}}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--gm);border-radius:2px}
+/* ── Footer ── */
+.footer{text-align:center;padding:18px;font-size:9px;color:var(--gt)}
+@media(max-width:750px){.hm{display:none}}
+</style>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="brand">
+    <div class="brand-icon">BD</div>
+    <div><div class="brand-name">BUSINESS DEVELOPMENT</div><div class="brand-sub">Project Portfolio</div></div>
+  </div>
+  <button class="nb" onclick="sv('tracker')">&#9776; Tracker</button>
+  <button class="nb active" onclick="sv('dashboard')">&#9672; Dashboard</button>
+  <button class="nb" onclick="sv('activity')">&#8862; Activity</button>
+  <button class="nb" onclick="sv('taskboard')">&#9634; Task Board</button>
+  <button class="nb" onclick="sv('gantt')">&#9644; Gantt</button>
+  <button class="nb" onclick="sv('benefits')">&#9733; Benefits</button>
+  <button class="nb" onclick="sv('charts')">&#9998; Charts</button>
+  <button class="nb" onclick="sv('recs')" id="rec-nav"><span>&#128161;</span> Recs <span class="nbadge" id="rbadge">0</span></button>
+  <span id="db-ind" style="font-size:9px;padding:2px 10px;border-radius:10px;font-weight:700;background:rgba(219,194,93,.3);color:#FFF8DC;flex-shrink:0">Connecting...</span>
+  <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+    <button onclick="exportData()" title="Export all data as JSON backup" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:5px;padding:3px 9px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit">&#8595; Export</button>
+    <button id="import-btn" onclick="document.getElementById('import-file').click()" title="Restore from JSON backup (Admin only)" style="display:none;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);border-radius:5px;padding:3px 9px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit">&#8593; Import</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"/>
+  </div>
+  <div class="role-wrap">
+    <span style="font-size:9px;color:rgba(255,255,255,.5)">View as:</span>
+    <select class="role-sel" id="role-sel" onchange="onRoleChange()">
+      <option value="Project Leads">Project Leads</option><option value="Leadership">Leadership</option><option value="Admin">Admin</option>
+    </select>
+  </div>
+</nav>
+
+<!-- PAGE HDR -->
+<div class="phdr">
+  <div style="max-width:1280px;margin:0 auto">
+    <div class="ptitle" id="ptitle">Project Tracker</div>
+    <div class="psub" id="psub"></div>
+    <div class="tabs-bar">
+      <button class="tb active" onclick="sv('dashboard')">Dashboard</button>
+      <button class="tb" onclick="sv('tracker')">Project Tracker</button>
+      <button class="tb" onclick="sv('activity')">Activity Breakdown</button>
+      <button class="tb" onclick="sv('taskboard')">Task Board</button>
+      <button class="tb" onclick="sv('gantt')">Gantt Chart</button>
+      <button class="tb" onclick="sv('charts')">Charts &amp; Reports</button>
+      <button class="tb" onclick="sv('benefits')">Results &amp; Benefits</button>
+      <button class="tb" onclick="sv('recs')">Recommendations <span class="nbadge" id="rbadge2">0</span></button>
+    </div>
+  </div>
+</div>
+<div id="status-strip" style="background:#4A1759;padding:6px 16px;display:flex;gap:20px;align-items:center;border-top:1px solid rgba(255,255,255,.1)">
+  <div style="max-width:1280px;margin:0 auto;display:flex;gap:20px;align-items:center;width:100%">
+    <span style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;font-weight:700">Portfolio</span>
+    <div id="strip-active" style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:#A98FA8;display:inline-block"></span><span style="font-size:10px;color:#fff;font-weight:700" id="strip-active-n">0</span><span style="font-size:9px;color:rgba(255,255,255,.5)">Active</span></div>
+    <div id="strip-due" style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:#DBC25D;display:inline-block"></span><span style="font-size:10px;color:#fff;font-weight:700" id="strip-due-n">0</span><span style="font-size:9px;color:rgba(255,255,255,.5)">Due This Week</span></div>
+    <div id="strip-crit" style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:#C00000;display:inline-block"></span><span style="font-size:10px;color:#fff;font-weight:700" id="strip-crit-n">0</span><span style="font-size:9px;color:rgba(255,255,255,.5)">Critical Issues</span></div>
+    <div id="strip-health" style="margin-left:auto;display:flex;align-items:center;gap:6px">
+      <span id="strip-tl" style="width:10px;height:10px;border-radius:50%;background:#595959;display:inline-block"></span>
+      <span style="font-size:9px;color:rgba(255,255,255,.6)" id="strip-health-lbl">Loading...</span>
+    </div>
+  </div>
+</div>
+
+<!-- TRACKER -->
+<div class="view active" id="view-tracker">
+  <div class="frow">
+    <input class="sinp" id="si" type="text" placeholder="Search projects…" oninput="renderTracker()"/>
+    <select class="fsel" id="fc" onchange="renderTracker()"><option value="">All Categories</option><option>Operations</option><option>People &amp; Training</option><option>Technology &amp; Assets</option><option>Finance</option></select>
+    <select class="fsel" id="fp" onchange="renderTracker()"><option value="">All Priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+    <select class="fsel" id="fl" onchange="renderTracker()"><option value="">All Leads</option><option>Berenicia</option><option>Jacques</option><option>Letlhogonolo</option><option>Wendy</option><option>Beverley</option><option>David</option><option>Danesha</option></select>
+    <select class="fsel" id="fs" onchange="renderTracker()"><option value="">All Statuses</option><option>Not Started</option><option>In Progress</option><option>On Hold</option><option>Complete</option></select>
+    <span id="fcount" style="font-size:9px;color:var(--gt)"></span>
+    <button class="abtn" id="addpb" onclick="openModal(null)">+ Add Project</button>
+  </div>
+  <div class="card">
+    <div class="thdr tcols"><span>Project</span><span class="hm">Lead</span><span>Priority</span><span class="hm">Status</span><span class="hm">Approval</span><span class="hm">Progress</span><span class="hm">Health</span><span></span></div>
+    <div id="tbody"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="view" id="view-dashboard">
+  <div id="dash-hero" style="background:linear-gradient(135deg,#4A1759,#68217D);border-radius:10px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+    <div>
+      <div style="color:rgba(255,255,255,.6);font-size:9px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px" id="dash-date"></div>
+      <div style="color:#fff;font-weight:800;font-size:18px;margin-bottom:4px" id="dash-headline">Portfolio Overview</div>
+      <div style="color:rgba(255,255,255,.7);font-size:10px" id="dash-summary"></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap" id="dash-urgent"></div>
+  </div>
+  <div class="krow" id="dkrow"></div>
+  <div class="sgrid">
+    <div class="card"><div class="ch"><span>By Category</span></div><div class="mbar" id="dcat"></div></div>
+    <div class="card"><div class="ch"><span>By Priority</span></div><div class="mbar" id="dpri"></div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><span>Total Involvement by Lead (lead + collaborator roles)</span></div>
+    <div style="padding:13px;display:flex;gap:7px;flex-wrap:wrap" id="dwl"></div>
+    <div id="dwlw"></div>
+  </div>
+  <div class="card"><div class="ch"><span>Portfolio Progress</span></div><div style="padding:13px;display:grid;gap:7px" id="dprog"></div></div>
+</div>
+
+<!-- ACTIVITY BREAKDOWN -->
+<div class="view" id="view-activity">
+  <div class="info-box"><strong>Activity Breakdown</strong> — Click a project to expand phases, tasks and KPIs. Update status and dates inline.</div>
+  <div id="actbody"></div>
+</div>
+
+<!-- TASK BOARD -->
+<div class="view" id="view-taskboard">
+  <div class="info-box" style="display:flex;align-items:center;gap:8px">
+  <span style="font-size:16px">&#128172;</span>
+  <span><strong>To add a comment:</strong> click any task card on the board below. A panel will slide out from the right where you can post dated, authored comments and update the task status.</span>
+</div>
+<div class="tog-bar">
+    <button class="togb active" id="tog-board" onclick="setTog('board')">Board</button>
+    <button class="togb" id="tog-list" onclick="setTog('list')">List</button>
+    <button class="togb" id="tog-bylead" onclick="setTog('bylead')">By Lead</button>
+    <select class="fsel" id="tb-lead" onchange="renderTaskBoard()"><option value="">All Leads</option><option>Berenicia</option><option>Jacques</option><option>Letlhogonolo</option><option>Wendy</option><option>Beverley</option><option>David</option><option>Danesha</option></select>
+    <select class="fsel" id="tb-proj" onchange="renderTaskBoard()"><option value="">All Projects</option></select>
+    <select class="fsel" id="tb-type" onchange="renderTaskBoard()"><option value="">All Types</option><option value="project">Project tasks</option><option value="adhoc">Ad hoc only</option></select>
+    <button class="abtn" id="add-task-btn" onclick="openAdHocModal()">+ Add Task</button>
+  </div>
+  <div id="tbboard"></div>
+  <div id="tblist" style="display:none"></div>
+  <div id="tbbylead" style="display:none"></div>
+</div>
+
+<!-- GANTT -->
+<div class="view" id="view-gantt">
+  <div style="background:#fff;border-radius:10px;border:1px solid var(--gm);padding:9px 13px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <select class="fsel" id="gantt-proj-filter" onchange="renderGantt()">
+        <option value="">All Projects</option>
+      </select>
+      <select class="fsel" id="gantt-lead-filter" onchange="renderGantt()">
+        <option value="">All Leads</option>
+        <option>Berenicia</option><option>Jacques</option><option>Letlhogonolo</option>
+        <option>Wendy</option><option>Beverley</option><option>David</option><option>Danesha</option>
+      </select>
+      <select class="fsel" id="gantt-pri-filter" onchange="renderGantt()">
+        <option value="">All Priorities</option>
+        <option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:4px">
+      <button id="zm" onclick="setZoom('month')" style="background:var(--primary);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit">Monthly</button>
+      <button id="zq" onclick="setZoom('quarter')" style="background:#fff;color:var(--pd);border:1px solid var(--gm);border-radius:5px;padding:3px 10px;font-size:9px;cursor:pointer;font-family:inherit">Quarterly</button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="padding:6px 13px;background:var(--gl);border-bottom:1px solid var(--gm);display:flex;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:3px"><div style="width:9px;height:9px;border-radius:2px;background:var(--red)"></div><span style="font-size:8px;color:var(--gt)">Critical</span></div>
+      <div style="display:flex;align-items:center;gap:3px"><div style="width:9px;height:9px;border-radius:2px;background:var(--primary)"></div><span style="font-size:8px;color:var(--gt)">In progress</span></div>
+      <div style="display:flex;align-items:center;gap:3px"><div style="width:9px;height:9px;border-radius:2px;background:var(--tst)"></div><span style="font-size:8px;color:var(--gt)">Complete</span></div>
+      <div style="display:flex;align-items:center;gap:3px"><div style="width:9px;height:9px;border-radius:2px;background:var(--sm)"></div><span style="font-size:8px;color:var(--gt)">On hold</span></div>
+      <div style="display:flex;align-items:center;gap:3px;margin-left:auto"><div style="width:2px;height:9px;background:var(--red)"></div><span style="font-size:8px;color:var(--gt)">Today</span></div>
+      <div style="font-size:8px;color:var(--gt);margin-left:8px;font-style:italic">Lighter bar fill = remaining work</div>
+    </div>
+    <div class="gw"><div class="gi" id="gbody"></div></div>
+  </div>
+  <div class="card"><div class="ch"><span>Critical Path Summary</span></div><div style="padding:13px;display:grid;gap:7px" id="cpsumm"></div></div>
+</div>
+
+<!-- RESULTS & BENEFITS -->
+<div class="view" id="view-benefits">
+  <div class="brow" id="benrow"></div>
+  <div class="sgrid">
+    <div class="card"><div class="ch"><span>Value by Category</span></div><div class="mbar" id="bencat"></div></div>
+    <div class="card"><div class="ch"><span>KPI Achievement by Project</span></div><div class="mbar" id="benach"></div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><span>Project League Table — Financial Value Delivered</span></div>
+    <div id="league"></div>
+    <div id="nokpi-warn"></div>
+  </div>
+  <div class="card"><div class="ch"><span>All KPI Records</span></div><div style="padding:13px;display:grid;gap:8px" id="allkpi"></div></div>
+</div>
+
+<!-- CHARTS & REPORTS -->
+<div class="view" id="view-charts">
+  <div style="background:#fff;border-radius:10px;border:1px solid var(--gm);padding:9px 13px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <select class="fsel" id="chart-proj-filter" onchange="renderCharts()"><option value="">All Projects</option></select>
+      <select class="fsel" id="chart-cat-filter" onchange="renderCharts()"><option value="">All KPI Categories</option><option>Financial</option><option>Efficiency</option><option>People</option><option>Quality</option><option>Custom</option></select>
+    </div>
+    <button onclick="window.print()" style="background:var(--pd);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit">&#128438; Export PDF</button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" id="chart-top-grid">
+    <div class="card"><div class="ch"><span>Projects by Status</span></div><div style="padding:12px"><div id="leg-status" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;font-size:9px"></div><div style="position:relative;width:100%;height:190px"><canvas id="donut-status"></canvas></div></div></div>
+    <div class="card"><div class="ch"><span>Projects by Category</span></div><div style="padding:12px"><div id="leg-cat" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;font-size:9px"></div><div style="position:relative;width:100%;height:190px"><canvas id="bar-cat"></canvas></div></div></div>
+  </div>
+  <div class="card"><div class="ch"><span>KPI Achievement by Project</span></div><div style="padding:12px"><div style="position:relative;height:220px"><canvas id="bar-kpi"></canvas></div></div></div>
+  <div class="card"><div class="ch"><span>KPI Gauges</span></div><div style="padding:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center" id="gauge-wrap"></div></div>
+  <div class="card"><div class="ch"><span>KPI Heatmap — Project vs Category</span></div><div style="padding:12px;overflow-x:auto"><div id="heatmap-wrap"></div><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><span style="font-size:9px;color:#595959">Achievement:</span><span style="display:flex;align-items:center;gap:3px;font-size:9px"><span style="width:10px;height:10px;border-radius:2px;background:#C0DDAA;display:inline-block"></span>100%+</span><span style="display:flex;align-items:center;gap:3px;font-size:9px"><span style="width:10px;height:10px;border-radius:2px;background:#FFF2CC;display:inline-block"></span>80-99%</span><span style="display:flex;align-items:center;gap:3px;font-size:9px"><span style="width:10px;height:10px;border-radius:2px;background:#FFDCE0;display:inline-block"></span>Under 80%</span><span style="display:flex;align-items:center;gap:3px;font-size:9px"><span style="width:10px;height:10px;border-radius:2px;background:#F0F0F0;display:inline-block"></span>None</span></div></div></div>
+  <div id="ts-charts-wrap"></div>
+</div>
+
+<!-- RECS -->
+<div class="view" id="view-recs">
+  <div id="hbox"></div>
+  <div class="srow" id="scards"></div>
+  <div class="cfrow" id="cfilters"></div>
+  <div id="rlist"></div>
+  <div class="info-box">Recommendations update automatically as you edit project data.</div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="mo" id="pmodal" onclick="closeMo('pmodal',event)">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhdr">
+      <span id="mtitle">Edit Project</span>
+      <div style="display:flex;gap:5px">
+        <button class="bdel" id="mdelb" onclick="delProj()">Delete</button>
+        <button class="bcls" onclick="closeMo('pmodal')">&#215;</button>
+      </div>
+    </div>
+    <div class="mbody">
+      <div><label class="fl">Project Name</label><input class="fi" id="fn" type="text"/></div>
+      <div class="mrow">
+        <div>
+          <label class="fl">Project Lead</label>
+          <div style="display:flex;gap:5px">
+            <select class="fi" id="fld" onchange="syncLeadInput()" style="flex:1"><option>Berenicia</option><option>Jacques</option><option>Letlhogonolo</option><option>Wendy</option><option>Beverley</option><option>David</option><option>Danesha</option><option value="__other__">+ Add new...</option></select>
+            <input class="fi" id="fld-custom" type="text" placeholder="New member name" style="display:none;flex:1" oninput="syncLeadSelect()"/>
+          </div>
+        </div>
+        <div><label class="fl">Category</label><select class="fi" id="fcat"><option>Operations</option><option>People &amp; Training</option><option>Technology &amp; Assets</option><option>Finance</option></select></div>
+      </div>
+      <div class="mrow">
+        <div><label class="fl">Priority</label><select class="fi" id="fpri"><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+        <div><label class="fl">Status</label><select class="fi" id="fst"><option>Not Started</option><option>In Progress</option><option>On Hold</option><option>Complete</option></select></div>
+      </div>
+      <div class="mrow">
+        <div><label class="fl">Approval</label><select class="fi" id="fap"><option>Proposed</option><option>Approved</option><option>Deferred</option><option>Rejected</option></select></div>
+        <div><label class="fl">% Complete — <span id="pctd">0</span>%</label><input type="range" id="fpct" min="0" max="100" value="0" step="1" oninput="document.getElementById('pctd').textContent=this.value" style="width:100%;accent-color:var(--primary);margin-top:5px"/></div>
+      </div>
+      <div class="mrow">
+        <div><label class="fl">Business Impact</label><select class="fi" id="fbi"><option>Efficiency Gain</option><option>Cost Saving</option><option>Risk Reduction</option><option>Revenue Growth</option><option>Compliance</option></select></div>
+        <div><label class="fl">Customer Value</label><select class="fi" id="fcv"><option>Order Winner</option><option>Order Qualifier</option><option>Disqualifier</option></select></div>
+      </div>
+      <div class="mrow">
+        <div><label class="fl">Target Start Date</label><input class="fi" id="fsd" type="date"/></div>
+        <div><label class="fl">Target End Date</label><input class="fi" id="fed" type="date"/></div>
+      </div>
+      <!-- Collaborators -->
+      <div>
+        <label class="fl">Collaborators (internal)</label>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px" id="collab-checks">
+          <label style="font-size:10px;color:var(--pd);display:flex;align-items:center;gap:3px;cursor:pointer"><input type="checkbox" value="Berenicia" style="accent-color:var(--primary)"> Berenicia</label>
+          <label style="font-size:10px;color:var(--pd);display:flex;align-items:center;gap:3px;cursor:pointer"><input type="checkbox" value="Jacques" style="accent-color:var(--primary)"> Jacques</label>
+          <label style="font-size:10px;color:var(--pd);display:flex;align-items:center;gap:3px;cursor:pointer"><input type="checkbox" value="Letlhogonolo" style="accent-color:var(--primary)"> Letlhogonolo</label>
+          <label style="font-size:10px;color:var(--pd);display:flex;align-items:center;gap:3px;cursor:pointer"><input type="checkbox" value="Wendy" style="accent-color:var(--primary)"> Wendy</label>
+          <label style="font-size:10px;color:var(--pd);display:flex;align-items:center;gap:3px;cursor:pointer"><input type="checkbox" value="Beverley" style="accent-color:var(--primary)"> Beverley</label>
+          <label style="font-size:10px;color:var(--pd);display:flex;align-items:center;gap:3px;cursor:pointer"><input type="checkbox" value="David" style="accent-color:var(--primary)"> David</label>
+          <label style="font-size:10px;color:var(--pd);display:flex;align-items:center;gap:3px;cursor:pointer"><input type="checkbox" value="Danesha" style="accent-color:var(--primary)"> Danesha</label>
+        </div>
+        <label class="fl">External collaborators (comma separated)</label>
+        <input class="fi" id="fext" type="text" placeholder="e.g. John Smith, ABC Consulting"/>
+      </div>
+      <div><label class="fl">Problem Statement</label><textarea class="fi" id="fprob" rows="2" style="resize:vertical"></textarea></div>
+      <div><label class="fl">Expected Outcome / Success Metric</label><textarea class="fi" id="fout" rows="2" style="resize:vertical"></textarea></div>
+
+      <div><label class="fl">Notes</label><textarea class="fi" id="fnotes" rows="2" style="resize:vertical"></textarea></div>
+      <!-- Project Update Log -->
+      <div id="update-log-section" style="border-top:1px solid #D6C8DB;padding-top:12px;margin-top:4px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <label class="fl" style="margin:0">Project Updates</label>
+          <span style="font-size:9px;color:#595959">Latest updates from the team</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <select class="fi" id="update-author" style="width:130px;flex-shrink:0"><option>Berenicia</option><option>Jacques</option><option>Letlhogonolo</option><option>Wendy</option><option>Beverley</option><option>David</option><option>Danesha</option></select>
+          <input class="fi" id="update-text" type="text" placeholder="Add a project update..." style="flex:1"/>
+          <button onclick="postProjectUpdate()" style="background:#68217D;color:#fff;border:none;border-radius:6px;padding:0 12px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit;flex-shrink:0">Post</button>
+        </div>
+        <div id="update-log-list" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+      <div class="mact">
+        <button class="bcan" onclick="closeMo('pmodal')">Cancel</button>
+        <button class="bsav" onclick="saveProj()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AD HOC TASK MODAL -->
+<div class="mo" id="ahmodal" onclick="closeMo('ahmodal',event)">
+  <div class="mbox" style="max-width:440px" onclick="event.stopPropagation()">
+    <div class="mhdr">
+      <span id="ahtitle">Add Ad Hoc Task</span>
+      <div style="display:flex;gap:5px">
+        <button class="bdel" id="ahdelb" onclick="delAdHoc()" style="display:none">Delete</button>
+        <button class="bcls" onclick="closeMo('ahmodal')">&#215;</button>
+      </div>
+    </div>
+    <div class="mbody">
+      <div><label class="fl">Task Name</label><input class="fi" id="ahtname" type="text"/></div>
+      <div class="mrow">
+        <div><label class="fl">Owner</label><select class="fi" id="ahowner"><option>Berenicia</option><option>Jacques</option><option>Letlhogonolo</option><option>Wendy</option><option>Beverley</option><option>David</option><option>Danesha</option></select></div>
+        <div><label class="fl">Priority</label><select class="fi" id="ahpri"><option>High</option><option>Critical</option><option>Medium</option><option>Low</option></select></div>
+      </div>
+      <div class="mrow">
+        <div><label class="fl">Status</label><select class="fi" id="ahstat"><option>Not Started</option><option>In Progress</option><option>On Hold</option><option>Complete</option></select></div>
+        <div><label class="fl">Due Date</label><input class="fi" id="ahdue" type="date"/></div>
+      </div>
+      <div><label class="fl">Notes</label><textarea class="fi" id="ahnotes" rows="2" style="resize:vertical"></textarea></div>
+      <div class="mact">
+        <button class="bcan" onclick="closeMo('ahmodal')">Cancel</button>
+        <button class="bsav" onclick="saveAdHoc()">Save Task</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KPI MODAL -->
+<div class="mo" id="kpimodal" onclick="closeMo('kpimodal',event)">
+  <div class="mbox" style="max-width:480px" onclick="event.stopPropagation()">
+    <div class="mhdr">
+      <span id="kpimtitle">Add KPI</span>
+      <div style="display:flex;gap:5px">
+        <button class="bdel" id="kpidelb" onclick="delKPI()" style="display:none">Delete</button>
+        <button class="bcls" onclick="closeMo('kpimodal')">&#215;</button>
+      </div>
+    </div>
+    <div class="mbody">
+      <div class="mrow">
+        <div><label class="fl">Category</label><select class="fi" id="kpicat"><option>Financial</option><option>Efficiency</option><option>People</option><option>Quality</option><option>Custom</option></select></div>
+        <div><label class="fl">KPI Name</label><input class="fi" id="kpiname" type="text" placeholder="e.g. Cost saving"/></div>
+      </div>
+      <div class="mrow">
+        <div><label class="fl">Unit</label><input class="fi" id="kpiunit" type="text" placeholder="e.g. R, %, hours"/></div>
+        <div><label class="fl">Target Value</label><input class="fi" id="kpitgt" type="number" placeholder="0"/></div>
+      </div>
+      <div class="mrow">
+        <div><label class="fl">Actual Value</label><input class="fi" id="kpiact" type="number" placeholder="0"/></div>
+        <div><label class="fl">Notes / Source</label><input class="fi" id="kpinotes" type="text" placeholder="e.g. Q2 audit"/></div>
+      </div>
+      <!-- Time series section - shown only when editing existing KPI -->
+      <div id="kpi-ts-section" style="display:none;border-top:1px solid #D6C8DB;padding-top:12px;margin-top:8px;background:#FAFAFA;border-radius:6px;padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <label class="fl" style="margin:0;font-size:10px;font-weight:700;color:#4A1759;text-transform:uppercase;letter-spacing:.4px">Time-Series Data</label>
+          <button onclick="addTSRowFromModal()" style="background:#68217D;color:#fff;border:none;border-radius:5px;padding:3px 9px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit">+ Add Period</button>
+        </div>
+        <div id="kpi-ts-table" style="max-height:150px;overflow-y:auto;font-size:9px">
+          <table style="width:100%;border-collapse:collapse">
+            <thead><tr style="background:#F5F0F7">
+              <th style="padding:4px 8px;text-align:left;font-weight:700;color:#4A1759;border-bottom:1px solid #D6C8DB;font-size:9px">Period</th>
+              <th style="padding:4px 8px;text-align:left;font-weight:700;color:#4A1759;border-bottom:1px solid #D6C8DB;font-size:9px">Value</th>
+              <th style="padding:4px 8px;text-align:left;font-weight:700;color:#4A1759;border-bottom:1px solid #D6C8DB;font-size:9px">Notes</th>
+              <th style="padding:4px 8px;border-bottom:1px solid #D6C8DB"></th>
+            </tr></thead>
+            <tbody id="kpi-ts-body"></tbody>
+          </table>
+          <div id="kpi-ts-empty" style="padding:8px;text-align:center;color:#595959;font-style:italic;font-size:9px">No periods recorded yet — click + Add Period above</div>
+        </div>
+      </div>
+      <div class="mact">
+        <button class="bcan" onclick="closeMo('kpimodal')">Cancel</button>
+        <button class="bsav" onclick="saveKPI()">Save KPI</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TASK PANEL -->
+<div id="panel-overlay" onclick="closePanel()" style="position:fixed;inset:0;background:rgba(74,23,89,.4);z-index:500;display:none"></div>
+<div id="slide-panel" style="position:fixed;top:0;right:-480px;width:460px;max-width:96vw;height:100vh;background:#fff;z-index:501;box-shadow:-4px 0 24px rgba(74,23,89,.2);display:flex;flex-direction:column;transition:right .3s ease">
+  <div style="background:var(--primary);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+    <div style="flex:1;min-width:0">
+      <div id="panel-tname" style="color:#fff;font-weight:800;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Task</div>
+      <div id="panel-tmeta" style="color:rgba(255,255,255,.6);font-size:9px;margin-top:1px"></div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+      <select id="panel-stat" onchange="updatePanelStatus(this.value)" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:5px;padding:3px 7px;font-size:9px;font-family:inherit;cursor:pointer"><option>Not Started</option><option>In Progress</option><option>On Hold</option><option>Complete</option></select>
+      <button onclick="closePanel()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:14px;font-family:inherit">&#215;</button>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px">
+    <div style="font-size:9px;font-weight:700;color:var(--pd);text-transform:uppercase;letter-spacing:.5px">Task Details</div>
+    <div id="panel-detail" style="background:var(--gl);border-radius:8px;padding:10px;border:1px solid var(--gm)"></div>
+    <div style="font-size:9px;font-weight:700;color:var(--pd);text-transform:uppercase;letter-spacing:.5px">Comment Log <span style="color:var(--gt);font-weight:400;text-transform:none;font-size:9px">— all comments are dated and saved automatically</span></div>
+    <div id="panel-comments" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div id="panel-nocomments" style="font-size:10px;color:var(--gt);font-style:italic;display:none">No comments yet. Be the first to add one.</div>
+  </div>
+  <div style="padding:12px 14px;border-top:1px solid var(--gm);background:#fff;flex-shrink:0">
+    <div style="font-size:9px;font-weight:700;color:var(--pd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Add Comment</div>
+    <select id="comment-author" class="fsel" style="width:100%;margin-bottom:6px"><option>Berenicia</option><option>Jacques</option><option>Letlhogonolo</option><option>Wendy</option><option>Beverley</option><option>David</option><option>Danesha</option></select>
+    <textarea id="comment-text" class="fi" rows="3" placeholder="Add a comment..." style="resize:none;margin-bottom:6px;width:100%"></textarea>
+    <button onclick="postComment()" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:7px;width:100%;cursor:pointer;font-weight:700;font-size:10px;font-family:inherit">Post Comment</button>
+  </div>
+</div>
+
+<div class="footer">Business Development Project Portfolio &middot; <span id="yr"></span></div>
+
+<script>
+document.getElementById('yr').textContent=new Date().getFullYear();
+// Clear stale localStorage data from old versions
+try {
+  var _ver = localStorage.getItem('bd-version');
+  if (_ver !== '4.1') {
+    ['bd-projs','bd-tasks','bd-adhoc','bd-kpis','bd-comments'].forEach(function(k){ localStorage.removeItem(k); });
+    localStorage.setItem('bd-version','4.1');
+  }
+} catch(e){}
+
+// -- Constants -----------------------------------------------------------------
+const PHASES=['Initiation & Scoping','Planning','Execution','Monitoring & Control','Closure'];
+const PTASKS={'Initiation & Scoping':['Project charter sign-off','Stakeholder mapping','Scope definition'],'Planning':['Project plan','Resource plan','Risk register','Communication plan'],'Execution':['Core deliverable 1','Core deliverable 2','Stakeholder updates','Issue & change management'],'Monitoring & Control':['Progress reporting','Quality review','Budget tracking'],'Closure':['Deliverable sign-off','Lessons learned','Handover & BAU transition']};
+const LEADS=['Berenicia','Jacques','Letlhogonolo','Wendy','Beverley','David','Danesha'];
+const CATS=['Operations','People & Training','Technology & Assets','Finance'];
+const PRIS=['Critical','High','Medium','Low'];
+const STATUSES=['Not Started','In Progress','On Hold','Complete'];
+
+function buildTasks(pid){
+  const t=[];
+  PHASES.forEach((ph,pi)=>{
+    t.push({id:`${pid}-p${pi}`,projId:pid,type:'phase',phase:ph,name:ph,status:'Not Started',pct:0,owner:'',start:'',end:''});
+    PTASKS[ph].forEach((n,ti)=>t.push({id:`${pid}-p${pi}-t${ti}`,projId:pid,type:'task',phase:ph,name:n,status:'Not Started',pct:0,owner:'',start:'',end:''}));
+  });
+  return t;
+}
+
+// -- Default data --------------------------------------------------------------
+const DP=[
+  {id:1,name:'Supervisory training for Prestige',lead:'Berenicia',category:'People & Training',priority:'Medium',bizImpact:'Efficiency Gain',custValue:'Order Winner',status:'In Progress',approval:'Approved',pct:20,collaborators:[],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-02-01',endDate:'2025-06-30'},
+  {id:2,name:'Automations at factories - not used, switched off',lead:'Jacques',category:'Technology & Assets',priority:'High',bizImpact:'Efficiency Gain',custValue:'Disqualifier',status:'In Progress',approval:'Approved',pct:35,collaborators:[],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-01-15',endDate:'2025-05-31'},
+  {id:3,name:'Prestige Head Count: Cutting rooms',lead:'Letlhogonolo',category:'Operations',priority:'High',bizImpact:'Cost Saving',custValue:'Order Qualifier',status:'In Progress',approval:'Approved',pct:50,collaborators:['Berenicia'],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-01-01',endDate:'2025-04-30'},
+  {id:4,name:'Bullmer cutting machine Parameter settings',lead:'Letlhogonolo',category:'Operations',priority:'Critical',bizImpact:'Efficiency Gain',custValue:'Order Winner',status:'Not Started',approval:'Proposed',pct:0,collaborators:[],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-04-01',endDate:'2025-07-31'},
+  {id:5,name:'Caledon cutting room: Process optimisation',lead:'Letlhogonolo',category:'Operations',priority:'Critical',bizImpact:'Efficiency Gain',custValue:'Order Qualifier',status:'Not Started',approval:'Proposed',pct:0,collaborators:[],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-05-01',endDate:'2025-09-30'},
+  {id:6,name:'Equipment Capability study: Multiformer use',lead:'Jacques',category:'Operations',priority:'High',bizImpact:'Efficiency Gain',custValue:'Disqualifier',status:'Not Started',approval:'Proposed',pct:0,collaborators:[],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-03-01',endDate:'2025-06-30'},
+  {id:7,name:'AI project: training tool',lead:'Wendy',category:'People & Training',priority:'Medium',bizImpact:'Risk Reduction',custValue:'Order Winner',status:'In Progress',approval:'Approved',pct:60,collaborators:['David'],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-01-01',endDate:'2025-08-31'},
+  {id:8,name:'Centre of excellence - internal training academy',lead:'Wendy',category:'People & Training',priority:'High',bizImpact:'Risk Reduction',custValue:'Order Winner',status:'On Hold',approval:'Deferred',pct:15,collaborators:[],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-06-01',endDate:'2025-12-31'},
+  {id:9,name:'The Prestige Way: Process standardisation',lead:'Beverley',category:'People & Training',priority:'Critical',bizImpact:'Risk Reduction',custValue:'Order Qualifier',status:'In Progress',approval:'Approved',pct:40,collaborators:['Letlhogonolo','Wendy'],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-01-01',endDate:'2025-10-31'},
+  {id:10,name:'Cost of Sales and expenses finance project',lead:'David',category:'Finance',priority:'High',bizImpact:'Cost Saving',custValue:'Order Winner',status:'In Progress',approval:'Approved',pct:25,collaborators:[],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-02-01',endDate:'2025-07-31'},
+  {id:11,name:'GSD Quest (Design and Factory alignment)',lead:'Letlhogonolo',category:'Technology & Assets',priority:'Medium',bizImpact:'Efficiency Gain',custValue:'Order Winner',status:'In Progress',approval:'Approved',pct:30,collaborators:[],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-03-01',endDate:'2025-09-30'},
+  {id:12,name:'Asset tracking tool: Tracking, Downtime & Inventory',lead:'Letlhogonolo',category:'Technology & Assets',priority:'Medium',bizImpact:'Efficiency Gain',custValue:'Order Winner',status:'In Progress',approval:'Approved',pct:45,collaborators:[],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-02-15',endDate:'2025-08-31'},
+  {id:13,name:'Asset Age Study',lead:'Jacques',category:'Operations',priority:'Critical',bizImpact:'Cost Saving',custValue:'Order Winner',status:'In Progress',approval:'Approved',pct:70,collaborators:['Letlhogonolo'],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:'',startDate:'2025-01-01',endDate:'2025-05-31'},
+];
+
+const DEFAULT_KPIS=[
+  {id:'k1',projId:13,category:'Financial',name:'Cost saving from asset optimisation',unit:'R',target:180000,actual:210000,notes:'Q2 audit'},
+  {id:'k2',projId:13,category:'Efficiency',name:'Downtime reduction',unit:'%',target:30,actual:22,notes:''},
+  {id:'k3',projId:9,category:'People',name:'Process adoption rate',unit:'%',target:80,actual:65,notes:''},
+  {id:'k4',projId:3,category:'Financial',name:'Headcount cost saving',unit:'R',target:150000,actual:135000,notes:''},
+  {id:'k5',projId:10,category:'Financial',name:'Finance process cost reduction',unit:'R',target:200000,actual:115000,notes:'Q1 report'},
+];
+
+function ld(k,def){try{const s=localStorage.getItem(k);return s?JSON.parse(s):JSON.parse(JSON.stringify(def));}catch(e){return JSON.parse(JSON.stringify(def));}}
+function sd(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+let projects=ld('bd-projs',DP);
+let tasks=ld('bd-tasks',null)||projects.flatMap(p=>buildTasks(p.id));
+let adHocTasks=ld('bd-adhoc',[]);
+let kpis=ld('bd-kpis',DEFAULT_KPIS);
+
+function saveAll(){sd('bd-projs',projects);sd('bd-tasks',tasks);sd('bd-adhoc',adHocTasks);sd('bd-kpis',kpis);}
+function saveUpdates(){try{localStorage.setItem('bd-updates',JSON.stringify(projectUpdates));}catch(e){}}
+
+// -- Style helpers -------------------------------------------------------------
+const PS=p=>({Critical:{bg:'#FFDCE0',fg:'#C00000'},High:{bg:'#FCE4D6',fg:'#C55A11'},Medium:{bg:'#DBC25D',fg:'#6B5A10'},Low:{bg:'#E2EFDA',fg:'#375623'}}[p]||{bg:'#F0F0F0',fg:'#595959'});
+const SS=s=>({'In Progress':{bg:'#E8D5EE',fg:'#68217D'},'Not Started':{bg:'#E8E8E8',fg:'#595959'},'On Hold':{bg:'#D5A99C',fg:'#7A4A40'},'Complete':{bg:'#E2EFDA',fg:'#375623'}}[s]||{bg:'#F0F0F0',fg:'#595959'});
+const AS=a=>({Approved:{bg:'#89AB90',fg:'#2E4F34'},Proposed:{bg:'#DBC25D',fg:'#6B5A10'},Deferred:{bg:'#D5A99C',fg:'#7A4A40'},Rejected:{bg:'#FFDCE0',fg:'#C00000'}}[a]||{bg:'#F0F0F0',fg:'#595959'});
+const CS=c=>({'Operations':{bg:'#A6C4CF',fg:'#2F6070'},'People & Training':{bg:'#E8D5EE',fg:'#68217D'},'Technology & Assets':{bg:'#CFCFB7',fg:'#7A7A58'},'Finance':{bg:'#DBC25D',fg:'#6B5A10'}}[c]||{bg:'#F0F0F0',fg:'#595959'});
+const KCAT=c=>({Financial:{bg:'#E2EFDA',fg:'#375623',dot:'#375623'},Efficiency:{bg:'#E8D5EE',fg:'#68217D',dot:'#68217D'},People:{bg:'#DDE4EC',fg:'#3A3F60',dot:'#7A92AC'},Quality:{bg:'#FCF5E3',fg:'#6B5A10',dot:'#DBC25D'},Custom:{bg:'#FCE4D6',fg:'#C55A11',dot:'#C55A11'}}[c]||{bg:'#F0F0F0',fg:'#595959',dot:'#595959'});
+function pill(l,s){return`<span class="pill" style="background:${s.bg};color:${s.fg}">${esc(l)}</span>`;}
+function projectHealth(p){
+  if(p.status==='Complete') return {label:'Complete',color:'#375623',bg:'#E2EFDA',icon:'&#10003;'};
+  if(p.status==='On Hold')  return {label:'On Hold', color:'#7A4A40',bg:'#D5A99C',icon:'&#9646;'};
+  if(!p.startDate||!p.endDate) return {label:'No Dates',color:'#595959',bg:'#F0F0F0',icon:'&#8212;'};
+  var today=new Date(); today.setHours(0,0,0,0);
+  var start=new Date(p.startDate); var end=new Date(p.endDate);
+  var total=end-start; if(total<=0) return {label:'No Dates',color:'#595959',bg:'#F0F0F0',icon:'&#8212;'};
+  var elapsed=Math.max(0,Math.min(100,Math.round((today-start)/total*100)));
+  var gap=elapsed-(p.pct||0);
+  if(gap<10)  return {label:'On Track', color:'#375623',bg:'#E2EFDA',icon:'&#9650;'};
+  if(gap<25)  return {label:'At Risk',  color:'#C55A11',bg:'#FCE4D6',icon:'&#9679;'};
+  return       {label:'Behind',  color:'#C00000',bg:'#FFDCE0',icon:'&#9660;'};
+}
+
+function pbar(p){return`<div class="pb"><div class="pb-bg"><div class="pb-fill" style="width:${p}%;background:${p===100?'#89AB90':'#68217D'}"></div></div><span class="pb-txt">${p}%</span></div>`;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function initials(n){return n.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);}
+function avHtml(name,sm){return`<div class="av${sm?' av-sm':''}" title="${esc(name)}">${initials(name)}</div>`;}
+function fmtR(v){if(v>=1000000)return`R ${(v/1000000).toFixed(1)}M`;if(v>=1000)return`R ${Math.round(v/1000)}k`;return`R ${Math.round(v)}`;}
+
+// -- View switching -------------------------------------------------------------
+function syncLeadInput(){
+  var sel = document.getElementById('fld');
+  var inp = document.getElementById('fld-custom');
+  if(!sel || !inp) return;
+  if(sel.value === '__other__'){
+    inp.style.display = 'block';
+    inp.focus();
+  } else {
+    inp.style.display = 'none';
+  }
+}
+function syncLeadSelect(){
+  // while typing custom name, keep select on __other__
+  var sel = document.getElementById('fld');
+  if(sel) sel.value = '__other__';
+}
+function getLeadValue(){
+  var sel = document.getElementById('fld');
+  var inp = document.getElementById('fld-custom');
+  if(sel && sel.value === '__other__' && inp && inp.value.trim()){
+    return inp.value.trim();
+  }
+  return sel ? sel.value : '';
+}
+function getRole(){ return (document.getElementById('role-sel')||{value:'Admin'}).value; }
+var _adminUnlocked = false;
+function onRoleChange(){
+  var sel = document.getElementById('role-sel');
+  if(sel.value === 'Admin'){
+    if(!_adminUnlocked){
+      var pw = prompt('Enter Admin password:');
+      if(pw !== 'Timwood_10.'){
+        alert('Incorrect password.');
+        sel.value = 'Project Leads';
+        return;
+      }
+      _adminUnlocked = true;
+    }
+  } else {
+    _adminUnlocked = false;
+  }
+  renderTracker();
+  if(curView==='dashboard') renderDash();
+  if(curView==='activity') renderActivity();
+  if(curView==='taskboard') renderTaskBoard();
+  updateImportVisibility();
+}
+function updateImportVisibility(){
+  var importBtn = document.getElementById('import-btn');
+  if(importBtn) importBtn.style.display = getRole()==='Admin' ? '' : 'none';
+}
+
+const VTITLES={tracker:'Project Tracker',dashboard:'Dashboard',activity:'Activity Breakdown',taskboard:'Task Board',gantt:'Gantt Chart',benefits:'Results & Benefits',charts:'Charts & Reports',recs:'Recommendations'};
+let curView='tracker';
+function sv(v){
+  curView=v;
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  const vids=['dashboard','tracker','activity','taskboard','gantt','charts','benefits','recs'];
+  document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('active',vids[i]===v));
+  document.querySelectorAll('.tb').forEach((b,i)=>b.classList.toggle('active',vids[i]===v));
+  document.getElementById('ptitle').textContent=VTITLES[v];
+  updateSub();
+  if(v==='dashboard')renderDash();
+  if(v==='activity')renderActivity();
+  if(v==='taskboard'){populateProjFilter();renderTaskBoard();}
+  if(v==='gantt')renderGantt();
+  if(v==='benefits')renderBenefits();
+  if(v==='charts'){populateChartProjFilter();renderCharts();}
+  if(v==='recs')renderRecs();
+}
+function updateSub(){
+  const ip=projects.filter(p=>p.status==='In Progress').length;
+  const cr=projects.filter(p=>p.priority==='Critical').length;
+  const rn=urgentRecs();
+  document.getElementById('psub').textContent=`${projects.length} projects . ${ip} in progress . ${cr} critical${rn>0?` . ${rn} urgent recommendation${rn>1?'s':''}`:''}`;
+}
+
+// -- Tracker -------------------------------------------------------------------
+function renderTracker(){
+  const s=(document.getElementById('si').value||'').toLowerCase();
+  const fc=document.getElementById('fc').value;
+  const fp=document.getElementById('fp').value;
+  const fl=document.getElementById('fl').value;
+  const fs=document.getElementById('fs').value;
+  const role=getRole();
+  document.getElementById('addpb').style.display=role==='Leadership'?'none':'block';
+  const filtered=projects.filter(p=>{
+    if(fc&&p.category!==fc)return false;
+    if(fp&&p.priority!==fp)return false;
+    if(fl&&p.lead!==fl)return false;
+    if(fs&&p.status!==fs)return false;
+    if(s&&!p.name.toLowerCase().includes(s))return false;
+    return true;
+  });
+  document.getElementById('fcount').textContent=`${filtered.length}/${projects.length}`;
+  // KPI health dot
+  function kpiDot(pid){
+    const pk=kpis.filter(k=>k.projId===pid&&k.target>0);
+    if(!pk.length)return'';
+    const avg=pk.reduce((a,k)=>a+(k.actual/k.target*100),0)/pk.length;
+    const col=avg>=100?'#375623':avg>=80?'#DBC25D':'#C00000';
+    return`<span title="KPI: ${Math.round(avg)}% of target" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${col};margin-left:4px;vertical-align:middle"></span>`;
+  }
+  const html=filtered.map((p,i)=>{
+    const collabs=[...(p.collaborators||[]),...(p.extCollabs?p.extCollabs.split(',').map(x=>x.trim()).filter(Boolean):[])];
+    const priColors={Critical:'#C00000',High:'#C55A11',Medium:'#DBC25D',Low:'#375623'};
+    return`<div class="trow tcols" style="background:${i%2===0?'#FCF5E3':'#fff'};border-left:3px solid ${priColors[p.priority]||'transparent'}">
+      <div><div class="pname">${esc(p.name)}${kpiDot(p.id)}</div>
+        <div class="psub">${esc(p.bizImpact)} . ${esc(p.custValue)}</div>
+        ${collabs.length?`<div class="collab-wrap">${collabs.map(c=>`<div class="collab-chip">${avHtml(c,true)}<span>${esc(c)}</span></div>`).join('')}</div>`:''}
+      </div>
+      <div class="hm" style="font-size:10px;color:var(--gt)">${esc(p.lead)}</div>
+      <div>${pill(p.priority,PS(p.priority))}</div>
+      <div class="hm">${pill(p.status,SS(p.status))}</div>
+      <div class="hm">${pill(p.approval,AS(p.approval))}</div>
+      <div class="hm">${pbar(p.pct)}</div>
+      <div class="hm">${(function(){var h=projectHealth(p);return'<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:'+h.bg+';color:'+h.color+'">'+h.icon+' '+h.label+'</span>';})()}</div>
+      <div>${role!=='Leadership'?`<button onclick="openModal(${p.id})" style="background:#E8D5EE;color:#68217D;border:none;border-radius:5px;padding:3px 7px;cursor:pointer;font-size:9px;font-weight:700;font-family:inherit">Edit</button>`:''}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('tbody').innerHTML=html||'<div style="padding:22px;text-align:center;color:var(--gt)">No projects match the filters.</div>';
+}
+
+// -- Modal ---------------------------------------------------------------------
+let editId=null;
+function openModal(id){
+  editId=id;
+  const isNew=!id;
+  document.getElementById('mtitle').textContent=isNew?'New Project':'Edit Project';
+  document.getElementById('mdelb').style.display=isNew?'none':'block';
+  const p=isNew?{name:'New Project',lead:'Berenicia',category:'Operations',priority:'Medium',status:'Not Started',approval:'Proposed',pct:0,bizImpact:'Efficiency Gain',custValue:'Order Qualifier',startDate:'',endDate:'',collaborators:[],extCollabs:'',problem:'',outcome:'',risks:'',deps:'',notes:''}:projects.find(x=>x.id===id);
+  document.getElementById('fn').value=p.name;
+  var fldSel = document.getElementById('fld');
+  var fldInp = document.getElementById('fld-custom');
+  var knownLeads = ['Berenicia','Jacques','Letlhogonolo','Wendy','Beverley','David','Danesha'];
+  if(knownLeads.indexOf(p.lead) >= 0){
+    fldSel.value = p.lead;
+    fldInp.style.display = 'none';
+  } else {
+    fldSel.value = '__other__';
+    fldInp.value = p.lead;
+    fldInp.style.display = 'block';
+  }
+  document.getElementById('fcat').value=p.category;
+  document.getElementById('fpri').value=p.priority;
+  document.getElementById('fst').value=p.status;
+  document.getElementById('fap').value=p.approval;
+  document.getElementById('fpct').value=p.pct;
+  document.getElementById('pctd').textContent=p.pct;
+  document.getElementById('fbi').value=p.bizImpact;
+  document.getElementById('fcv').value=p.custValue;
+  document.getElementById('fsd').value=p.startDate||'';
+  document.getElementById('fed').value=p.endDate||'';
+  document.getElementById('fext').value=p.extCollabs||'';
+  document.getElementById('fprob').value=p.problem||'';
+  document.getElementById('fout').value=p.outcome||'';
+  document.getElementById('frisk').value=p.risks||'';
+  document.getElementById('fdep').value=p.deps||'';
+  document.getElementById('fnotes').value=p.notes||'';
+  document.querySelectorAll('#collab-checks input[type=checkbox]').forEach(cb=>{
+    cb.checked=(p.collaborators||[]).includes(cb.value)&&cb.value!==p.lead;
+  });
+  renderUpdateLog(id || null);
+  openMo('pmodal');
+}
+function saveProj(){
+  const collabs=Array.from(document.querySelectorAll('#collab-checks input[type=checkbox]')).filter(c=>c.checked).map(c=>c.value);
+  const d={
+    name:document.getElementById('fn').value,
+    lead:getLeadValue(),
+    category:document.getElementById('fcat').value.replace(/&amp;/g,'&'),
+    priority:document.getElementById('fpri').value,
+    status:document.getElementById('fst').value,
+    approval:document.getElementById('fap').value,
+    pct:parseInt(document.getElementById('fpct').value),
+    bizImpact:document.getElementById('fbi').value,
+    custValue:document.getElementById('fcv').value,
+    startDate:document.getElementById('fsd').value,
+    endDate:document.getElementById('fed').value,
+    collaborators:collabs.filter(c=>c!==document.getElementById('fld').value),
+    extCollabs:document.getElementById('fext').value,
+    problem:document.getElementById('fprob').value,
+    outcome:document.getElementById('fout').value,
+    risks:document.getElementById('frisk').value,
+    deps:document.getElementById('fdep').value,
+    notes:document.getElementById('fnotes').value,
+  };
+  if(editId){
+    const i=projects.findIndex(p=>p.id===editId);
+    projects[i]={...projects[i],...d};
+  }else{
+    const nid=Math.max(...projects.map(p=>p.id),0)+1;
+    projects.push({id:nid,...d});
+    tasks.push(...buildTasks(nid));
+  }
+  var isNew = !editId;
+  saveAll();
+  if(window.sbSaveProject) sbSaveProject(isNew ? projects[projects.length-1] : projects.find(function(p){return p.id===editId;}), isNew, collabs);
+  closeMo('pmodal');sv('dashboard');updateBadge();
+  if(isNew){
+    showToast('Project added -- open Activity Breakdown to add tasks and KPIs', 'info');
+  } else {
+    showToast('Project saved successfully');
+  }
+}
+function delProj(){
+  if(!editId||!confirm('Delete this project and all its tasks and KPIs?'))return;
+  projects=projects.filter(p=>p.id!==editId);
+  tasks=tasks.filter(t=>t.projId!==editId);
+  kpis=kpis.filter(k=>k.projId!==editId);
+  var dpId = editId;
+  saveAll();
+  if(window.sbDelProject) sbDelProject(dpId);
+  closeMo('pmodal');sv('dashboard');updateBadge();
+}
+
+// -- Dashboard -----------------------------------------------------------------
+function updateStatusStrip(){
+  const active=projects.filter(p=>p.status==='In Progress').length;
+  const today=new Date();today.setHours(0,0,0,0);
+  const nextWeek=new Date(today);nextWeek.setDate(nextWeek.getDate()+7);
+  const dueThisWeek=projects.filter(p=>p.endDate&&p.status!=='Complete'&&new Date(p.endDate)>=today&&new Date(p.endDate)<=nextWeek).length;
+  const critIssues=urgentRecs();
+  const el_a=document.getElementById('strip-active-n');
+  const el_d=document.getElementById('strip-due-n');
+  const el_c=document.getElementById('strip-crit-n');
+  const el_tl=document.getElementById('strip-tl');
+  const el_hl=document.getElementById('strip-health-lbl');
+  if(el_a)el_a.textContent=active;
+  if(el_d)el_d.textContent=dueThisWeek;
+  if(el_c)el_c.textContent=critIssues;
+  const score=Math.max(0,100-critIssues*10);
+  const tlCol=score>=80?'#89AB90':score>=60?'#DBC25D':'#C00000';
+  const tlLbl=score>=80?'Healthy':score>=60?'Needs Attention':'At Risk';
+  if(el_tl)el_tl.style.background=tlCol;
+  if(el_hl){el_hl.textContent=tlLbl;el_hl.style.color=tlCol;}
+}
+
+function renderDash(){
+  const total=projects.length;
+  const ip=projects.filter(p=>p.status==='In Progress').length;
+  const ns=projects.filter(p=>p.status==='Not Started').length;
+  const oh=projects.filter(p=>p.status==='On Hold').length;
+  const dn=projects.filter(p=>p.status==='Complete').length;
+  const cr=projects.filter(p=>p.priority==='Critical').length;
+  const ap=projects.filter(p=>p.approval==='Approved').length;
+  const avg=Math.round(projects.reduce((a,p)=>a+p.pct,0)/total);
+  document.getElementById('dkrow').innerHTML=[
+    {l:'Total',v:total,bg:'#68217D',fg:'#fff'},
+    {l:'In Progress',v:ip,bg:'#DDE4EC',fg:'#3A3F60'},
+    {l:'Not Started',v:ns,bg:'#E8E8E8',fg:'#595959'},
+    {l:'On Hold',v:oh,bg:'#D5A99C',fg:'#7A4A40'},
+    {l:'Complete',v:dn,bg:'#E2EFDA',fg:'#375623'},
+    {l:'Critical',v:cr,bg:'#FFDCE0',fg:'#C00000'},
+    {l:'Approved',v:ap,bg:'#89AB90',fg:'#2E4F34'},
+    {l:'Avg Progress',v:avg+'%',bg:'#E8D5EE',fg:'#68217D'},
+  ].map(k=>`<div class="kcard" style="background:${k.bg}"><div class="klbl" style="color:${k.fg}">${k.l}</div><div class="kval" style="color:${k.fg}">${k.v}</div></div>`).join('');
+
+  document.getElementById('dcat').innerHTML=CATS.map(c=>{
+    const n=projects.filter(p=>p.category===c).length;const cs=CS(c);
+    return`<div class="mbi"><div class="mbl"><span>${pill(c,cs)}</span><strong style="font-size:10px;color:#4A1759">${n}</strong></div><div class="mbb"><div style="width:${Math.round(n/total*100)}%;height:100%;background:${cs.fg};border-radius:3px"></div></div></div>`;
+  }).join('');
+
+  document.getElementById('dpri').innerHTML=PRIS.map(p=>{
+    const n=projects.filter(x=>x.priority===p).length;const ps=PS(p);
+    return`<div class="mbi"><div class="mbl"><span>${pill(p,ps)}</span><strong style="font-size:10px;color:#4A1759">${n}</strong></div><div class="mbb"><div style="width:${Math.round(n/total*100)}%;height:100%;background:${ps.fg};border-radius:3px"></div></div></div>`;
+  }).join('');
+
+  // Total involvement = lead + collaborator
+  document.getElementById('dwl').innerHTML=LEADS.map(l=>{
+    const led=projects.filter(p=>p.lead===l).length;
+    const collab=projects.filter(p=>(p.collaborators||[]).includes(l)&&p.lead!==l).length;
+    const tot=led+collab;const heavy=tot>4;
+    return`<div style="background:${heavy?'#FCE4D6':tot===0?'#F0F0F0':'#E8D5EE'};border-radius:9px;padding:10px 12px;text-align:center;flex:1;min-width:80px">
+      <div style="font-size:22px;font-weight:800;color:${heavy?'#C55A11':tot===0?'#595959':'#68217D'}">${tot}</div>
+      <div style="font-size:8px;color:#595959;margin-top:1px">${esc(l)}</div>
+      ${tot>0?`<div style="font-size:8px;color:#595959">${led} lead${collab>0?` + ${collab} collab`:''}</div>`:''}
+    </div>`;
+  }).join('');
+
+  const overloaded=LEADS.filter(l=>{
+    const led=projects.filter(p=>p.lead===l).length;
+    const collab=projects.filter(p=>(p.collaborators||[]).includes(l)&&p.lead!==l).length;
+    return led+collab>4;
+  });
+  document.getElementById('dwlw').innerHTML=overloaded.map(l=>`<div style="margin:0 13px 13px;padding:6px 9px;background:#FCE4D6;border-radius:6px;font-size:9px;color:#C55A11;font-weight:600">&#9888; ${esc(l)}'s total involvement exceeds 4 projects</div>`).join('');
+
+  document.getElementById('dprog').innerHTML=[...projects].sort((a,b)=>b.pct-a.pct).map(p=>`
+    <div style="display:grid;grid-template-columns:1fr 160px;gap:9px;align-items:center">
+      <div style="font-size:10px;color:#4A1759;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(p.name)}">${esc(p.name)}</div>
+      ${pbar(p.pct)}
+    </div>`).join('');
+
+  // Hero section
+  const dateEl=document.getElementById('dash-date');
+  const headEl=document.getElementById('dash-headline');
+  const sumEl=document.getElementById('dash-summary');
+  const urgEl=document.getElementById('dash-urgent');
+  if(dateEl)dateEl.textContent=new Date().toLocaleDateString('en-ZA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if(headEl)headEl.textContent=`${total} Projects - ${Math.round(projects.reduce((a,p)=>a+p.pct,0)/total)}% Avg Progress`;
+  const ip_hero=projects.filter(p=>p.status==='In Progress').length;
+  const dn_hero=projects.filter(p=>p.status==='Complete').length;
+  const cr_hero=projects.filter(p=>p.priority==='Critical').length;
+  if(sumEl)sumEl.textContent=ip_hero+' in progress - '+dn_hero+' complete - '+cr_hero+' critical';
+  // Health summary
+  var onTrack=projects.filter(function(p){return projectHealth(p).label==='On Track';}).length;
+  var atRisk=projects.filter(function(p){return projectHealth(p).label==='At Risk';}).length;
+  var behind=projects.filter(function(p){return projectHealth(p).label==='Behind';}).length;
+  var headEl=document.getElementById('dash-headline');
+  if(headEl) headEl.textContent=total+' Projects - '+Math.round(projects.reduce(function(a,p){return a+p.pct;},0)/total)+'% Avg Progress';
+  if(urgEl){
+    const recs=genRecs().filter(r=>r.severity==='critical'||r.severity==='high').slice(0,3);
+    urgEl.innerHTML=recs.length?recs.map(r=>`<div style="background:rgba(255,255,255,.12);border-radius:7px;padding:7px 10px;max-width:200px"><div style="font-size:8px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">${r.severity.toUpperCase()}</div><div style="font-size:9px;color:#fff;line-height:1.3">${esc(r.title)}</div></div>`).join(''):'<div style="font-size:10px;color:rgba(255,255,255,.7)">No urgent issues - portfolio is healthy</div>';
+  }
+  updateStatusStrip();
+}
+
+// -- Activity Breakdown --------------------------------------------------------
+function renderActivity(){
+  var container = document.getElementById('actbody');
+  container.innerHTML = '';
+  projects.forEach(function(p){
+    var collabs = [].concat(p.collaborators||[]);
+    if(p.extCollabs){ p.extCollabs.split(',').forEach(function(x){ var t=x.trim(); if(t) collabs.push(t); }); }
+
+    // Card
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.style.marginBottom = '5px';
+
+    // Header (purple bar)
+    var hdr = document.createElement('div');
+    hdr.className = 'wph';
+    hdr.style.cursor = 'pointer';
+    var priBorder = {Critical:'#C00000',High:'#C55A11',Medium:'#DBC25D',Low:'#375623'};
+    hdr.style.borderLeft = '4px solid '+(priBorder[p.priority]||'#A6C4CF');
+    hdr.title = 'Click to expand';
+    hdr.onclick = function(){ toggleProject(p.id); };
+
+    var arrSpan = document.createElement('span');
+    arrSpan.id = 'act-arr-'+p.id;
+    arrSpan.innerHTML = '&#9654;';
+    arrSpan.style.cssText = 'color:var(--tskyd);font-size:13px;min-width:16px;transition:transform .2s';
+    hdr.appendChild(arrSpan);
+
+    var info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0';
+    var nm = document.createElement('div');
+    nm.style.cssText = 'color:var(--tskyd);font-weight:800;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    nm.textContent = p.name;
+    var sub = document.createElement('div');
+    sub.style.cssText = 'color:var(--tskyd);font-size:8px;margin-top:1px;opacity:.75';
+    sub.textContent = 'Lead: '+p.lead+(collabs.length?' - '+collabs.join(', '):'');
+    info.appendChild(nm); info.appendChild(sub);
+    hdr.appendChild(info);
+
+    var pills = document.createElement('div');
+    pills.style.cssText = 'display:flex;gap:4px;flex-shrink:0';
+    pills.innerHTML = pill(p.priority,PS(p.priority))+pill(p.status,SS(p.status));
+    hdr.appendChild(pills);
+
+    var prog = document.createElement('div');
+    prog.style.cssText = 'min-width:65px;margin-left:7px';
+    prog.innerHTML = pbar(p.pct||0);
+    hdr.appendChild(prog);
+    card.appendChild(hdr);
+
+    // Body (hidden by default)
+    var body = document.createElement('div');
+    body.id = 'act-'+p.id;
+    body.style.display = 'none';
+
+    // Append phases fragment directly (preserves event handlers)
+    body.appendChild(renderPhases(p));
+
+    // Add Phase button row
+    var addPhRow = document.createElement('div');
+    addPhRow.style.cssText = 'padding:8px 14px;background:#F5F0F7;border-top:1px solid #D6C8DB';
+    var addPhBtn = document.createElement('button');
+    addPhBtn.textContent = '+ Add Phase';
+  if(getRole()==='Leadership') { addPhRow.style.display='none'; }
+    addPhBtn.style.cssText = 'background:#68217D;color:#fff;border:none;border-radius:5px;padding:4px 11px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit';
+    addPhBtn.onclick = function(){ addPhase(p.id); };
+    addPhRow.appendChild(addPhBtn);
+    body.appendChild(addPhRow);
+
+    // KPI section (still uses innerHTML - no event handler loss there)
+    var kpiDiv = document.createElement('div');
+    kpiDiv.innerHTML = renderKPISection(p);
+    body.appendChild(kpiDiv);
+
+    card.appendChild(body);
+    container.appendChild(card);
+  });
+}
+
+function toggleProject(pid){
+  var el=document.getElementById('act-'+pid);
+  var arr=document.getElementById('act-arr-'+pid);
+  if(!el)return;
+  var open=el.style.display==='none';
+  el.style.display=open?'block':'none';
+  if(arr){
+    arr.innerHTML=open?'&#9660;':'&#9654;';
+    arr.style.transform=open?'rotate(0deg)':'rotate(0deg)';
+  }
+}
+
+function renderPhases(p){
+  var frag = document.createDocumentFragment();
+  var projTasks = tasks.filter(function(t){ return t.projId===p.id; });
+  var phaseObjs = projTasks.filter(function(t){ return t.type==='phase'; });
+  if(!phaseObjs.length){
+    PHASES.forEach(function(ph,pi){
+      tasks.push({id:p.id+'-p'+pi,projId:p.id,type:'phase',phase:ph,name:ph,status:'Not Started',pct:0,owner:'',start:'',end:''});
+      PTASKS[ph].forEach(function(n,ti){
+        tasks.push({id:p.id+'-p'+pi+'-t'+ti,projId:p.id,type:'task',phase:ph,name:n,status:'Not Started',pct:0,owner:'',start:'',end:''});
+      });
+    });
+    saveAll();
+    projTasks = tasks.filter(function(t){ return t.projId===p.id; });
+    phaseObjs = projTasks.filter(function(t){ return t.type==='phase'; });
+  }
+
+  phaseObjs.forEach(function(pt,pi){
+    var phaseTasks = projTasks.filter(function(t){ return t.type==='task'&&t.phase===pt.phase; });
+    var done = phaseTasks.filter(function(t){ return t.status==='Complete'; }).length;
+    var phKey = 'ph-'+String(pt.id).replace(/[^a-zA-Z0-9]/g,'-');
+    var pctKey = 'pct-'+String(pt.id).replace(/[^a-zA-Z0-9]/g,'-');
+
+    // Phase wrapper
+    var wrap = document.createElement('div');
+    wrap.style.borderTop = '1px solid #D6C8DB';
+
+    // Phase header row
+    var phRow = document.createElement('div');
+    phRow.className = 'wphase';
+    phRow.style.cursor = 'pointer';
+
+    // Arrow
+    var arr = document.createElement('span');
+    arr.id = phKey+'-arr';
+    arr.innerHTML = '&#9654;';
+    arr.style.cssText = 'color:#3A3F60;font-size:9px;min-width:10px';
+    phRow.appendChild(arr);
+
+    // Phase name (editable)
+    var nameSpan = document.createElement('span');
+    nameSpan.textContent = pt.name;
+    nameSpan.title = 'Click to rename phase';
+    var isLeadership = getRole()==='Leadership';
+    nameSpan.style.cssText = 'font-weight:700;font-size:10px;color:#3A3F60;flex:1;min-width:60px;cursor:'+(isLeadership?'default':'text')+';padding:1px 4px;border-radius:3px';
+    if(!isLeadership) nameSpan.onclick = function(e){ e.stopPropagation(); startInlineEdit(nameSpan, String(pt.id)); };
+    phRow.appendChild(nameSpan);
+
+    // Status select
+    var statSel = document.createElement('select');
+    statSel.style.cssText = 'font-size:9px;border:1px solid #D6C8DB;border-radius:4px;padding:2px 4px;color:#4A1759;font-family:inherit';
+    STATUSES.forEach(function(s){
+      var opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      if(s===pt.status) opt.selected = true;
+      statSel.appendChild(opt);
+    });
+    statSel.onchange = function(){ updTask(pt.id,'status',this.value); };
+    statSel.onclick = function(e){ e.stopPropagation(); };
+    phRow.appendChild(statSel);
+
+    // Progress slider
+    var sliderWrap = document.createElement('div');
+    sliderWrap.onclick = function(e){ e.stopPropagation(); };
+    sliderWrap.style.cssText = 'display:flex;align-items:center;gap:4px;width:100%';
+    var slider = document.createElement('input');
+    slider.type = 'range'; slider.min = 0; slider.max = 100; slider.step = 1;
+    slider.value = pt.pct||0;
+    slider.style.cssText = 'flex:1;accent-color:#68217D;height:3px';
+    var pctLbl = document.createElement('span');
+    pctLbl.id = pctKey;
+    pctLbl.textContent = (pt.pct||0)+'%';
+    pctLbl.style.cssText = 'font-size:8px;color:#595959;min-width:28px;text-align:right';
+    slider.oninput = function(){
+      pctLbl.textContent = this.value+'%';
+      updTask(pt.id,'pct',+this.value);
+    };
+    sliderWrap.appendChild(slider); sliderWrap.appendChild(pctLbl);
+    phRow.appendChild(sliderWrap);
+
+    // Done count
+    var doneSpan = document.createElement('span');
+    doneSpan.textContent = done+'/'+phaseTasks.length;
+    doneSpan.style.cssText = 'font-size:8px;color:#595959;min-width:28px;text-align:center';
+    phRow.appendChild(doneSpan);
+
+    // Delete phase button
+    var delBtn = document.createElement('button');
+    delBtn.innerHTML = '&#215;';
+    delBtn.title = 'Delete phase';
+    delBtn.style.cssText = 'background:#FFDCE0;color:#C00000;border:none;border-radius:4px;padding:2px 6px;font-size:9px;cursor:pointer;font-family:inherit;margin-left:8px;flex-shrink:0';
+    if(getRole()==='Leadership') delBtn.style.display='none';
+    delBtn.onclick = function(e){ e.stopPropagation(); delPhase(String(pt.id), p.id); };
+    phRow.appendChild(delBtn);
+
+    // Toggle on phase row click
+    phRow.onclick = function(){
+      var body = document.getElementById(phKey+'-body');
+      var a = document.getElementById(phKey+'-arr');
+      if(!body) return;
+      var open = body.style.display==='none';
+      body.style.display = open?'block':'none';
+      if(a) a.innerHTML = open?'&#9660;':'&#9654;';
+    };
+    wrap.appendChild(phRow);
+
+    // Phase body (tasks)
+    var phBody = document.createElement('div');
+    phBody.id = phKey+'-body';
+    phBody.style.display = 'none';
+
+    phaseTasks.forEach(function(t,ti){
+      var ss = SS(t.status);
+      var taskRow = document.createElement('div');
+      taskRow.className = 'wtask';
+      taskRow.style.cssText = 'background:'+(ti%2===0?'#FCF5E3':'#fff')+';position:relative';
+
+      // Row number
+      var num = document.createElement('span');
+      num.textContent = (pi+1)+'.'+(ti+1);
+      num.style.cssText = 'font-size:8px;color:#595959';
+      taskRow.appendChild(num);
+
+      // Task name (editable)
+      var tNameSpan = document.createElement('span');
+      tNameSpan.textContent = t.name;
+      tNameSpan.title = 'Click to rename task';
+      tNameSpan.style.cssText = 'font-size:10px;color:#4A1759;font-weight:500;cursor:'+(isLeadership?'default':'text')+';padding:1px 4px;border-radius:3px;flex:1;min-width:80px';
+      if(!isLeadership) tNameSpan.onclick = function(){ startInlineEdit(tNameSpan, String(t.id)); };
+      taskRow.appendChild(tNameSpan);
+
+      // Owner select
+      var ownerSel = document.createElement('select');
+      ownerSel.style.cssText = 'font-size:9px;border:1px solid #D6C8DB;border-radius:4px;padding:2px 3px;color:#4A1759;font-family:inherit';
+      LEADS.forEach(function(l){
+        var opt = document.createElement('option');
+        opt.value = l; opt.textContent = l;
+        if(l===(t.owner||p.lead)) opt.selected = true;
+        ownerSel.appendChild(opt);
+      });
+      ownerSel.onchange = function(){ updTask(t.id,'owner',this.value); };
+      taskRow.appendChild(ownerSel);
+
+      // Status select
+      var tStatSel = document.createElement('select');
+      tStatSel.style.cssText = 'font-size:9px;border:1px solid #D6C8DB;border-radius:4px;padding:2px 3px;font-weight:700;font-family:inherit;background:'+ss.bg+';color:'+ss.fg;
+      STATUSES.forEach(function(s){
+        var opt = document.createElement('option');
+        opt.value = s; opt.textContent = s;
+        if(s===t.status) opt.selected = true;
+        tStatSel.appendChild(opt);
+      });
+      tStatSel.onchange = function(){
+        var newS = this.value;
+        var newSS = SS(newS);
+        this.style.background = newSS.bg;
+        this.style.color = newSS.fg;
+        updTask(t.id,'status',newS);
+      };
+      taskRow.appendChild(tStatSel);
+
+      // Start date
+      var startInp = document.createElement('input');
+      startInp.type = 'date'; startInp.value = t.start||'';
+      startInp.style.cssText = 'font-size:9px;border:1px solid #D6C8DB;border-radius:4px;padding:2px 3px;color:#4A1759;font-family:inherit;width:105px';
+      startInp.onchange = function(){ updTask(t.id,'start',this.value); };
+      taskRow.appendChild(startInp);
+
+      // End date
+      var endInp = document.createElement('input');
+      endInp.type = 'date'; endInp.value = t.end||'';
+      endInp.style.cssText = 'font-size:9px;border:1px solid #D6C8DB;border-radius:4px;padding:2px 3px;color:#4A1759;font-family:inherit;width:105px';
+      endInp.onchange = function(){ updTask(t.id,'end',this.value); };
+      taskRow.appendChild(endInp);
+
+      // Delete task button (hover reveal)
+      var delT = document.createElement('button');
+      delT.innerHTML = '&#215;';
+      delT.className = 'dtb';
+      delT.title = 'Delete task';
+      delT.style.cssText = 'opacity:0;transition:opacity .15s;background:#FFDCE0;color:#C00000;border:none;border-radius:4px;padding:2px 6px;font-size:9px;cursor:pointer;font-family:inherit';
+      if(isLeadership) { delT.style.display='none'; taskRow.onmouseenter=null; taskRow.onmouseleave=null; }
+      delT.onclick = function(){ delTask(String(t.id), p.id); };
+      taskRow.onmouseenter = function(){ delT.style.opacity='1'; };
+      taskRow.onmouseleave = function(){ delT.style.opacity='0'; };
+      taskRow.appendChild(delT);
+
+      phBody.appendChild(taskRow);
+    });
+
+    // Add task button
+    var addTaskRow = document.createElement('div');
+    addTaskRow.style.cssText = 'padding:5px 11px 5px 40px;background:'+(phaseTasks.length%2===0?'#FCF5E3':'#fff')+';border-top:1px solid #D6C8DB';
+    var addTaskBtn = document.createElement('button');
+    addTaskBtn.textContent = '+ Add Task';
+    if(isLeadership) addTaskRow.style.display='none';
+    addTaskBtn.style.cssText = 'background:#E8D5EE;color:#68217D;border:none;border-radius:5px;padding:3px 9px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit';
+    addTaskBtn.onclick = function(){ addTask(String(pt.id), pt.phase, p.id); };
+    addTaskRow.appendChild(addTaskBtn);
+    phBody.appendChild(addTaskRow);
+
+    wrap.appendChild(phBody);
+    frag.appendChild(wrap);
+  });
+
+  return frag;
+}
+
+function renderKPISection(p){
+  const pk=kpis.filter(k=>k.projId===p.id);
+  return`<div style="background:#F5F0F7;border-top:1px solid #D6C8DB;padding:10px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:10px;font-weight:800;color:#4A1759;text-transform:uppercase;letter-spacing:.4px">KPIs &amp; Benefits</span>
+      <button onclick="openKPIModal(${p.id},null)" style="background:#68217D;color:#fff;border:none;border-radius:5px;padding:3px 8px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit">+ Add KPI</button>
+    </div>
+    ${pk.length===0?`<div style="font-size:10px;color:#595959;font-style:italic;padding:8px 0">No KPIs defined yet. Add targets to track value delivered.</div>`:''}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
+      ${pk.map(k=>{
+        const kc=KCAT(k.category);
+        const rawPct=k.target>0?Math.round(k.actual/k.target*100):0;
+        const pct=Math.min(100,rawPct); // bar capped at 100%
+        const rag=rawPct>=100?'#375623':rawPct>=80?'#DBC25D':'#C00000';
+        const ragbg=rawPct>=100?'#E2EFDA':rawPct>=80?'#FFF8DC':'#FFDCE0';
+        const unit=k.unit==='R'?'R ':k.unit==='%'?'':'';
+        const suffix=k.unit==='%'?'%':k.unit!=='R'?` ${k.unit}`:'';
+        const fmt=v=>k.unit==='R'?fmtR(v):`${unit}${v}${suffix}`;
+        return`<div class="kpi-tile" style="background:${kc.bg};border-color:${kc.dot}33;cursor:pointer" onclick="openKPIModal(${p.id},'${k.id}')">
+          <div class="kpi-cat" style="color:${kc.fg}">&bull; ${esc(k.category)}</div>
+          <div class="kpi-nm">${esc(k.name)}</div>
+          <div class="kpi-vals">
+            <div class="kpi-vbox" style="background:rgba(255,255,255,.6)"><div class="kpi-vlbl" style="color:${kc.fg}">Target</div><div class="kpi-vnum" style="color:${kc.fg}">${fmt(k.target)}</div></div>
+            <div class="kpi-vbox" style="background:${ragbg}"><div class="kpi-vlbl" style="color:${rag}">Actual</div><div class="kpi-vnum" style="color:${rag}">${fmt(k.actual)}</div></div>
+          </div>
+          <div class="kpi-bbg"><div class="kpi-bfill" style="width:${pct}%;background:${rag}"></div></div>
+          <div class="kpi-pct" style="color:${rag}"><span class="rag" style="background:${rag}"></span>${rawPct>=100?'<span style="font-weight:700">Target met</span>':rawPct+'% of target'}${k.notes?' &middot; '+esc(k.notes):''}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function updTask(id,field,val){
+  const t=tasks.find(x=>String(x.id)===String(id));
+  if(t){
+    t[field]=field==='pct'?+val:val;
+    saveAll();
+    if(window.sbUpdTask) sbUpdTask(t);
+    if(curView==='taskboard')renderTaskBoard();
+  }
+}
+function toggleEl(bid,aid){
+  const b=document.getElementById(bid);const a=document.getElementById(aid);
+  if(!b)return;
+  const open=b.style.display==='none';
+  b.style.display=open?'block':'none';
+  if(a)a.innerHTML=open?'&#9660;':'&#9654;';
+}
+
+// -- KPI Modal -----------------------------------------------------------------
+let kpiEditId=null,kpiProjId=null;
+function openKPIModal(projId,kpiId){
+  kpiProjId=projId;kpiEditId=kpiId;
+  document.getElementById('kpimtitle').textContent=kpiId?'Edit KPI':'Add KPI';
+  document.getElementById('kpidelb').style.display=kpiId?'block':'none';
+  if(kpiId){
+    const k=kpis.find(x=>String(x.id)===String(kpiId));
+    if(!k){ console.error('KPI not found for id:', kpiId, 'available:', kpis.map(x=>x.id)); closeMo('kpimodal'); return; }
+    document.getElementById('kpicat').value=k.category;
+    document.getElementById('kpiname').value=k.name;
+    document.getElementById('kpiunit').value=k.unit;
+    document.getElementById('kpitgt').value=k.target;
+    document.getElementById('kpiact').value=k.actual;
+    document.getElementById('kpinotes').value=k.notes||'';
+  }else{
+    document.getElementById('kpicat').value='Financial';
+    document.getElementById('kpiname').value='';
+    document.getElementById('kpiunit').value='R';
+    document.getElementById('kpitgt').value='';
+    document.getElementById('kpiact').value='';
+    document.getElementById('kpinotes').value='';
+  }
+  // Show/hide time series section
+  var tsSection = document.getElementById('kpi-ts-section');
+  var tsBody = document.getElementById('kpi-ts-body');
+  var tsEmpty = document.getElementById('kpi-ts-empty');
+  if(kpiId && tsSection){
+    tsSection.style.display = 'block';
+    var kpiForTS = kpis.find(function(x){ return String(x.id)===String(kpiId); });
+    var tsRows = kpiForTS ? (kpiForTS.timeSeries||[]) : [];
+    renderTSModalRows();
+  } else if(tsSection){
+    tsSection.style.display = 'block';
+    if(tsBody) tsBody.innerHTML = '';
+    if(tsEmpty) tsEmpty.innerHTML = 'Save this KPI first, then reopen it to add time-series periods.';
+  }
+  openMo('kpimodal');
+}
+function saveKPI(){
+  try {
+  var existing = kpiEditId ? kpis.find(function(k){ return String(k.id)===String(kpiEditId); }) : null;
+  var existingTS = existing ? (existing.timeSeries||[]) : [];
+  var d={projId:kpiProjId,category:document.getElementById('kpicat').value,name:document.getElementById('kpiname').value,unit:document.getElementById('kpiunit').value,target:parseFloat(document.getElementById('kpitgt').value)||0,actual:parseFloat(document.getElementById('kpiact').value)||0,notes:document.getElementById('kpinotes').value};
+  var isNewKpi = !kpiEditId;
+  if(kpiEditId){
+    var idx=kpis.findIndex(function(k){ return String(k.id)===String(kpiEditId); });
+    if(idx<0){ showToast('KPI not found','error'); return; }
+    kpis[idx]={...kpis[idx],...d,timeSeries:existingTS};
+    var kpiId = kpis[idx].id;
+    saveAll();
+    if(window._sb){ var _s=window._sb; _s.from('kpis').update({category:d.category,name:d.name,unit:d.unit,target:d.target,actual:d.actual,notes:d.notes}).eq('id',kpiId).then(function(r){
+        if(r.error){console.warn('saveKPI update:',r.error);showToast('KPI update to database failed: '+r.error.message,'error');return;}
+        _s.from('kpi_timeseries').delete().eq('kpi_id',kpiId).then(function(){
+          if(!existingTS.length)return;
+          var rows=existingTS.map(function(tr){return{kpi_id:kpiId,period:tr.period,period_type:tr.periodType||'monthly',value:tr.value,notes:tr.notes||''};});
+          _s.from('kpi_timeseries').insert(rows).then(function(ir){if(ir.error)console.warn('ts resync:',ir.error);else console.log('TS resynced',kpiId,rows.length,'rows');});
+        });
+      });
+    }
+    closeMo('kpimodal');
+    if(curView==='activity')renderActivity();
+    if(curView==='benefits')renderBenefits();
+    showToast('KPI updated successfully');
+  } else {
+    var tempId='k'+Date.now();
+    kpis.push({id:tempId,...d,timeSeries:[]});
+    saveAll();
+    closeMo('kpimodal');
+    if(curView==='activity')renderActivity();
+    if(curView==='benefits')renderBenefits();
+    showToast('KPI added - reopen the tile to add time-series data');
+    if(window._sb){ var _s=window._sb; _s.from('kpis').insert({project_id:d.projId,category:d.category,name:d.name,unit:d.unit,target:d.target,actual:d.actual,notes:d.notes}).select().then(function(r){
+        if(r.error){console.warn('saveKPI insert:',r.error);showToast('KPI save to database failed: '+r.error.message,'error');return;}
+        if(r.data&&r.data[0]){
+          var newId=r.data[0].id;
+          var lk=kpis.find(function(k){return String(k.id)===String(tempId);});
+          if(lk){lk.id=newId;saveAll();console.log('KPI id synced:',tempId,'->',newId);}
+        }
+      });
+    }
+  }
+  } catch(err){console.error('saveKPI error:',err);showToast('Error saving KPI - check console','error');}
+}
+
+function delKPI(){
+  if(!kpiEditId)return;
+  var kpiToDelete = kpiEditId;
+  kpis=kpis.filter(k=>String(k.id)!==String(kpiEditId));
+  saveAll();
+  if(window.sbDelKPI) sbDelKPI(kpiToDelete);
+  closeMo('kpimodal');
+  if(curView==='activity')renderActivity();
+  if(curView==='benefits')renderBenefits();
+  showToast('KPI deleted');
+}
+
+// -- Task Board ----------------------------------------------------------------
+let togView='board';
+function setTog(v){
+  togView=v;
+  document.getElementById('tog-board').classList.toggle('active',v==='board');
+  document.getElementById('tog-list').classList.toggle('active',v==='list');
+  document.getElementById('tog-bylead').classList.toggle('active',v==='bylead');
+  document.getElementById('tbboard').style.display=v==='board'?'block':'none';
+  document.getElementById('tblist').style.display=v==='list'?'block':'none';
+  document.getElementById('tbbylead').style.display=v==='bylead'?'block':'none';
+  renderTaskBoard();
+}
+function populateProjFilter(){
+  const sel=document.getElementById('tb-proj');
+  sel.innerHTML='<option value="">All Projects</option>'+projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')+'<option value="adhoc">Ad Hoc</option>';
+}
+function getAllBoardTasks(){
+  const projTasks=tasks.filter(t=>t.type==='task').map(t=>{
+    const p=projects.find(x=>x.id===t.projId);
+    return{...t,projName:p?p.name:'Unknown',projPriority:p?p.priority:'Medium',isAdHoc:false};
+  });
+  const ah=adHocTasks.map(t=>({...t,projId:'adhoc',projName:'Ad Hoc',projPriority:t.priority,isAdHoc:true}));
+  return[...projTasks,...ah];
+}
+function editAdHocFromBadge(el) {
+  event.stopPropagation();
+  openAdHocModal(el.getAttribute('data-ahid'));
+}
+function changeTaskStatus(taskId, isAdHoc, newStatus) {
+  isAdHoc = isAdHoc === true || isAdHoc === 'true';
+  if (isAdHoc) {
+    var t = adHocTasks.find(function(x){ return String(x.id) === String(taskId); });
+    if (t) { t.status = newStatus; saveAll(); }
+  } else {
+    var t2 = tasks.find(function(x){ return String(x.id) === String(taskId); });
+    if (t2) { t2.status = newStatus; saveAll(); }
+  }
+  renderTaskBoard();
+  if (curView === 'activity') renderActivity();
+}
+
+function renderTaskBoard(){
+  var addTaskBtnEl = document.getElementById('add-task-btn');
+  if(addTaskBtnEl) addTaskBtnEl.style.display = getRole()==='Leadership' ? 'none' : '';
+  const lead=document.getElementById('tb-lead').value;
+  const proj=document.getElementById('tb-proj').value;
+  const type=document.getElementById('tb-type').value;
+  const today=new Date();today.setHours(0,0,0,0);
+
+  let all=getAllBoardTasks().filter(t=>{
+    if(lead&&(t.owner||'')!==lead)return false;
+    if(proj==='adhoc'&&!t.isAdHoc)return false;
+    if(proj&&proj!=='adhoc'&&t.projId!=proj)return false;
+    if(type==='project'&&t.isAdHoc)return false;
+    if(type==='adhoc'&&!t.isAdHoc)return false;
+    return true;
+  });
+
+  if(togView==='board'){
+    const cols=STATUSES.map(s=>{
+      const items=all.filter(t=>t.status===s);
+      const hdr=SS(s);
+      const cards=items.map(t=>{
+        const dueStr=t.end||t.due||'';
+        const due=dueStr?new Date(dueStr):null;
+        const overdue=due&&due<today&&s!=='Complete';
+        const dueSoon=due&&!overdue&&(due-today)/(86400000)<=3;
+        const pri=t.isAdHoc?t.priority:(t.projPriority||'Medium');
+        const cc=(comments||[]).filter(c=>c.taskId===String(t.id)&&c.isAdHoc===t.isAdHoc).length;
+        return`<div class="tcard${t.isAdHoc?' style="border:1px dashed #DBC25D"':''}" style="position:relative">
+          ${cc>0?'<span style="position:absolute;top:5px;right:5px;background:#4A1759;color:#fff;font-size:7px;font-weight:800;border-radius:8px;padding:1px 5px">'+cc+'</span>':''}
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">
+            <div class="tcard-name" style="cursor:pointer" onclick="openPanel('${t.id}',${t.isAdHoc})">${esc(t.name)}</div>
+            ${t.isAdHoc?'<span class="adhoc-badge" data-ahid="'+t.id+'" onclick="editAdHocFromBadge(this)" style="cursor:pointer">Ad Hoc &#9998;</span>':''}
+          </div>
+          <div class="tcard-proj">${esc(t.projName)}</div>
+          <div class="tcard-meta" style="margin-bottom:6px">
+            ${avHtml(t.owner||t.projName,true)}
+            ${pill(pri,PS(pri))}
+            ${dueStr?`<span style="font-size:8px;color:${overdue?'#C00000':dueSoon?'#C55A11':'#595959'};font-weight:${overdue||dueSoon?700:400}">${overdue?'Overdue':dueStr}</span>`:''}
+          </div>
+          <select onchange="changeTaskStatus('${t.id}',${t.isAdHoc},this.value)" onclick="event.stopPropagation()" style="width:100%;font-size:9px;border:1px solid #D6C8DB;border-radius:5px;padding:3px 6px;color:#4A1759;background:#fff;font-family:inherit;cursor:pointer;margin-bottom:5px">
+            ${['Not Started','In Progress','On Hold','Complete'].map(s=>'<option value="'+s+'"'+(s===t.status?' selected':'')+'>'+s+'</option>').join('')}
+          </select>
+          <div style="padding-top:5px;border-top:1px solid #E8D5EE;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="openPanel('${t.id}',${t.isAdHoc})">
+            <span style="font-size:9px;color:#68217D;font-weight:700">&#128172; ${cc>0?cc+' comment'+(cc>1?'s':''):'Add comment'}</span>
+            <span style="font-size:9px;color:#68217D;font-weight:600">View &rsaquo;</span>
+          </div>
+        </div>`;
+      }).join('');
+      return`<div>
+        <div class="bcol-hdr" style="background:${hdr.bg}">
+          <span style="font-size:10px;font-weight:700;color:${hdr.fg}">${s}</span>
+          <span style="font-size:9px;font-weight:700;border-radius:8px;padding:1px 6px;background:${hdr.fg}22;color:${hdr.fg}">${items.length}</span>
+        </div>
+        <div class="bcol-body">${cards||`<div style="font-size:9px;color:#595959;font-style:italic;padding:6px">No tasks</div>`}</div>
+      </div>`;
+    }).join('');
+    document.getElementById('tbboard').innerHTML=`<div class="board">${cols}</div>`;
+  } else {
+    const rows=all.map((t,i)=>{
+      const dueStr=t.end||t.due||'';
+      const due=dueStr?new Date(dueStr):null;
+      const overdue=due&&due<today&&t.status!=='Complete';
+      const pri=t.isAdHoc?t.priority:(t.projPriority||'Medium');
+      const ss=SS(t.status);
+      return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 90px 28px;padding:8px 13px;gap:7px;align-items:center;background:${i%2===0?'#FCF5E3':'#fff'};border-top:1px solid #D6C8DB;">
+        <div style="cursor:pointer" onclick="openPanel('${t.id}',${t.isAdHoc})">
+          <div style="font-size:10px;font-weight:700;color:#4A1759;margin-bottom:1px">${esc(t.name)}</div>
+          <div style="font-size:8px;color:#595959;display:flex;align-items:center;gap:4px">
+            ${esc(t.projName)}${t.isAdHoc?'<span class="adhoc-badge">Ad Hoc</span>':''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:3px">${avHtml(t.owner||'',true)}<span style="font-size:9px;color:#595959">${esc(t.owner||'')}</span></div>
+        ${pill(pri,PS(pri))}
+        <select onchange="changeTaskStatus('${t.id}',${t.isAdHoc},this.value)" onclick="event.stopPropagation()" style="font-size:9px;border:1px solid #D6C8DB;border-radius:5px;padding:2px 5px;font-family:inherit;cursor:pointer;background:${ss.bg};color:${ss.fg};font-weight:700">
+          ${['Not Started','In Progress','On Hold','Complete'].map(s=>'<option value="'+s+'"'+(s===t.status?' selected':'')+'>'+s+'</option>').join('')}
+        </select>
+        <span style="font-size:9px;color:${overdue?'#C00000':'#595959'};font-weight:${overdue?700:400}">${dueStr||'-'}</span>
+        ${t.isAdHoc?'<button data-ahid="'+t.id+'" onclick="event.stopPropagation();editAdHocFromBadge(this)" style="background:#E8D5EE;color:#68217D;border:none;border-radius:4px;padding:2px 6px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit">Edit</button>':'<span></span>'}
+      </div>`;
+    }).join('');
+    document.getElementById('tblist').innerHTML=`<div class="card">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 90px 28px;background:#68217D;padding:8px 13px;gap:7px">
+        ${['Task','Owner','Priority','Status','Due',''].map(h=>`<span style="font-size:9px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.4px">${h}</span>`).join('')}
+      </div>
+      ${rows||'<div style="padding:20px;text-align:center;color:#595959;font-size:10px">No tasks found.</div>'}
+    </div>`;
+  }
+  if(togView==='bylead') renderByLead(all);
+}
+
+
+// -- By Lead summary ----------------------------------------------------------
+function renderByLead(allTasks){
+  var wrap = document.getElementById('tbbylead');
+  if(!wrap) return;
+
+  var lead = document.getElementById('tb-lead').value;
+  var proj = document.getElementById('tb-proj').value;
+  var type = document.getElementById('tb-type').value;
+
+  // Build per-lead summary
+  var leadsToShow = lead ? [lead] : LEADS;
+  var statuses = ['Not Started','In Progress','On Hold','Complete'];
+
+  // Header
+  var html = '<div class="card" style="overflow-x:auto">';
+  html += '<div style="display:grid;grid-template-columns:140px repeat(5,1fr) 80px;background:#68217D;padding:9px 14px;gap:7px;min-width:600px">';
+  html += '<span style="font-size:9px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.4px">Lead</span>';
+  statuses.forEach(function(s){
+    var ss = SS(s);
+    html += '<span style="font-size:9px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.4px;text-align:center">'+s+'</span>';
+  });
+  html += '<span style="font-size:9px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.4px;text-align:center">Total</span>';
+  html += '</div>';
+
+  // Rows
+  var grandTotal = {total:0};
+  statuses.forEach(function(s){ grandTotal[s]=0; });
+
+  leadsToShow.forEach(function(l, idx){
+    var leadTasks = allTasks.filter(function(t){ return (t.owner||'') === l; });
+    if(!leadTasks.length && lead) return; // skip empty if filtered
+    var counts = {};
+    statuses.forEach(function(s){ counts[s] = leadTasks.filter(function(t){ return t.status===s; }).length; });
+    var total = leadTasks.length;
+
+    // Update grand totals
+    grandTotal.total += total;
+    statuses.forEach(function(s){ grandTotal[s] += counts[s]; });
+
+    var bg = idx%2===0 ? '#FCF5E3' : '#fff';
+    html += '<div style="display:grid;grid-template-columns:140px repeat(5,1fr) 80px;padding:8px 14px;gap:7px;background:'+bg+';border-top:1px solid #D6C8DB;align-items:center;min-width:600px">';
+
+    // Lead avatar + name
+    html += '<div style="display:flex;align-items:center;gap:5px">'+avHtml(l,true)+'<span style="font-size:10px;font-weight:700;color:#4A1759">'+esc(l)+'</span></div>';
+
+    statuses.forEach(function(s){
+      var ss = SS(s);
+      var n = counts[s];
+      html += '<div style="text-align:center">';
+      if(n > 0){
+        html += '<span style="display:inline-block;min-width:22px;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;background:'+ss.bg+';color:'+ss.fg+'">'+n+'</span>';
+      } else {
+        html += '<span style="font-size:10px;color:#D6C8DB">-</span>';
+      }
+      html += '</div>';
+    });
+
+    // Total
+    html += '<div style="text-align:center"><span style="font-size:11px;font-weight:800;color:#68217D">'+total+'</span></div>';
+    html += '</div>';
+
+    // Mini progress bar under each row
+    if(total > 0){
+      var completePct = Math.round((counts['Complete']||0)/total*100);
+      html += '<div style="height:3px;background:#E8D5EE;min-width:600px">';
+      html += '<div style="height:100%;width:'+completePct+'%;background:#68217D;transition:width .3s"></div>';
+      html += '</div>';
+    }
+  });
+
+  // Grand total row
+  if(leadsToShow.length > 1){
+    html += '<div style="display:grid;grid-template-columns:140px repeat(5,1fr) 80px;padding:8px 14px;gap:7px;background:#F5F0F7;border-top:2px solid #68217D;align-items:center;min-width:600px">';
+    html += '<span style="font-size:10px;font-weight:800;color:#4A1759">All Leads</span>';
+    statuses.forEach(function(s){
+      var ss = SS(s);
+      var n = grandTotal[s];
+      html += '<div style="text-align:center">';
+      html += '<span style="display:inline-block;min-width:22px;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;background:'+ss.bg+';color:'+ss.fg+'">'+n+'</span>';
+      html += '</div>';
+    });
+    html += '<div style="text-align:center"><span style="font-size:11px;font-weight:800;color:#68217D">'+grandTotal.total+'</span></div>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+
+  // Ad hoc vs project breakdown note
+  var projCount = allTasks.filter(function(t){ return !t.isAdHoc; }).length;
+  var ahCount = allTasks.filter(function(t){ return t.isAdHoc; }).length;
+  html += '<div style="margin-top:8px;font-size:9px;color:#595959;padding:0 2px">'+projCount+' project tasks + '+ahCount+' ad hoc tasks shown. Use filters above to narrow by lead, project or type.</div>';
+
+  wrap.innerHTML = html;
+}
+
+// -- Task status quick-edit ----------------------------------------------------
+function openTaskStatusModal(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  const s=prompt(`Update status for "${t.name}":\n1. Not Started\n2. In Progress\n3. On Hold\n4. Complete\n\nType the number or status name:`,'');
+  if(!s)return;
+  const map={'1':'Not Started','2':'In Progress','3':'On Hold','4':'Complete'};
+  const newStat=map[s.trim()]||STATUSES.find(x=>x.toLowerCase()===s.trim().toLowerCase());
+  if(newStat){t.status=newStat;saveAll();renderTaskBoard();if(curView==='activity')renderActivity();}
+}
+
+// -- Ad Hoc Modal --------------------------------------------------------------
+let ahEditId=null;
+function openAdHocModal(id){
+  ahEditId=id||null;
+  document.getElementById('ahtitle').textContent=id?'Edit Task':'Add Ad Hoc Task';
+  document.getElementById('ahdelb').style.display=id?'block':'none';
+  if(id){
+    const t=adHocTasks.find(x=>x.id===id);
+    document.getElementById('ahtname').value=t.name;
+    document.getElementById('ahowner').value=t.owner||'Berenicia';
+    document.getElementById('ahpri').value=t.priority||'Medium';
+    document.getElementById('ahstat').value=t.status||'Not Started';
+    document.getElementById('ahdue').value=t.due||'';
+    document.getElementById('ahnotes').value=t.notes||'';
+  }else{
+    document.getElementById('ahtname').value='';
+    document.getElementById('ahowner').value='Berenicia';
+    document.getElementById('ahpri').value='High';
+    document.getElementById('ahstat').value='Not Started';
+    document.getElementById('ahdue').value='';
+    document.getElementById('ahnotes').value='';
+  }
+  openMo('ahmodal');
+}
+function saveAdHoc(){
+  const d={name:document.getElementById('ahtname').value,owner:document.getElementById('ahowner').value,priority:document.getElementById('ahpri').value,status:document.getElementById('ahstat').value,due:document.getElementById('ahdue').value,notes:document.getElementById('ahnotes').value,type:'task',isAdHoc:true};
+  if(ahEditId){const i=adHocTasks.findIndex(t=>t.id===ahEditId);adHocTasks[i]={...adHocTasks[i],...d};}
+  else adHocTasks.push({id:'ah'+Date.now(),...d});
+  var isNewAh = !ahEditId;
+  var savedAh = ahEditId ? adHocTasks.find(function(t){return t.id===ahEditId;}) : adHocTasks[adHocTasks.length-1];
+  saveAll();
+  if(window.sbSaveAdHoc) sbSaveAdHoc(savedAh, isNewAh);
+  closeMo('ahmodal');renderTaskBoard();
+  showToast(isNewAh ? 'Task added' : 'Task updated');
+}
+function delAdHoc(){
+  if(!ahEditId)return;
+  var ahToDelete = adHocTasks.find(function(t){return t.id===ahEditId;});
+  adHocTasks=adHocTasks.filter(t=>t.id!==ahEditId);
+  saveAll();
+  if(window.sbDelAdHoc && ahToDelete) sbDelAdHoc(ahToDelete);
+  closeMo('ahmodal');renderTaskBoard();
+}
+
+// -- Gantt ---------------------------------------------------------------------
+let gz='month';
+function setZoom(z){
+  gz=z;
+  document.getElementById('zm').style.cssText=`background:${z==='month'?'#68217D':'#fff'};color:${z==='month'?'#fff':'#4A1759'};border:${z==='month'?'none':'1px solid #D6C8DB'};border-radius:5px;padding:3px 10px;font-size:9px;cursor:pointer;font-weight:${z==='month'?700:400};font-family:inherit`;
+  document.getElementById('zq').style.cssText=`background:${z==='quarter'?'#68217D':'#fff'};color:${z==='quarter'?'#fff':'#4A1759'};border:${z==='quarter'?'none':'1px solid #D6C8DB'};border-radius:5px;padding:3px 10px;font-size:9px;cursor:pointer;font-weight:${z==='quarter'?700:400};font-family:inherit`;
+  renderGantt();
+}
+function renderGantt(){
+  // Populate project filter
+  var gpSel = document.getElementById('gantt-proj-filter');
+  if (gpSel) {
+    var gpVal = gpSel.value;
+    gpSel.innerHTML = '<option value="">All Projects</option>' + projects.map(function(p){ return '<option value="'+p.id+'"'+(String(p.id)===gpVal?' selected':'')+'>'+esc(p.name)+'</option>'; }).join('');
+  }
+  var ganttProjF = (document.getElementById('gantt-proj-filter')||{}).value || '';
+  var ganttLeadF = (document.getElementById('gantt-lead-filter')||{}).value || '';
+  var ganttPriF  = (document.getElementById('gantt-pri-filter')||{}).value || '';
+  const today=new Date();const ys=new Date(today.getFullYear(),0,1);const td=365;
+  const dd=(a,b)=>Math.round((b-a)/86400000);
+  const pct=d=>Math.max(0,Math.min(100,dd(ys,d)/td*100));
+  const tp=pct(today);
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const quarters=['Q1','Q2','Q3','Q4'];
+  const cols=gz==='month'?months:quarters;
+  var filteredProjects = projects.filter(function(p){
+    if (ganttProjF && String(p.id) !== ganttProjF) return false;
+    if (ganttLeadF && p.lead !== ganttLeadF) return false;
+    if (ganttPriF && p.priority !== ganttPriF) return false;
+    return true;
+  });
+  const sorted=[...filteredProjects.filter(p=>p.priority==='Critical'),...filteredProjects.filter(p=>p.priority!=='Critical')];
+  const colsH=cols.map((c,i)=>`<div class="gm2" style="${i===0?'border-left:none':''}">${c}</div>`).join('');
+  const rowsH=sorted.map((p,idx)=>{
+    const s=p.startDate?new Date(p.startDate):null;const e=p.endDate?new Date(p.endDate):null;
+    const hb=s&&e&&e>s;const l=hb?pct(s):0;const w=hb?Math.max(1,pct(e)-pct(s)):0;
+    const ic=p.priority==='Critical';const bc=ic?'#C00000':p.status==='Complete'?'#89AB90':p.status==='On Hold'?'#D5A99C':'#68217D';
+    const dl=e?dd(today,e):null;const ov=dl!==null&&dl<0&&p.status!=='Complete';const ds=dl!==null&&dl>=0&&dl<14&&p.status!=='Complete';
+    const gl=cols.map((_,i)=>`<div style="flex:1;border-left:${i>0?`1px solid #D6C8DB`:'none'};height:100%"></div>`).join('');
+    return`<div class="grow" style="background:${idx%2===0?'#FCF5E3':'#fff'}">
+      <div class="gl">
+        <div class="gln" title="${esc(p.name)}">${esc(p.name)}</div>
+        <div style="display:flex;gap:3px;align-items:center;flex-wrap:wrap">${pill(p.priority,PS(p.priority))}<span style="font-size:8px;color:#595959">${esc(p.lead)}</span>${ov?`<span style="font-size:8px;color:#C00000;font-weight:700">&#9888; ${Math.abs(dl)}d over</span>`:ds?`<span style="font-size:8px;color:#C55A11;font-weight:700">&#9888; ${dl}d left</span>`:''}</div>
+      </div>
+      <div class="gba">
+        <div style="position:absolute;inset:0;display:flex;pointer-events:none">${gl}</div>
+        <div style="position:absolute;top:0;bottom:0;left:${tp}%;width:2px;background:#C00000;opacity:.65;z-index:2;pointer-events:none"></div>
+        ${hb?`<div style="position:absolute;top:50%;transform:translateY(-50%);left:${l}%;width:${w}%;height:14px;background:${bc};border-radius:3px;z-index:1;overflow:hidden;min-width:4px"><div style="position:absolute;inset:0;background:rgba(255,255,255,.3);width:${100-p.pct}%;right:0;left:auto"></div>${w>8?`<span style="position:absolute;inset:0;display:flex;align-items:center;padding-left:3px;font-size:7px;color:#fff;font-weight:700;overflow:hidden;white-space:nowrap">${p.pct}%</span>`:''}</div>`:`<div style="position:absolute;top:50%;transform:translateY(-50%);left:7px;font-size:8px;color:#595959;font-style:italic">No dates set</div>`}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('gbody').innerHTML=`<div class="ghdr"><div class="glh"><span style="font-size:8px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.4px">Project</span></div><div class="gth">${colsH}</div></div>${rowsH}`;
+  document.getElementById('cpsumm').innerHTML=projects.filter(p=>p.priority==='Critical').map(p=>{
+    const e=p.endDate?new Date(p.endDate):null;const dl=e&&p.status!=='Complete'?dd(today,e):null;
+    return`<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:${p.status==='Complete'?'#E2EFDA':'#FFDCE0'};border-radius:6px;flex-wrap:wrap">
+      <div style="width:7px;height:7px;border-radius:50%;background:${p.status==='Complete'?'#375623':'#C00000'};flex-shrink:0"></div>
+      <div style="flex:1;font-size:10px;font-weight:600;color:#4A1759;min-width:100px">${esc(p.name)}</div>
+      <span style="font-size:9px;color:#595959">${esc(p.lead)}</span>
+      ${pill(p.status,SS(p.status))}
+      ${dl!==null?`<span style="font-size:10px;font-weight:700;color:${p.status==='Complete'?'#375623':dl<0?'#C00000':dl<14?'#C55A11':'#375623'}">${p.status==='Complete'?'Complete':dl<0?`${Math.abs(dl)}d overdue`:`${dl}d left`}</span>`:`<span style="font-size:9px;color:#595959;font-style:italic">No end date</span>`}
+      <div style="min-width:70px">${pbar(p.pct)}</div>
+    </div>`;
+  }).join('')||'<div style="color:#595959;font-size:10px;font-style:italic">No critical projects.</div>';
+}
+
+// -- Results & Benefits --------------------------------------------------------
+function renderBenefits(){
+  const finKPIs=kpis.filter(k=>k.category==='Financial'&&k.unit==='R');
+  const totalTarget=finKPIs.reduce((a,k)=>a+k.target,0);
+  const totalActual=finKPIs.reduce((a,k)=>a+k.actual,0);
+  const onTrack=kpis.filter(k=>k.target>0&&k.actual/k.target>=1).length;
+  const amber=kpis.filter(k=>k.target>0&&k.actual/k.target>=.8&&k.actual/k.target<1).length;
+  const atRisk=kpis.filter(k=>k.target>0&&k.actual/k.target<.8).length;
+  const noKpi=projects.filter(p=>!kpis.some(k=>k.projId===p.id)).length;
+
+  document.getElementById('benrow').innerHTML=[
+    {l:'Total Financial Value',v:fmtR(totalActual),bg:'#68217D',fg:'#fff'},
+    {l:'vs Target',v:fmtR(totalTarget),bg:'#E8D5EE',fg:'#68217D'},
+    {l:'KPIs On Track',v:onTrack,bg:'#E2EFDA',fg:'#375623'},
+    {l:'Amber',v:amber,bg:'#FFF8DC',fg:'#6B5A10'},
+    {l:'At Risk',v:atRisk,bg:'#FFDCE0',fg:'#C00000'},
+    {l:'No KPIs Set',v:noKpi,bg:'#E8E8E8',fg:'#595959'},
+  ].map(k=>`<div class="bkpi" style="background:${k.bg}"><div class="bklbl" style="color:${k.fg}">${k.l}</div><div class="bkval" style="color:${k.fg}">${k.v}</div></div>`).join('');
+
+  // Value by category
+  const catVal=CATS.map(c=>{
+    const pk=kpis.filter(k=>k.unit==='R'&&k.category==='Financial'&&projects.find(p=>p.id===k.projId&&p.category===c));
+    const v=pk.reduce((a,k)=>a+k.actual,0);
+    return{cat:c,v};
+  }).filter(x=>x.v>0);
+  const maxV=Math.max(...catVal.map(x=>x.v),1);
+  document.getElementById('bencat').innerHTML=catVal.length?catVal.map(x=>{
+    const cs=CS(x.cat);
+    return`<div class="mbi"><div class="mbl"><span>${pill(x.cat,cs)}</span><strong style="font-size:10px;color:#4A1759">${fmtR(x.v)}</strong></div><div class="mbb"><div style="width:${Math.round(x.v/maxV*100)}%;height:100%;background:${cs.fg};border-radius:3px"></div></div></div>`;
+  }).join(''):'<div style="font-size:10px;color:#595959;font-style:italic;padding:8px">No financial KPIs recorded yet.</div>';
+
+  // Achievement by project
+  const projAch=projects.map(p=>{
+    const pk=kpis.filter(k=>k.projId===p.id&&k.target>0);
+    if(!pk.length)return null;
+    const avg=Math.round(pk.reduce((a,k)=>a+k.actual/k.target*100,0)/pk.length);
+    return{name:p.name,avg,count:pk.length};
+  }).filter(Boolean).sort((a,b)=>b.avg-a.avg);
+  document.getElementById('benach').innerHTML=projAch.length?projAch.map(x=>{
+    const col=x.avg>=100?'#375623':x.avg>=80?'#DBC25D':'#C00000';
+    return`<div class="mbi"><div class="mbl"><span style="font-size:10px;color:#4A1759;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%">${esc(x.name)}</span><strong style="font-size:10px;color:${col}">${x.avg}%</strong></div><div class="mbb"><div style="width:${Math.min(100,x.avg)}%;height:100%;background:${col};border-radius:3px"></div></div></div>`;
+  }).join(''):'<div style="font-size:10px;color:#595959;font-style:italic;padding:8px">No KPI targets set yet.</div>';
+
+  // League table
+  const league=projects.map(p=>{
+    const fk=kpis.filter(k=>k.projId===p.id&&k.category==='Financial'&&k.unit==='R');
+    const v=fk.reduce((a,k)=>a+k.actual,0);
+    return{p,v};
+  }).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+  const maxLV=Math.max(...league.map(x=>x.v),1);
+  document.getElementById('league').innerHTML=league.length?league.map((x,i)=>{
+    const allk=kpis.filter(k=>k.projId===x.p.id&&k.target>0);
+    const avg=allk.length?Math.round(allk.reduce((a,k)=>a+k.actual/k.target*100,0)/allk.length):0;
+    const col=avg>=100?'#375623':avg>=80?'#DBC25D':'#C00000';
+    return`<div class="lgrow" style="background:${i%2===0?'#FCF5E3':'#fff'}">
+      <div><div style="font-size:10px;font-weight:700;color:#4A1759;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.p.name)}</div><div class="lgbar-bg"><div style="width:${Math.round(x.v/maxLV*100)}%;height:100%;background:#68217D;border-radius:3px"></div></div></div>
+      <span style="font-size:12px;font-weight:800;color:#68217D">${fmtR(x.v)}</span>
+      <span class="pill" style="background:${col}22;color:${col}">${avg}%</span>
+    </div>`;
+  }).join(''):'<div style="padding:16px;text-align:center;font-size:10px;color:#595959;font-style:italic">No financial KPIs recorded yet. Add KPIs in the Activity Breakdown tab.</div>';
+
+  document.getElementById('nokpi-warn').innerHTML=noKpi>0?`<div style="padding:7px 13px;background:#F5F0F7;font-size:9px;color:#595959;border-top:1px solid #D6C8DB">${noKpi} project${noKpi>1?'s have':' has'} no KPIs defined - add targets to track full portfolio value</div>`:'';
+
+  // All KPI records
+  document.getElementById('allkpi').innerHTML=kpis.length?kpis.map(k=>{
+    const p=projects.find(x=>x.id===k.projId);
+    const kc=KCAT(k.category);
+    const pct2=k.target>0?Math.round(k.actual/k.target*100):0;
+    const rag=pct2>=100?'#375623':pct2>=80?'#DBC25D':'#C00000';
+    const fmt=v=>k.unit==='R'?fmtR(v):k.unit==='%'?`${v}%`:`${v} ${k.unit}`;
+    return`<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:9px;align-items:center;padding:9px 11px;background:#fff;border-radius:7px;border:1px solid #D6C8DB;cursor:pointer" onclick="openKPIModal(${k.projId},'${k.id}')">
+      <div><div style="font-size:10px;font-weight:700;color:#4A1759">${esc(k.name)}</div><div style="font-size:8px;color:#595959;margin-top:1px">${p?esc(p.name):'Unknown'}</div></div>
+      <div>${pill(k.category,kc)}</div>
+      <div style="font-size:10px;color:#595959">${fmt(k.actual)} / ${fmt(k.target)}</div>
+      <span class="pill" style="background:${rag}22;color:${rag}">${pct2}%</span>
+    </div>`;
+  }).join(''):'<div style="font-size:10px;color:#595959;font-style:italic">No KPIs recorded yet. Add them in the Activity Breakdown tab.</div>';
+}
+
+// -- Recommendations -----------------------------------------------------------
+function genRecs(){
+  const recs=[];const today=new Date();const dd=(a,b)=>Math.round((b-a)/86400000);
+  const wl=LEADS.map(l=>({lead:l,total:projects.filter(p=>p.lead===l).length+projects.filter(p=>(p.collaborators||[]).includes(l)&&p.lead!==l).length}));
+  const unassigned=wl.filter(w=>w.total===0).map(w=>w.lead);
+  wl.filter(w=>w.total>4).forEach(w=>recs.push({id:`wl-${w.lead}`,severity:'high',category:'Workload',icon:'&#9888;',title:`${w.lead} total involvement exceeds 4`,detail:`${w.lead} leads or collaborates on ${w.total} projects.`,action:`Redistribute work to ${unassigned.join(' or ')||'a less involved lead'}.`,affected:projects.filter(p=>p.lead===w.lead||(p.collaborators||[]).includes(w.lead)).map(p=>p.name)}));
+  if(unassigned.length)recs.push({id:'wl-un',severity:'info',category:'Workload',icon:'&#128100;',title:`${unassigned.join(', ')} ${unassigned.length===1?'has':'have'} no involvement`,detail:'Available capacity exists.',action:'Assign projects or collaborator roles to balance the portfolio.',affected:[]});
+  const cns=projects.filter(p=>p.priority==='Critical'&&p.status==='Not Started');
+  if(cns.length)recs.push({id:'cp-ns',severity:'critical',category:'Critical Path',icon:'&#128308;',title:`${cns.length} critical project${cns.length>1?'s':''} not started`,detail:cns.map(p=>p.name).join('; ')+'.',action:'Confirm approval and assign a kick-off date.',affected:cns.map(p=>p.name)});
+  const cod=projects.filter(p=>p.endDate&&p.status!=='Complete'&&new Date(p.endDate)<today);
+  if(cod.length)recs.push({id:'sch-od',severity:'critical',category:'Schedule',icon:'&#128197;',title:`${cod.length} project${cod.length>1?'s':''} past end date`,detail:cod.map(p=>`${p.name} (${dd(new Date(p.endDate),today)}d overdue)`).join('; ')+'.',action:'Update end dates or escalate.',affected:cod.map(p=>p.name)});
+  const ds=projects.filter(p=>p.endDate&&p.status!=='Complete'&&p.status!=='On Hold'&&dd(today,new Date(p.endDate))>=0&&dd(today,new Date(p.endDate))<=21&&p.pct<70);
+  if(ds.length)recs.push({id:'sch-ds',severity:'high',category:'Schedule',icon:'&#9200;',title:`${ds.length} project${ds.length>1?'s':''} due within 3 weeks under 70%`,detail:ds.map(p=>`${p.name} (${dd(today,new Date(p.endDate))}d left, ${p.pct}%)`).join('; ')+'.',action:'Review capacity and delivery dates.',affected:ds.map(p=>p.name)});
+  const prop=projects.filter(p=>p.approval==='Proposed'&&p.status==='In Progress');
+  if(prop.length)recs.push({id:'gov-pr',severity:'high',category:'Governance',icon:'&#128203;',title:`${prop.length} in-progress project${prop.length>1?'s':''} awaiting approval`,detail:prop.map(p=>p.name).join('; ')+'.',action:'Obtain sign-off retrospectively or pause until approved.',affected:prop.map(p=>p.name)});
+  const stall=projects.filter(p=>p.status==='In Progress'&&p.pct<10);
+  if(stall.length)recs.push({id:'prog-st',severity:'medium',category:'Progress',icon:'&#128002;',title:`${stall.length} in-progress project${stall.length>1?'s':''} under 10%`,detail:stall.map(p=>p.name).join('; ')+'.',action:'Confirm these are genuinely active.',affected:stall.map(p=>p.name)});
+  const nd=projects.filter(p=>(!p.startDate||!p.endDate)&&p.status!=='Complete');
+  if(nd.length)recs.push({id:'pl-nd',severity:'medium',category:'Planning',icon:'&#128198;',title:`${nd.length} project${nd.length>1?'s have':' has'} no dates`,detail:nd.map(p=>p.name).join('; ')+'.',action:'Set start and end dates to enable Gantt tracking.',affected:nd.map(p=>p.name)});
+  const np=projects.filter(p=>!p.problem&&p.status!=='Complete');
+  if(np.length)recs.push({id:'dq-pr',severity:'low',category:'Data Quality',icon:'&#128221;',title:`${np.length} project${np.length>1?'s':''} missing problem statement`,detail:'',action:'Add a one-line problem statement to each project.',affected:np.map(p=>p.name)});
+  const nr=projects.filter(p=>!p.risks&&p.status!=='Complete'&&(p.priority==='Critical'||p.priority==='High'));
+  if(nr.length)recs.push({id:'risk-nr',severity:'medium',category:'Risk',icon:'&#9889;',title:`${nr.length} high-priority project${nr.length>1?'s':''} with no risks documented`,detail:nr.map(p=>p.name).join('; ')+'.',action:'Document top 3 risks for each Critical/High project.',affected:nr.map(p=>p.name)});
+  const nkpi=projects.filter(p=>p.status==='Complete'&&!kpis.some(k=>k.projId===p.id));
+  if(nkpi.length)recs.push({id:'kpi-miss',severity:'medium',category:'Benefits',icon:'&#9733;',title:`${nkpi.length} completed project${nkpi.length>1?'s':''} with no KPIs recorded`,detail:nkpi.map(p=>p.name).join('; ')+'.',action:'Add KPIs to completed projects to capture value delivered.',affected:nkpi.map(p=>p.name)});
+  const order={critical:0,high:1,medium:2,low:3,info:4};
+  return recs.sort((a,b)=>order[a.severity]-order[b.severity]);
+}
+function urgentRecs(){return genRecs().filter(r=>r.severity==='critical'||r.severity==='high').length;}
+function updateBadge(){const n=urgentRecs();document.getElementById('rbadge').textContent=n;document.getElementById('rbadge2').textContent=n;updateStatusStrip();}
+
+const SEVC={critical:{bg:'#FFDCE0',border:'#C00000',fg:'#C00000',dot:'#C00000',label:'Critical'},high:{bg:'#FCE4D6',border:'#C55A11',fg:'#C55A11',dot:'#C55A11',label:'High'},medium:{bg:'#FFF8DC',border:'#DBC25D',fg:'#6B5A10',dot:'#DBC25D',label:'Medium'},low:{bg:'#E2EFDA',border:'#89AB90',fg:'#375623',dot:'#89AB90',label:'Low'},info:{bg:'#DDE4EC',border:'#7A92AC',fg:'#3A3F60',dot:'#7A92AC',label:'Info'}};
+let rcatf='All';
+function renderRecs(){
+  const recs=genRecs();
+  const score=Math.max(0,100-recs.filter(r=>r.severity==='critical').length*20-recs.filter(r=>r.severity==='high').length*10-recs.filter(r=>r.severity==='medium').length*5-recs.filter(r=>r.severity==='low').length*2);
+  const sc=score>=80?{color:'#375623',bg:'#E2EFDA',label:'Healthy'}:score>=60?{color:'#C55A11',bg:'#FCE4D6',label:'Needs Attention'}:{color:'#C00000',bg:'#FFDCE0',label:'At Risk'};
+  document.getElementById('hbox').innerHTML=`<div class="hbox" style="background:${sc.bg};border:1px solid ${sc.color}22">
+    <div style="min-width:60px;text-align:center"><div style="width:36px;height:36px;border-radius:50%;background:${sc.color};margin:0 auto 4px;display:flex;align-items:center;justify-content:center"><span style="color:#fff;font-size:14px;font-weight:800">${score>=80?'&#10003;':score>=60?'!':'!!'}</span></div><div class="hsnum" style="color:${sc.color};font-size:26px">${score}</div><div class="hslbl" style="color:${sc.color}">Health</div></div>
+    <div style="flex:1"><div style="font-weight:800;color:${sc.color};font-size:14px;margin-bottom:4px">${sc.label}</div>
+    <div class="hbbg"><div class="hbfill" style="width:${score}%;background:${sc.color}"></div></div>
+    <div style="font-size:10px;color:${sc.color};opacity:.85">${score>=80?'Portfolio is in good shape.':score>=60?'Several issues need attention - focus on critical items first.':'Immediate action required on multiple critical issues.'}</div></div>
+  </div>`;
+  const counts={critical:0,high:0,medium:0,low:0,info:0};recs.forEach(r=>counts[r.severity]++);
+  document.getElementById('scards').innerHTML=Object.entries(counts).filter(([,v])=>v>0).map(([s,n])=>{const sc2=SEVC[s];return`<div class="sc2" style="background:${sc2.bg};border-color:${sc2.border}22"><div class="sdot" style="background:${sc2.dot}"></div><div><div style="font-size:20px;font-weight:800;color:${sc2.fg};line-height:1">${n}</div><div style="font-size:8px;color:${sc2.fg};opacity:.8;font-weight:700;text-transform:uppercase;letter-spacing:.4px">${sc2.label}</div></div></div>`;}).join('')+`<div class="sc2" style="background:#fff"><div><div style="font-size:20px;font-weight:800;color:#4A1759;line-height:1">${recs.length}</div><div style="font-size:8px;color:#595959;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Total</div></div></div>`;
+  const cats=['All',...new Set(recs.map(r=>r.category))];
+  document.getElementById('cfilters').innerHTML=cats.map(c=>`<button class="cfb${c===rcatf?' active':''}" onclick="setRCat('${c}')">${c}${c!=='All'?` (${recs.filter(r=>r.category===c).length})`:''}</button>`).join('');
+  const shown=rcatf==='All'?recs:recs.filter(r=>r.category===rcatf);
+  if(!shown.length){document.getElementById('rlist').innerHTML=`<div style="background:#E2EFDA;border-radius:9px;padding:20px;text-align:center;border:1px solid #89AB90"><div style="font-size:24px;margin-bottom:6px">&#10003;</div><div style="font-weight:800;color:#375623;font-size:14px">All clear for ${rcatf}</div></div>`;return;}
+  document.getElementById('rlist').innerHTML=shown.map(r=>{const sc3=SEVC[r.severity];return`<div class="rc" style="background:${sc3.bg};border-color:${sc3.border}33">
+    <div class="rh" onclick="toggleRec('rb-${r.id}','ra-${r.id}')">
+      <span style="font-size:16px;flex-shrink:0;margin-top:1px">${r.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px"><span class="rt">${r.title}</span><span class="pill" style="background:${sc3.dot};color:#fff;font-size:8px">${sc3.label}</span><span class="pill" style="background:${sc3.dot}22;color:${sc3.fg};font-size:8px">${r.category}</span></div>
+        <div class="rd">${r.detail}</div>
+      </div>
+      <span style="color:#595959;font-size:11px;flex-shrink:0;margin-left:7px" id="ra-${r.id}">&#9660;</span>
+    </div>
+    <div class="rb" id="rb-${r.id}" style="display:none">
+      <div class="ral" style="color:${sc3.dot}">Recommended Action</div>
+      <div class="ra">${r.action}</div>
+      ${r.affected.length?`<div style="font-size:8px;font-weight:800;color:#595959;text-transform:uppercase;letter-spacing:.5px;margin-top:9px;margin-bottom:4px">Affected (${r.affected.length})</div><div class="rcs">${r.affected.map(n=>`<span class="rch">${esc(n)}</span>`).join('')}</div>`:''}
+    </div>
+  </div>`;}).join('');
+}
+function setRCat(c){rcatf=c;renderRecs();}
+function toggleRec(bid,aid){const b=document.getElementById(bid);const a=document.getElementById(aid);if(!b)return;const op=b.style.display==='none';b.style.display=op?'block':'none';if(a)a.innerHTML=op?'&#9650;':'&#9660;';}
+
+// -- Modal helpers -------------------------------------------------------------
+function openMo(id){document.getElementById(id).classList.add('open');}
+function closeMo(id,e){if(e&&e.target!==document.getElementById(id))return;document.getElementById(id).classList.remove('open');}
+
+// -- Init ----------------------------------------------------------------------
+
+// ==============================================
+// COMMENTS (localStorage)
+// ==============================================
+let comments = [];
+try { comments = JSON.parse(localStorage.getItem('bd-comments') || '[]'); } catch(e){}
+let projectUpdates = [];
+try { projectUpdates = JSON.parse(localStorage.getItem('bd-updates') || '[]'); } catch(e){}
+function saveComments(){ try{ localStorage.setItem('bd-comments', JSON.stringify(comments)); }catch(e){} }
+
+let panelTaskId = null, panelIsAdHoc = false;
+
+function openPanel(taskId, isAdHoc) {
+  panelTaskId = String(taskId);
+  panelIsAdHoc = isAdHoc === true || isAdHoc === 'true';
+  var task = null;
+  if (panelIsAdHoc) {
+    task = adHocTasks.find(function(t){ return String(t.id) === panelTaskId; });
+  } else {
+    task = tasks.find(function(t){ return String(t.id) === panelTaskId; });
+  }
+  if (!task) return;
+  var proj = panelIsAdHoc ? null : projects.find(function(p){ return p.id === task.projId; });
+  document.getElementById('panel-tname').textContent = task.name;
+  document.getElementById('panel-tmeta').textContent = (proj ? proj.name : 'Ad Hoc') + ' . ' + (task.owner || task.lead || 'Unassigned');
+  document.getElementById('panel-stat').value = task.status || 'Not Started';
+  var due = task.end || task.due || '';
+  document.getElementById('panel-detail').innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px">' +
+    '<div><div style="font-size:8px;color:#595959;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Project</div><div style="font-weight:600">' + esc(proj ? proj.name : 'Ad Hoc') + '</div></div>' +
+    '<div><div style="font-size:8px;color:#595959;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Owner</div><div style="font-weight:600">' + esc(task.owner || '-') + '</div></div>' +
+    '<div><div style="font-size:8px;color:#595959;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Priority</div>' + pill(proj ? proj.priority : (task.projPriority||'Medium'), PS(proj ? proj.priority : (task.projPriority||'Medium'))) + '</div>' +
+    '<div><div style="font-size:8px;color:#595959;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Due</div><div style="font-weight:600">' + (due || 'Not set') + '</div></div>' +
+    '</div>';
+  renderPanelComments();
+  document.getElementById('panel-overlay').style.display = 'block';
+  document.getElementById('slide-panel').style.right = '0';
+}
+
+function closePanel() {
+  document.getElementById('panel-overlay').style.display = 'none';
+  document.getElementById('slide-panel').style.right = '-480px';
+  panelTaskId = null;
+}
+
+function renderPanelComments() {
+  var tc = comments.filter(function(c){ return c.taskId === panelTaskId && c.isAdHoc === panelIsAdHoc; });
+  var wrap = document.getElementById('panel-comments');
+  var noC  = document.getElementById('panel-nocomments');
+  if (!tc.length) { wrap.innerHTML = ''; noC.style.display = 'block'; return; }
+  noC.style.display = 'none';
+  wrap.innerHTML = tc.map(function(c, idx) {
+    var ss = SS(c.statusAtTime || 'Not Started');
+    var globalIdx = comments.indexOf(c);
+    return '<div style="display:flex;gap:8px;padding:10px;background:var(--gl);border-radius:8px;border:1px solid var(--gm);position:relative">' +
+      avHtml(c.author, false) +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+          '<span style="font-size:10px;font-weight:700;color:var(--pd)">' + esc(c.author) + '</span>' +
+          '<span class="pill" style="background:' + ss.bg + ';color:' + ss.fg + '">' + esc(c.statusAtTime||'') + '</span>' +
+        '</div>' +
+        '<div style="font-size:8px;color:var(--gt);margin-top:2px">' + esc(c.dateTime) + '</div>' +
+        '<div style="font-size:10px;color:var(--pd);line-height:1.5;margin-top:4px">' + esc(c.text) + '</div>' +
+      '</div>' +
+      '<button onclick="deleteComment(' + globalIdx + ')" title="Delete comment" style="position:absolute;top:7px;right:7px;background:#FFDCE0;color:#C00000;border:none;border-radius:4px;padding:1px 7px;font-size:9px;cursor:pointer;font-family:inherit;font-weight:700;opacity:.7" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">&#215;</button>' +
+    '</div>';
+  }).join('');
+}
+
+
+// -- Project Update Log --------------------------------------------------------
+function renderUpdateLog(projId){
+  var list = document.getElementById('update-log-list');
+  if(!list) return;
+  var updates = projectUpdates.filter(function(u){ return u.projId===projId; })
+    .slice().reverse(); // newest first
+  if(!updates.length){
+    list.innerHTML = '<div style="font-size:9px;color:#595959;font-style:italic;padding:4px 0">No updates yet - be the first to post one</div>';
+    return;
+  }
+  list.innerHTML = updates.map(function(u, idx){
+    var realIdx = projectUpdates.indexOf(u);
+    return '<div style="display:flex;gap:7px;padding:7px 9px;background:var(--gl);border-radius:7px;border:1px solid var(--gm);position:relative">'
+      + avHtml(u.author, true)
+      + '<div style="flex:1;min-width:0">'
+        + '<div style="display:flex;align-items:center;gap:5px">'
+          + '<span style="font-size:10px;font-weight:700;color:var(--pd)">'+esc(u.author)+'</span>'
+          + '<span style="font-size:8px;color:var(--gt)">'+esc(u.dateTime)+'</span>'
+        + '</div>'
+        + '<div style="font-size:10px;color:#333;line-height:1.5;margin-top:2px">'+esc(u.text)+'</div>'
+      + '</div>'
+      + '<button onclick="deleteUpdate('+realIdx+')" title="Delete update" style="position:absolute;top:5px;right:5px;background:#FFDCE0;color:#C00000;border:none;border-radius:4px;padding:1px 6px;font-size:8px;cursor:pointer;font-family:inherit;opacity:.6" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">&#215;</button>'
+    + '</div>';
+  }).join('');
+}
+
+function postProjectUpdate(){
+  var text = document.getElementById('update-text').value.trim();
+  var author = document.getElementById('update-author').value;
+  if(!text){ showToast('Please enter an update','warn'); return; }
+  var now = new Date();
+  var dt = now.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'})
+    + ' ' + now.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
+  projectUpdates.push({projId:editId, author:author, text:text, dateTime:dt});
+  saveUpdates();
+  document.getElementById('update-text').value = '';
+  renderUpdateLog(editId);
+  showToast('Update posted');
+}
+
+function deleteUpdate(idx){
+  if(!confirm('Delete this update?')) return;
+  projectUpdates.splice(idx,1);
+  saveUpdates();
+  renderUpdateLog(editId);
+  showToast('Update deleted');
+}
+
+function deleteComment(idx) {
+  if(!confirm('Delete this comment?')) return;
+  comments.splice(idx, 1);
+  saveComments();
+  renderPanelComments();
+  renderTaskBoard();
+  showToast('Comment deleted');
+}
+
+function postComment() {
+  var text = document.getElementById('comment-text').value.trim();
+  var author = document.getElementById('comment-author').value;
+  if (!text) { alert('Please enter a comment.'); return; }
+  var currentStatus = 'Not Started';
+  if (panelIsAdHoc) {
+    var t = adHocTasks.find(function(x){ return String(x.id) === panelTaskId; });
+    if (t) currentStatus = t.status || 'Not Started';
+  } else {
+    var t2 = tasks.find(function(x){ return String(x.id) === panelTaskId; });
+    if (t2) currentStatus = t2.status || 'Not Started';
+  }
+  var now = new Date();
+  var dt = now.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + now.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
+  comments.push({ taskId: panelTaskId, isAdHoc: panelIsAdHoc, author: author, text: text, statusAtTime: currentStatus, dateTime: dt });
+  saveComments();
+  if(window.sbSaveComment) sbSaveComment(comments[comments.length-1]);
+  document.getElementById('comment-text').value = '';
+  renderPanelComments();
+  renderTaskBoard();
+}
+
+function updatePanelStatus(newStatus) {
+  if (!panelTaskId) return;
+  if (panelIsAdHoc) {
+    var t = adHocTasks.find(function(x){ return String(x.id) === panelTaskId; });
+    if (t) { t.status = newStatus; saveAll(); }
+  } else {
+    var t2 = tasks.find(function(x){ return String(x.id) === panelTaskId; });
+    if (t2) { t2.status = newStatus; saveAll(); }
+  }
+  renderTaskBoard();
+  if (curView === 'activity') renderActivity();
+}
+
+// ==============================================
+// CHARTS & REPORTS
+// ==============================================
+var chartInst = {};
+var tsChartTypes = {}, tsPeriodTypes = {};
+
+function populateChartProjFilter() {
+  var sel = document.getElementById('chart-proj-filter');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">All Projects</option>' + projects.map(function(p){ return '<option value="' + p.id + '">' + esc(p.name) + '</option>'; }).join('');
+}
+
+function destroyC(id) { if (chartInst[id]) { chartInst[id].destroy(); delete chartInst[id]; } }
+
+function renderCharts() {
+  var projF = (document.getElementById('chart-proj-filter') || {}).value || '';
+  var catF  = (document.getElementById('chart-cat-filter') || {}).value || '';
+  var fk = kpis.filter(function(k){ return (!projF || String(k.projId) === projF) && (!catF || k.category === catF); });
+
+  // -- Donut: projects by status ----------------------------------
+  var STS = ['Not Started','In Progress','On Hold','Complete'];
+  var sCounts = STS.map(function(s){ return projects.filter(function(p){ return p.status === s; }).length; });
+  var sCols = ['#D6C8DB','#A98FA8','#D5A99C','#E2EFDA'];
+  document.getElementById('leg-status').innerHTML = STS.map(function(s,i){
+    return '<span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:' + sCols[i] + ';display:inline-block"></span><span style="color:#595959">' + s + ' ' + sCounts[i] + '</span></span>';
+  }).join('');
+  destroyC('donut-status');
+  chartInst['donut-status'] = new Chart(document.getElementById('donut-status'), {
+    type: 'doughnut',
+    data: { labels: STS, datasets: [{ data: sCounts, backgroundColor: sCols, borderWidth: 0, hoverOffset: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
+  });
+
+  // -- Bar: projects by category ----------------------------------
+  var CATS_LIST = ['Operations','People & Training','Technology & Assets','Finance'];
+  var CATS_SHORT = ['Operations','People & Training','Technology & Assets','Finance'];
+  var cCounts = CATS_LIST.map(function(c){ return projects.filter(function(p){ return p.category === c; }).length; });
+  var cCols = ['#A6C4CF','#E8D5EE','#CFCFB7','#DBC25D'];
+  document.getElementById('leg-cat').innerHTML = CATS_LIST.map(function(c,i){
+    return '<span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:' + cCols[i] + ';display:inline-block"></span><span style="color:#595959">' + c + '</span></span>';
+  }).join('');
+  destroyC('bar-cat');
+  chartInst['bar-cat'] = new Chart(document.getElementById('bar-cat'), {
+    type: 'bar',
+    data: { labels: CATS_SHORT, datasets: [{ data: cCounts, backgroundColor: cCols, borderRadius: 4, borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { font: { size: 9 } }, grid: { color: 'rgba(0,0,0,.05)' } }, x: { ticks: { font: { size: 8 } }, grid: { display: false } } } }
+  });
+
+  // -- Bar: KPI achievement by project ---------------------------
+  var kpiProjs = projects.filter(function(p){ return fk.some(function(k){ return k.projId === p.id && k.target > 0; }); });
+  var kpiA = kpiProjs.map(function(p){
+    var pk = fk.filter(function(k){ return k.projId === p.id && k.target > 0; });
+    if (!pk.length) return null;
+    var avg = Math.round(pk.reduce(function(a,k){ return a + k.actual/k.target*100; }, 0) / pk.length);
+    return { name: p.name.length > 22 ? p.name.slice(0,20) + '...' : p.name, avg: avg };
+  }).filter(Boolean).sort(function(a,b){ return b.avg - a.avg; });
+  if (kpiA.length) {
+    destroyC('bar-kpi');
+    chartInst['bar-kpi'] = new Chart(document.getElementById('bar-kpi'), {
+      type: 'bar',
+      data: { labels: kpiA.map(function(x){ return x.name; }), datasets: [{ data: kpiA.map(function(x){ return x.avg; }), backgroundColor: kpiA.map(function(x){ return x.avg>=100?'#C0DDAA':x.avg>=80?'#FFF2CC':'#FFDCE0'; }), borderColor: kpiA.map(function(x){ return x.avg>=100?'#375623':x.avg>=80?'#DBC25D':'#C00000'; }), borderWidth: 1, borderRadius: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 130, ticks: { callback: function(v){ return v+'%'; }, font: { size: 9 } }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { ticks: { font: { size: 9 } }, grid: { display: false } } } }
+    });
+  } else {
+    document.getElementById('bar-kpi').parentElement.innerHTML = '<div style="padding:16px;text-align:center;font-size:10px;color:#595959;font-style:italic">No KPIs with targets defined. Add KPIs in Activity Breakdown.</div>';
+  }
+
+  // -- Gauges -----------------------------------------------------
+  var gw = document.getElementById('gauge-wrap');
+  gw.innerHTML = '';
+  var gkpis = fk.filter(function(k){ return k.target > 0; }).slice(0,8);
+  if (!gkpis.length) {
+    gw.innerHTML = '<div style="font-size:10px;color:#595959;font-style:italic;padding:16px">No KPIs with targets defined.</div>';
+  } else {
+    gkpis.forEach(function(k) {
+      var rawPct = Math.round(k.actual / k.target * 100);
+      var pct = Math.min(100, rawPct); // arc capped at 100%
+      var rag = rawPct>=100 ? '#375623' : rawPct>=80 ? '#DBC25D' : '#C00000';
+      var ragBg = rawPct>=100 ? '#E2EFDA' : rawPct>=80 ? '#FFF8DC' : '#FFDCE0';
+      var r=38, cx=50, cy=52;
+      var endA = Math.PI + Math.min(1, pct/100) * Math.PI;
+      var x2 = cx + r * Math.cos(endA), y2 = cy + r * Math.sin(endA);
+      var large = pct >= 100 ? 1 : 0;
+      var fmt = function(v){ return k.unit==='R' ? fmtR(v) : k.unit==='%' ? v+'%' : v+' '+(k.unit||''); };
+      var proj = projects.find(function(p){ return p.id === k.projId; });
+      var el = document.createElement('div');
+      el.style.cssText = 'min-width:110px;flex:1;max-width:155px;background:'+ragBg+';border-radius:8px;border:1px solid '+rag+'33;padding:10px 8px;display:flex;flex-direction:column;align-items:center;cursor:pointer';
+      el.title = 'Click to edit KPI';
+      el.onclick = (function(kk){ return function(){ openKPIModal(kk.projId, kk.id); }; })(k);
+      el.innerHTML =
+        '<svg width="100" height="60" viewBox="0 0 100 60" style="overflow:visible">' +
+          '<path d="M'+(cx-r)+','+cy+' A'+r+','+r+' 0 0,1 '+(cx+r)+','+cy+'" fill="none" stroke="'+rag+'22" stroke-width="10" stroke-linecap="round"/>' +
+          '<path d="M'+(cx-r)+','+cy+' A'+r+','+r+' 0 '+large+',1 '+x2+','+y2+'" fill="none" stroke="'+rag+'" stroke-width="10" stroke-linecap="round"/>' +
+          '<text x="50" y="46" text-anchor="middle" font-size="12" font-weight="800" fill="'+rag+'">'+rawPct+'%</text>' +
+          '<text x="50" y="57" text-anchor="middle" font-size="8" fill="'+rag+'">of target</text>' +
+        '</svg>' +
+        '<div style="font-size:9px;color:#4A1759;text-align:center;font-weight:700;margin-top:2px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(k.name)+'">'+esc(k.name)+'</div>' +
+        '<div style="font-size:8px;color:#595959;text-align:center">'+fmt(k.actual)+' / '+fmt(k.target)+'</div>' +
+        (proj ? '<div style="font-size:8px;color:#595959;text-align:center;opacity:.7">'+esc(proj.name.length>20?proj.name.slice(0,18)+'...':proj.name)+'</div>' : '');
+      gw.appendChild(el);
+    });
+  }
+
+  // -- Heatmap ----------------------------------------------------
+  var hmP = projF ? projects.filter(function(p){ return String(p.id)===projF; }) : projects.filter(function(p){ return fk.some(function(k){ return k.projId===p.id; }); });
+  var kCats = ['Financial','Efficiency','People','Quality','Custom'];
+  function ragC(v){ if(v===null)return{bg:'#F0F0F0',fg:'#9A9A9A',lbl:'-'}; if(v>=100)return{bg:'#C0DDAA',fg:'#2E4F34',lbl:v+'%'}; if(v>=80)return{bg:'#FFF2CC',fg:'#6B5A10',lbl:v+'%'}; return{bg:'#FFDCE0',fg:'#C00000',lbl:v+'%'}; }
+  var lW=200, cW=72;
+  var hm = '<div style="display:grid;grid-template-columns:'+lW+'px '+kCats.map(function(){return cW+'px';}).join(' ')+';gap:2px;min-width:'+(lW+kCats.length*(cW+2))+'px">';
+  hm += '<div></div>' + kCats.map(function(c){ return '<div style="font-size:9px;font-weight:700;color:#4A1759;text-align:center;padding:3px 2px">'+c+'</div>'; }).join('');
+  hmP.forEach(function(p) {
+    var nm = p.name.length>30 ? p.name.slice(0,28)+'...' : p.name;
+    hm += '<div style="font-size:9px;color:#4A1759;font-weight:600;padding:4px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:'+lW+'px;min-width:'+lW+'px" title="'+esc(p.name)+'">'+esc(nm)+'</div>';
+    kCats.forEach(function(cat) {
+      var pk = fk.filter(function(k){ return k.projId===p.id && k.category===cat && k.target>0; });
+      var v = pk.length ? Math.round(pk.reduce(function(a,k){ return a+k.actual/k.target*100; },0)/pk.length) : null;
+      var rc = ragC(v);
+      hm += '<div style="background:'+rc.bg+';border-radius:3px;height:28px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:'+rc.fg+'">'+rc.lbl+'</div>';
+    });
+  });
+  hm += '</div>';
+  if (!hmP.length) hm = '<div style="font-size:10px;color:#595959;font-style:italic">No projects with KPIs.</div>';
+  document.getElementById('heatmap-wrap').innerHTML = hm;
+
+  // -- Time-series charts -----------------------------------------
+  var tsW = document.getElementById('ts-charts-wrap');
+  tsW.innerHTML = '';
+  var kpiWithTS = fk.filter(function(k){ return k.timeSeries && k.timeSeries.length > 0; });
+  if (!kpiWithTS.length) {
+    var info = document.createElement('div');
+    info.className = 'info-box';
+    info.innerHTML = '<strong>Time-Series Charts</strong>'
+    + '<ol style="margin:8px 0 0 0;padding-left:18px;font-size:10px;color:#4A1759;line-height:1.7">'
+    + '<li>Go to <strong>Activity Breakdown</strong> and expand a project</li>'
+    + '<li>Click any <strong>KPI tile</strong> to open the edit modal</li>'
+    + '<li>Scroll to the <strong>Time-Series Data</strong> section at the bottom of the modal</li>'
+    + '<li>Click <strong>+ Add Period</strong> and enter a period (e.g. Jan 2025 or Q1 2025), value and notes</li>'
+    + '<li>Click <strong>Save KPI</strong> &mdash; the chart will appear here automatically</li>'
+    + '</ol>';
+    tsW.appendChild(info);
+    return;
+  }
+    kpiWithTS.forEach(function(k) {
+    var proj = projects.find(function(p){ return p.id === k.projId; });
+    var cid = 'tsc-' + k.id;
+    var div = document.createElement('div');
+    div.className = 'card';
+    var hdr = document.createElement('div');
+    hdr.className = 'ch';
+    var titleSpan = document.createElement('span');
+    titleSpan.textContent = k.name + (proj ? ' - ' + proj.name : '');
+    hdr.appendChild(titleSpan);
+    var btnWrap = document.createElement('div');
+    btnWrap.style.cssText = 'display:flex;gap:4px';
+    var bLine = document.createElement('button'); bLine.className='togb active'; bLine.style.cssText='padding:2px 8px;font-size:8px'; bLine.textContent='Line'; bLine.id='tsgl-'+k.id; bLine.onclick=function(){ setTSType(k.id,'line'); };
+    var bBar  = document.createElement('button'); bBar.className='togb';        bBar.style.cssText='padding:2px 8px;font-size:8px'; bBar.textContent='Bar';  bBar.id='tsgb-'+k.id; bBar.onclick=function(){ setTSType(k.id,'bar'); };
+    var bMon  = document.createElement('button'); bMon.className='togb active'; bMon.style.cssText='padding:2px 8px;font-size:8px'; bMon.textContent='Monthly'; bMon.id='tsgm-'+k.id; bMon.onclick=function(){ setTSPeriod(k.id,'monthly'); };
+    var bQtr  = document.createElement('button'); bQtr.className='togb';        bQtr.style.cssText='padding:2px 8px;font-size:8px'; bQtr.textContent='Quarterly'; bQtr.id='tsgq-'+k.id; bQtr.onclick=function(){ setTSPeriod(k.id,'quarterly'); };
+    btnWrap.appendChild(bLine); btnWrap.appendChild(bBar); btnWrap.appendChild(bMon); btnWrap.appendChild(bQtr);
+    hdr.appendChild(btnWrap);
+    div.appendChild(hdr);
+    var body = document.createElement('div');
+    body.style.cssText = 'padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start';
+    var chartDiv = document.createElement('div');
+    chartDiv.innerHTML = '<div style="position:relative;width:100%;height:200px"><canvas id="'+cid+'"></canvas></div>';
+    var tableDiv = document.createElement('div');
+    var tableHdr = document.createElement('div');
+    tableHdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px';
+    var tableLabel = document.createElement('span');
+    tableLabel.style.cssText = 'font-size:9px;font-weight:700;color:#4A1759;text-transform:uppercase;letter-spacing:.4px';
+    tableLabel.textContent = 'Data Table';
+    var addBtn = document.createElement('button');
+    addBtn.className = 'add-row-btn'; addBtn.textContent = '+ Add Period';
+    addBtn.onclick = function(){ addTSRow(k.id); };
+    tableHdr.appendChild(tableLabel); tableHdr.appendChild(addBtn);
+    var tbl = document.createElement('table'); tbl.className='ts-tbl';
+    tbl.innerHTML = '<thead><tr><th>Period</th><th>Value</th><th>Notes</th></tr></thead><tbody id="tst-'+k.id+'">' + renderTSRows(k,'monthly') + '</tbody>';
+    tableDiv.appendChild(tableHdr); tableDiv.appendChild(tbl);
+    body.appendChild(chartDiv); body.appendChild(tableDiv);
+    div.appendChild(body);
+    tsW.appendChild(div);
+    buildTSChart(k, 'line', 'monthly');
+  });
+}
+
+function renderTSRows(k, pt) {
+  var rows = (k.timeSeries||[]).filter(function(r){ return r.periodType === pt; });
+  if (!rows.length) return '<tr><td colspan="3" style="font-style:italic;color:#595959;font-size:9px;padding:5px 8px">No data yet - click + Add Period</td></tr>';
+  return rows.map(function(r){ return '<tr><td>'+esc(r.period)+'</td><td>'+r.value+'</td><td style="color:#595959">'+esc(r.notes||'')+'</td></tr>'; }).join('');
+}
+
+function setTSType(kid, type) {
+  tsChartTypes[kid] = type;
+  var pt = tsPeriodTypes[kid] || 'monthly';
+  document.getElementById('tsgl-'+kid).classList.toggle('active', type==='line');
+  document.getElementById('tsgb-'+kid).classList.toggle('active', type==='bar');
+  var k = kpis.find(function(x){ return String(x.id)===String(kid); });
+  if (k) buildTSChart(k, type, pt);
+}
+function setTSPeriod(kid, pt) {
+  tsPeriodTypes[kid] = pt;
+  var type = tsChartTypes[kid] || 'line';
+  document.getElementById('tsgm-'+kid).classList.toggle('active', pt==='monthly');
+  document.getElementById('tsgq-'+kid).classList.toggle('active', pt==='quarterly');
+  var k = kpis.find(function(x){ return String(x.id)===String(kid); });
+  if (k) { var tb = document.getElementById('tst-'+kid); if(tb) tb.innerHTML = renderTSRows(k, pt); buildTSChart(k, type, pt); }
+}
+function buildTSChart(k, type, pt) {
+  var cid = 'tsc-' + k.id;
+  if (chartInst[cid]) { chartInst[cid].destroy(); delete chartInst[cid]; }
+  var el = document.getElementById(cid); if (!el) return;
+  var rows = (k.timeSeries||[]).filter(function(r){ return r.periodType === pt; }).sort(function(a,b){ return a.order - b.order; });
+  chartInst[cid] = new Chart(el, {
+    type: type,
+    data: { labels: rows.map(function(r){ return r.period; }), datasets: [
+      { label: k.name, data: rows.map(function(r){ return r.value; }), borderColor: '#68217D', backgroundColor: type==='line'?'rgba(104,33,125,.08)':'#E8D5EE', borderWidth: 2, pointRadius: type==='line'?4:0, tension: .3, fill: type==='line', borderRadius: type==='bar'?4:0 },
+      { label: 'Target', data: rows.map(function(){ return k.target; }), borderColor: '#DBC25D', backgroundColor: 'transparent', borderWidth: 1.5, borderDash: [4,4], pointRadius: 0, type: 'line' }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: function(v){ return k.unit==='R'?'R '+Math.round(v/1000)+'k':v+(k.unit==='%'?'%':''); }, font: { size: 9 } }, grid: { color: 'rgba(0,0,0,.05)' } }, x: { ticks: { font: { size: 8 }, maxRotation: 30, autoSkip: false }, grid: { display: false } } } }
+  });
+}
+function renderTSModalRows(){
+  var k = kpis.find(function(x){ return String(x.id)===String(kpiEditId); });
+  var tsBody = document.getElementById('kpi-ts-body');
+  var tsEmpty = document.getElementById('kpi-ts-empty');
+  if(!tsBody) return;
+  var tsRows = k ? (k.timeSeries||[]) : [];
+  if(!tsRows.length){
+    tsBody.innerHTML = '';
+    if(tsEmpty){ tsEmpty.style.display='block'; tsEmpty.innerHTML='No periods recorded yet -- click + Add Period above'; }
+    return;
+  }
+  if(tsEmpty) tsEmpty.style.display='none';
+  tsBody.innerHTML = tsRows.map(function(r, idx){
+    return '<tr style="border-bottom:1px solid #F0EAF5">'
+      +'<td style="padding:4px 8px;font-size:9px">'+esc(r.period)+'</td>'
+      +'<td style="padding:4px 8px;font-size:9px">'+r.value+'</td>'
+      +'<td style="padding:4px 8px;font-size:9px;color:#595959">'+esc(r.notes||'')+'</td>'
+      +'<td style="padding:4px 8px;white-space:nowrap">'
+        +'<button onclick="editTSRow('+idx+')" style="background:#E8D5EE;color:#68217D;border:none;border-radius:4px;padding:1px 7px;font-size:8px;cursor:pointer;font-family:inherit;font-weight:700;margin-right:3px">Edit</button>'
+        +'<button onclick="delTSRow('+idx+')" style="background:#FFDCE0;color:#C00000;border:none;border-radius:4px;padding:1px 7px;font-size:8px;cursor:pointer;font-family:inherit;font-weight:700">Del</button>'
+      +'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+function editTSRow(idx){
+  var k = kpis.find(function(x){ return String(x.id)===String(kpiEditId); });
+  if(!k || !k.timeSeries || !k.timeSeries[idx]) return;
+  var r = k.timeSeries[idx];
+  var period = prompt('Period:', r.period); if(period===null) return;
+  var value = parseFloat(prompt('Value:', r.value)); if(isNaN(value)) return;
+  var notes = prompt('Notes:', r.notes||'') || '';
+  var pt = period.trim().toUpperCase().slice(0,1)==='Q' ? 'quarterly' : 'monthly';
+  k.timeSeries[idx] = {period:period, value:value, notes:notes, periodType:pt, order:idx};
+  saveAll();
+  renderTSModalRows();
+  showToast('Period updated: '+period);
+}
+
+function delTSRow(idx){
+  var k = kpis.find(function(x){ return String(x.id)===String(kpiEditId); });
+  if(!k || !k.timeSeries) return;
+  var period = k.timeSeries[idx] ? k.timeSeries[idx].period : 'this period';
+  if(!confirm('Delete '+period+'?')) return;
+  k.timeSeries.splice(idx, 1);
+  // Re-order remaining
+  k.timeSeries.forEach(function(r,i){ r.order=i; });
+  saveAll();
+  renderTSModalRows();
+  showToast('Period deleted');
+}
+
+function addTSRowFromModal() {
+  if(!kpiEditId) return;
+  var period = prompt('Period (e.g. Jan 2025, Q1 2025):'); if (!period) return;
+  var value = parseFloat(prompt('Value:')); if (isNaN(value)) return;
+  var notes = prompt('Notes (optional):') || '';
+  var pt = period.trim().toUpperCase().slice(0,1) === 'Q' ? 'quarterly' : 'monthly';
+  var k = kpis.find(function(x){ return String(x.id)===String(kpiEditId); }); if (!k) return;
+  if (!k.timeSeries) k.timeSeries = [];
+  var newTS = { period: period, value: value, notes: notes, periodType: pt, order: k.timeSeries.length };
+  k.timeSeries.push(newTS);
+  saveAll();
+  if(window.sbSaveTS) sbSaveTS(kpiEditId, newTS);
+  // Refresh the table in modal
+  var tsBody = document.getElementById('kpi-ts-body');
+  var tsEmpty = document.getElementById('kpi-ts-empty');
+  renderTSModalRows();
+  showToast('Period added: '+period);
+}
+
+function addTSRow(kid) {
+  var period = prompt('Period (e.g. Jan 2025, Q1 2025):'); if (!period) return;
+  var value = parseFloat(prompt('Value:')); if (isNaN(value)) return;
+  var notes = prompt('Notes (optional):') || '';
+  var pt = period.trim().toUpperCase().slice(0,1) === 'Q' ? 'quarterly' : 'monthly';
+  var k = kpis.find(function(x){ return String(x.id)===String(kid); }); if (!k) return;
+  if (!k.timeSeries) k.timeSeries = [];
+  var newTS = { period: period, value: value, notes: notes, periodType: pt, order: k.timeSeries.length };
+  k.timeSeries.push(newTS);
+  saveAll();
+  if(window.sbSaveTS) sbSaveTS(kid, newTS);
+  var tb = document.getElementById('tst-'+kid); if (tb) tb.innerHTML = renderTSRows(k, pt);
+  buildTSChart(k, tsChartTypes[kid]||'line', pt);
+  showToast('Period added to time series');
+}
+
+// saveKPI timeSeries preservation merged into main saveKPI
+
+
+
+// -- Export / Import backup -------------------------------------------------
+function exportData(){
+  var backup = {
+    version: 4,
+    exportedAt: new Date().toISOString(),
+    projects: projects,
+    tasks: tasks,
+    adHocTasks: adHocTasks,
+    kpis: kpis,
+    comments: comments
+  };
+  var json = JSON.stringify(backup, null, 2);
+  var blob = new Blob([json], {type: 'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = 'bd-portfolio-backup-' + date + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Backup downloaded: bd-portfolio-backup-' + date + '.json');
+}
+
+function importData(event){
+  var file = event.target.files[0];
+  if (!file) return;
+  // Auto-export current data before overwriting
+  exportData();
+  if (!confirm('A backup of your current data has been downloaded first.\n\nImport this file? This will REPLACE all current data. This cannot be undone.')) {
+    event.target.value = '';
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      var backup = JSON.parse(e.target.result);
+      if (!backup.projects || !backup.tasks) {
+        showToast('Invalid backup file - missing required data', 'error');
+        return;
+      }
+      projects = backup.projects || [];
+      tasks = backup.tasks || [];
+      adHocTasks = backup.adHocTasks || [];
+      kpis = backup.kpis || [];
+      comments = backup.comments || [];
+      saveAll();
+      saveComments();
+      sv(curView);
+      updateBadge();
+      showToast('Data restored from backup successfully');
+    } catch(err) {
+      showToast('Failed to read backup file: ' + err.message, 'error');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// -- Inline editing ---------------------------------------------------------
+function startInlineEdit(span, taskId) {
+  if (span.querySelector('input')) return;
+  var current = span.textContent;
+  var inp = document.createElement('input');
+  inp.value = current;
+  inp.style.cssText = 'font-size:inherit;font-weight:inherit;color:inherit;border:1px solid #68217D;border-radius:3px;padding:1px 4px;width:100%;font-family:inherit;outline:none;background:#fff';
+  span.textContent = '';
+  span.appendChild(inp);
+  inp.focus();
+  inp.select();
+  function save() {
+    var val = inp.value.trim() || current;
+    var t = tasks.find(function(x){ return String(x.id) === String(taskId); });
+    if (t) { t.name = val; saveAll(); }
+    span.textContent = val;
+  }
+  inp.addEventListener('blur', save);
+  inp.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { inp.blur(); }
+    if (e.key === 'Escape') { inp.value = current; inp.blur(); }
+  });
+  inp.addEventListener('click', function(e){ e.stopPropagation(); });
+}
+
+// -- Add phase --------------------------------------------------------------
+function addPhase(projId) {
+  var name = prompt('Phase name:');
+  if (!name || !name.trim()) return;
+  var projTasks = tasks.filter(function(t){ return t.projId === projId; });
+  var phaseCount = projTasks.filter(function(t){ return t.type === 'phase'; }).length;
+  var newId = projId + '-cp' + Date.now();
+  var newPhase = { id: newId, projId: projId, type: 'phase', phase: name.trim(), name: name.trim(), status: 'Not Started', pct: 0, owner: '', start: '', end: '' };
+  tasks.push(newPhase);
+  saveAll();
+  if(window.sbSavePhase) sbSavePhase(newPhase);
+  renderActivity();
+  // Re-expand the project
+  var el = document.getElementById('act-' + projId);
+  var arr = document.getElementById('act-arr-' + projId);
+  if (el) el.style.display = 'block';
+  if (arr) arr.innerHTML = '&#9660;';
+}
+
+// -- Add task ---------------------------------------------------------------
+function addTask(phaseId, phaseName, projId) {
+  var name = prompt('Task name:');
+  if (!name || !name.trim()) return;
+  var proj = projects.find(function(p){ return p.id === projId; });
+  var newId = projId + '-ct' + Date.now();
+  var newTask = { id: newId, projId: projId, type: 'task', phase: phaseName, name: name.trim(), status: 'Not Started', pct: 0, owner: proj ? proj.lead : '', start: '', end: '' };
+  tasks.push(newTask);
+  saveAll();
+  if(window.sbUpdTask) sbUpdTask(newTask);
+  renderActivity();
+  // Re-expand project and phase
+  var el = document.getElementById('act-' + projId);
+  var arr = document.getElementById('act-arr-' + projId);
+  if (el) el.style.display = 'block';
+  if (arr) arr.innerHTML = '&#9660;';
+  // Expand the phase too
+  var phKey = 'ph-' + String(phaseId).replace(/[^a-zA-Z0-9]/g, '-');
+  var phEl = document.getElementById(phKey + '-body');
+  var phArr = document.getElementById(phKey + '-arr');
+  if (phEl) phEl.style.display = 'block';
+  if (phArr) phArr.innerHTML = '&#9660;';
+}
+
+// -- Delete phase -----------------------------------------------------------
+function delPhase(phaseId, projId) {
+  var ph = tasks.find(function(t){ return String(t.id) === String(phaseId); });
+  var taskCount = tasks.filter(function(t){ return t.projId === projId && t.type === 'task' && t.phase === (ph ? ph.phase : ''); }).length;
+  var msg = 'Delete this phase' + (taskCount > 0 ? ' and its ' + taskCount + ' task' + (taskCount > 1 ? 's' : '') : '') + '?';
+  if (!confirm(msg)) return;
+  var phaseName = ph ? ph.phase : '';
+  tasks = tasks.filter(function(t){
+    if (String(t.id) === String(phaseId)) return false;
+    if (t.projId === projId && t.type === 'task' && t.phase === phaseName) return false;
+    return true;
+  });
+  saveAll();
+  if(window.sbDelPhase) sbDelPhase(phaseId, projId, phaseName);
+  renderActivity();
+  var el = document.getElementById('act-' + projId);
+  var arr = document.getElementById('act-arr-' + projId);
+  if (el) el.style.display = 'block';
+  if (arr) arr.innerHTML = '&#9660;';
+}
+
+// -- Delete task ------------------------------------------------------------
+function delTask(taskId, projId) {
+  tasks = tasks.filter(function(t){ return String(t.id) !== String(taskId); });
+  saveAll();
+  if(window.sbDelTask) sbDelTask(taskId);
+  renderActivity();
+  if (curView === 'taskboard') renderTaskBoard();
+  var el = document.getElementById('act-' + projId);
+  var arr = document.getElementById('act-arr-' + projId);
+  if (el) el.style.display = 'block';
+  if (arr) arr.innerHTML = '&#9660;';
+}
+
+renderTracker();updateSub();updateBadge();
+
+
+
+// ------------------------------------------------------------------------------
+// SUPABASE LAYER - reads on load, dual-writes on save
+// App uses camelCase; DB uses snake_case - all mapping happens here
+// ------------------------------------------------------------------------------
+(function(){
+
+var SURL = 'https://gmpffdahvqhgfchinwdl.supabase.co';
+var SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcGZmZGFodnFoZ2ZjaGlud2RsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NDcxMzYsImV4cCI6MjA5MDEyMzEzNn0.M0bhv-3q4UtQKqkVVmG6fvJA_-bH5bbhiw3EL-Fap4I';
+var sb = null;
+// sb is initialised inside DOMContentLoaded to ensure CDN is loaded
+
+// -- DB indicator --------------------------------------------------------------
+function setDbInd(state) {
+  var el = document.getElementById('db-ind');
+  if (!el) return;
+  if (state === 'connected') {
+    el.textContent = 'DB Connected';
+    el.style.background = 'rgba(137,171,144,.35)';
+    el.style.color = '#C6EFCE';
+  } else if (state === 'offline') {
+    el.textContent = 'DB Offline';
+    el.style.background = 'rgba(192,0,0,.3)';
+    el.style.color = '#FFDCE0';
+  } else {
+    el.textContent = 'Connecting...';
+    el.style.background = 'rgba(219,194,93,.3)';
+    el.style.color = '#FFF8DC';
+  }
+}
+
+// -- Field mappers -------------------------------------------------------------
+function dbToProj(r, collabs) {
+  return {
+    id: r.id, name: r.name, lead: r.lead, category: r.category,
+    priority: r.priority, status: r.status, approval: r.approval, pct: r.pct || 0,
+    bizImpact: r.biz_impact || 'Efficiency Gain',
+    custValue: r.cust_value || 'Order Winner',
+    startDate: r.start_date || '', endDate: r.end_date || '',
+    extCollabs: r.ext_collabs || '', problem: r.problem || '',
+    outcome: r.outcome || '', risks: r.risks || '',
+    deps: r.deps || '', notes: r.notes || '',
+    collaborators: (collabs || []).filter(function(c){ return c.project_id === r.id; }).map(function(c){ return c.collaborator_name; })
+  };
+}
+function projToDb(p) {
+  return {
+    name: p.name, lead: p.lead, category: p.category,
+    priority: p.priority, status: p.status, approval: p.approval, pct: p.pct || 0,
+    biz_impact: p.bizImpact || '', cust_value: p.custValue || '',
+    start_date: p.startDate || null, end_date: p.endDate || null,
+    ext_collabs: p.extCollabs || '', problem: p.problem || '',
+    outcome: p.outcome || '', risks: p.risks || '',
+    deps: p.deps || '', notes: p.notes || ''
+  };
+}
+function dbToTask(r) {
+  return {
+    id: r.id, projId: r.project_id, type: r.type, phase: r.phase,
+    name: r.name, status: r.status || 'Not Started', pct: r.pct || 0,
+    owner: r.owner || '', start: r.start_date || '', end: r.end_date || ''
+  };
+}
+function taskToDb(t) {
+  return {
+    project_id: t.projId, type: t.type, phase: t.phase, name: t.name,
+    status: t.status || 'Not Started', pct: t.pct || 0,
+    owner: t.owner || '', start_date: t.start || null, end_date: t.end || null
+  };
+}
+function dbToKpi(r, tsRows) {
+  var ts = (tsRows || []).filter(function(t){ return t.kpi_id === r.id; }).map(function(t){
+    return { period: t.period, value: t.value, notes: t.notes || '', periodType: t.period_type, order: t.id };
+  });
+  return {
+    id: r.id, projId: r.project_id, category: r.category,
+    name: r.name, unit: r.unit, target: r.target, actual: r.actual,
+    notes: r.notes || '', timeSeries: ts
+  };
+}
+function kpiToDb(k) {
+  return {
+    project_id: k.projId, category: k.category, name: k.name,
+    unit: k.unit, target: k.target || 0, actual: k.actual || 0, notes: k.notes || ''
+  };
+}
+function dbToAdhoc(r) {
+  return {
+    id: 'ah' + r.id, _dbId: r.id, name: r.name, owner: r.owner || '',
+    priority: r.priority || 'Medium', status: r.status || 'Not Started',
+    due: r.due_date || '', notes: r.notes || '', type: 'task', isAdHoc: true
+  };
+}
+function adhocToDb(t) {
+  return {
+    name: t.name, owner: t.owner || '', priority: t.priority || 'Medium',
+    status: t.status || 'Not Started',
+    due_date: t.due || null, notes: t.notes || ''
+  };
+}
+function dbToComment(r) {
+  var dt = '';
+  try {
+    var d = new Date(r.created_at);
+    dt = d.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
+  } catch(e){}
+  return {
+    taskId: r.task_id, isAdHoc: r.task_type === 'adhoc',
+    author: r.author, text: r.comment_text,
+    statusAtTime: r.task_status_at_time || '', dateTime: dt
+  };
+}
+
+// -- Load all from Supabase ----------------------------------------------------
+function loadFromSupabase() {
+  if (!sb) {
+    console.warn('No Supabase client - check CDN loaded. window.supabase =', typeof window.supabase);
+    setDbInd('offline');
+    sv('dashboard');
+    updateBadge();
+    populateProjFilter();
+    populateChartProjFilter();
+    return;
+  }
+  setDbInd('loading');
+  Promise.all([
+    sb.from('projects').select('*').order('id'),
+    sb.from('collaborators').select('*'),
+    sb.from('tasks').select('*').order('id'),
+    sb.from('adhoc_tasks').select('*').order('id'),
+    sb.from('kpis').select('*').order('id'),
+    sb.from('kpi_timeseries').select('*').order('id'),
+    sb.from('comments').select('*').order('created_at')
+  ]).then(function(results) {
+    var pRes=results[0], colRes=results[1], tRes=results[2];
+    var ahRes=results[3], kRes=results[4], tsRes=results[5], cRes=results[6];
+
+    if (pRes.error) throw pRes.error;
+
+    var dbCollabs = colRes.data || [];
+    projects = (pRes.data || []).map(function(r){ return dbToProj(r, dbCollabs); });
+    tasks = (tRes.data || []).map(dbToTask);
+    adHocTasks = (ahRes.data || []).map(dbToAdhoc);
+    var tsData = tsRes.data || [];
+    kpis = (kRes.data || []).map(function(r){ return dbToKpi(r, tsData); });
+    comments = (cRes.data || []).map(dbToComment);
+
+    // Also save to localStorage as cache
+    sd('bd-projs', projects);
+    sd('bd-tasks', tasks);
+    sd('bd-adhoc', adHocTasks);
+    sd('bd-kpis', kpis);
+    sd('bd-comments', comments);
+
+    setDbInd('connected');
+    sv('dashboard');
+    updateBadge();
+    populateProjFilter();
+    populateChartProjFilter();
+    showToast('Data loaded from database');
+  }).catch(function(err) {
+    console.error('Supabase load error:', err);
+    setDbInd('offline');
+    showToast('Could not connect - using local data', 'warn');
+    sv('dashboard');
+    updateBadge();
+    populateProjFilter();
+    populateChartProjFilter();
+  });
+}
+
+// -- Toast ---------------------------------------------------------------------
+function showToast(msg, type) {
+  var t = document.createElement('div');
+  var bg = type === 'warn' ? '#C55A11' : type === 'error' ? '#C00000' : type === 'info' ? '#2F6070' : '#375623';
+  t.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;padding:10px 16px;border-radius:8px;font-size:11px;font-weight:700;color:#fff;background:'+bg+';max-width:320px;font-family:inherit;box-shadow:0 4px 16px rgba(0,0,0,.2)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, type==='info'?5500:3500);
+}
+window.showToast = showToast;
+
+// -- Supabase writes -----------------------------------------------------------
+// These shadow the existing save functions - called AFTER localStorage save
+
+window.sbSaveProject = function(p, isNew, collabs) {
+  if (!sb) return;
+  var d = projToDb(p);
+  var lead = p.lead;
+  if (isNew) {
+    sb.from('projects').insert(Object.assign({id: p.id}, d)).then(function(r){
+      if (r.error) { console.warn('sbSaveProject insert:', r.error); return; }
+      // Insert tasks
+      var newTasks = [];
+      PHASES.forEach(function(ph, pi){
+        newTasks.push({id: String(p.id)+'-p'+pi, project_id: p.id, type:'phase', phase:ph, name:ph, status:'Not Started', pct:0, owner:lead});
+        PTASKS[ph].forEach(function(n, ti){
+          newTasks.push({id: String(p.id)+'-p'+pi+'-t'+ti, project_id: p.id, type:'task', phase:ph, name:n, status:'Not Started', pct:0, owner:lead});
+        });
+      });
+      sb.from('tasks').insert(newTasks).then(function(tr){ if(tr.error) console.warn('sbSaveProject tasks:', tr.error); });
+      // Insert collaborators
+      if (collabs && collabs.length) {
+        var cRows = collabs.filter(function(c){ return c !== lead; }).map(function(c){ return {project_id: p.id, collaborator_name: c}; });
+        if (cRows.length) sb.from('collaborators').insert(cRows).then(function(cr){ if(cr.error) console.warn('sbSaveProject collabs:', cr.error); });
+      }
+    });
+  } else {
+    sb.from('projects').update(d).eq('id', p.id).then(function(r){
+      if (r.error) { console.warn('sbSaveProject update:', r.error); return; }
+      // Sync collaborators
+      sb.from('collaborators').delete().eq('project_id', p.id).then(function(){
+        if (collabs && collabs.length) {
+          var cRows = collabs.filter(function(c){ return c !== lead; }).map(function(c){ return {project_id: p.id, collaborator_name: c}; });
+          if (cRows.length) sb.from('collaborators').insert(cRows).then(function(cr){ if(cr.error) console.warn('sbSaveProject collabs update:', cr.error); });
+        }
+      });
+    });
+  }
+};
+
+window.sbDelProject = function(pid) {
+  if (!sb) return;
+  sb.from('collaborators').delete().eq('project_id', pid).then(function(){});
+  sb.from('tasks').delete().eq('project_id', pid).then(function(){});
+  sb.from('kpis').delete().eq('project_id', pid).then(function(){});
+  sb.from('projects').delete().eq('id', pid).then(function(r){ if(r.error) console.warn('sbDelProject:', r.error); });
+};
+
+window.sbUpdTask = function(task) {
+  if (!sb || !task) return;
+  var d = {status: task.status, pct: task.pct||0, owner: task.owner||'', start_date: task.start||null, end_date: task.end||null, name: task.name};
+  // Tasks may have string IDs like "1-p0" - upsert handles both new and existing
+  sb.from('tasks').upsert(Object.assign({id: String(task.id), project_id: task.projId, type: task.type, phase: task.phase}, d), {onConflict:'id'})
+    .then(function(r){ if(r.error) console.warn('sbUpdTask:', r.error); });
+};
+
+window.sbSaveKPI = function(kpi, isNew) {
+  if (!sb) return;
+  var d = kpiToDb(kpi);
+  if (isNew) {
+    sb.from('kpis').insert(d).select().then(function(r){
+      if(r.error){ console.warn('sbSaveKPI insert:', r.error); return; }
+      // Update local kpi id to match Supabase auto-assigned id
+      if(r.data && r.data[0]){
+        var newId = r.data[0].id;
+        var localKpi = kpis.find(function(k){ return String(k.id)===String(kpi.id); });
+        if(localKpi){
+          localKpi.id = newId;
+          saveAll();
+          console.log('KPI id synced: '+kpi.id+' -> '+newId);
+        }
+      }
+    });
+  } else {
+    sb.from('kpis').update(d).eq('id', kpi.id).then(function(r){ if(r.error) console.warn('sbSaveKPI update:', r.error); });
+  }
+};
+
+window.sbDelKPI = function(kpiId) {
+  if (!sb) return;
+  sb.from('kpi_timeseries').delete().eq('kpi_id', kpiId).then(function(){});
+  sb.from('kpis').delete().eq('id', kpiId).then(function(r){ if(r.error) console.warn('sbDelKPI:', r.error); });
+};
+
+window.sbSaveAdHoc = function(task, isNew) {
+  if (!sb) return;
+  var d = adhocToDb(task);
+  if (isNew) {
+    sb.from('adhoc_tasks').insert(d).then(function(r){ if(r.error) console.warn('sbSaveAdHoc insert:', r.error); });
+  } else {
+    var dbId = task._dbId || String(task.id).replace('ah','');
+    sb.from('adhoc_tasks').update(d).eq('id', dbId).then(function(r){ if(r.error) console.warn('sbSaveAdHoc update:', r.error); });
+  }
+};
+
+window.sbDelAdHoc = function(task) {
+  if (!sb) return;
+  var dbId = task._dbId || String(task.id).replace('ah','');
+  sb.from('adhoc_tasks').delete().eq('id', dbId).then(function(r){ if(r.error) console.warn('sbDelAdHoc:', r.error); });
+};
+
+window.sbSaveComment = function(comment) {
+  if (!sb) return;
+  sb.from('comments').insert({
+    task_id: comment.taskId,
+    task_type: comment.isAdHoc ? 'adhoc' : 'project',
+    author: comment.author,
+    comment_text: comment.text,
+    task_status_at_time: comment.statusAtTime || '',
+    created_at: new Date().toISOString()
+  }).then(function(r){ if(r.error) console.warn('sbSaveComment:', r.error); });
+};
+
+window.sbSavePhase = function(task) {
+  if (!sb || !task) return;
+  sb.from('tasks').upsert({
+    id: String(task.id), project_id: task.projId, type: 'phase',
+    phase: task.phase, name: task.name, status: task.status || 'Not Started',
+    pct: task.pct || 0, owner: task.owner || ''
+  }, {onConflict:'id'}).then(function(r){ if(r.error) console.warn('sbSavePhase:', r.error); });
+};
+
+window.sbDelPhase = function(phaseId, projId, phaseName) {
+  if (!sb) return;
+  sb.from('tasks').delete().eq('id', String(phaseId)).then(function(){});
+  sb.from('tasks').delete().eq('project_id', projId).eq('phase', phaseName).eq('type', 'task').then(function(r){ if(r.error) console.warn('sbDelPhase tasks:', r.error); });
+};
+
+window.sbDelTask = function(taskId) {
+  if (!sb) return;
+  sb.from('tasks').delete().eq('id', String(taskId)).then(function(r){ if(r.error) console.warn('sbDelTask:', r.error); });
+};
+
+window.sbSaveTS = function(kpiId, tsRow) {
+  if (!sb) return;
+  // Use current id from kpis array in case it was synced after insert
+  var k = kpis.find(function(x){ return String(x.id)===String(kpiId); });
+  var realId = k ? k.id : kpiId;
+  sb.from('kpi_timeseries').insert({
+    kpi_id: realId, period: tsRow.period, period_type: tsRow.periodType,
+    value: tsRow.value, notes: tsRow.notes || ''
+  }).then(function(r){ if(r.error) console.warn('sbSaveTS:', r.error); });
+};
+
+// -- Start ---------------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', function(){
+  try {
+    if (window.supabase && window.supabase.createClient) {
+      sb = window.supabase.createClient(SURL, SKEY);
+      window._sb = sb; // expose for functions outside IIFE
+      console.log('Supabase client created successfully');
+    } else {
+      console.warn('Supabase not available on window - CDN may have failed to load');
+    }
+  } catch(e) {
+    console.error('Supabase createClient error:', e);
+  }
+  loadFromSupabase();
+});
+
+})(); // end IIFE
+
+</script>
+</body>
+</html>
