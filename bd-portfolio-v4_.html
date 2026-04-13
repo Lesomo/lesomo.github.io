@@ -19,7 +19,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#F5F0F7;min-height:1
   --wh:#FFFFFF;--gl:#F5F0F7;--gm:#D6C8DB;--gt:#595959;
 }
 /* ── Nav ── */
-.nav{background:var(--primary);padding:0 14px;display:flex;align-items:center;gap:2px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(74,23,89,.3);flex-wrap:wrap}
+.nav{background:var(--primary);padding:8px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:200}
 .brand{display:flex;align-items:center;gap:8px;padding:9px 0;margin-right:12px;flex-shrink:0}
 .brand-icon{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:11px}
 .brand-name{color:#fff;font-weight:800;font-size:11px;line-height:1.1}
@@ -180,6 +180,27 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#F5F0F7;min-height:1
 .collab-wrap{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
 .collab-chip{display:flex;align-items:center;gap:3px;background:var(--pl);border-radius:10px;padding:2px 7px 2px 3px;font-size:9px;color:var(--pd)}
 /* ── Scrollbar ── */
+/* Meeting / Presentation mode */
+body.meeting-mode .abtn,
+body.meeting-mode #addpb,
+body.meeting-mode .bdel,
+body.meeting-mode #add-task-btn,
+body.meeting-mode button[onclick*="openModal"],
+body.meeting-mode button[onclick*="openAdHocModal"],
+body.meeting-mode button[onclick*="addPhase"],
+body.meeting-mode button[onclick*="addTask"],
+body.meeting-mode button[onclick*="delPhase"],
+body.meeting-mode button[onclick*="delTask"],
+body.meeting-mode button[onclick*="openKPIModal"],
+body.meeting-mode .dtb,
+body.meeting-mode #import-btn,
+body.meeting-mode .role-wrap,
+body.meeting-mode button[onclick*="exportData"] { display:none !important; }
+body.meeting-mode .nav { padding:6px 18px; }
+body.meeting-mode .phdr { padding:10px 0 0; }
+body.meeting-mode .card { box-shadow:none; border:1px solid #E8E0EC; }
+body.meeting-mode .trow:hover { background:inherit !important; }
+
 @media print{.nav,.phdr,.frow,.tog-bar,#panel-overlay,#slide-panel{display:none!important}.view{display:grid!important}body{background:#fff}.card{break-inside:avoid}}
 .ts-tbl{width:100%;border-collapse:collapse;font-size:10px}
 .ts-tbl th{background:#E8D5EE;color:#4A1759;padding:5px 8px;text-align:left;font-weight:700;font-size:9px;text-transform:uppercase}
@@ -203,25 +224,19 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#F5F0F7;min-height:1
     <div class="brand-icon">BD</div>
     <div><div class="brand-name">BUSINESS DEVELOPMENT</div><div class="brand-sub">Project Portfolio</div></div>
   </div>
-  <button class="nb" onclick="sv('tracker')">&#9776; Tracker</button>
-  <button class="nb active" onclick="sv('dashboard')">&#9672; Dashboard</button>
-  <button class="nb" onclick="sv('activity')">&#8862; Activity</button>
-  <button class="nb" onclick="sv('taskboard')">&#9634; Task Board</button>
-  <button class="nb" onclick="sv('gantt')">&#9644; Gantt</button>
-  <button class="nb" onclick="sv('benefits')">&#9733; Benefits</button>
-  <button class="nb" onclick="sv('charts')">&#9998; Charts</button>
-  <button class="nb" onclick="sv('recs')" id="rec-nav"><span>&#128161;</span> Recs <span class="nbadge" id="rbadge">0</span></button>
-  <span id="db-ind" style="font-size:9px;padding:2px 10px;border-radius:10px;font-weight:700;background:rgba(219,194,93,.3);color:#FFF8DC;flex-shrink:0">Connecting...</span>
-  <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+  <div style="display:flex;gap:6px;align-items:center;margin-left:auto;flex-shrink:0">
+    <span id="db-ind" style="font-size:9px;padding:2px 10px;border-radius:10px;font-weight:700;background:rgba(219,194,93,.3);color:#FFF8DC;flex-shrink:0">Connecting...</span>
+    <button onclick="sv('weekly')" id="weekly-nav-btn" title="Weekly standup view" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:5px;padding:3px 9px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit">&#128197; Weekly</button>
+    <button id="meeting-btn" onclick="toggleMeetingMode()" title="Meeting mode - clean presentation view" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:5px;padding:3px 9px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit">&#127909; Present</button>
     <button onclick="exportData()" title="Export all data as JSON backup" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:5px;padding:3px 9px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit">&#8595; Export</button>
     <button id="import-btn" onclick="document.getElementById('import-file').click()" title="Restore from JSON backup (Admin only)" style="display:none;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);border-radius:5px;padding:3px 9px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit">&#8593; Import</button>
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"/>
-  </div>
-  <div class="role-wrap">
-    <span style="font-size:9px;color:rgba(255,255,255,.5)">View as:</span>
-    <select class="role-sel" id="role-sel" onchange="onRoleChange()">
-      <option value="Project Leads">Project Leads</option><option value="Leadership">Leadership</option><option value="Admin">Admin</option>
-    </select>
+    <div class="role-wrap">
+      <span style="font-size:9px;color:rgba(255,255,255,.5)">View as:</span>
+      <select class="role-sel" id="role-sel" onchange="onRoleChange()">
+        <option value="Project Leads">Project Leads</option><option value="Leadership">Leadership</option><option value="Admin">Admin</option>
+      </select>
+    </div>
   </div>
 </nav>
 
@@ -230,7 +245,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#F5F0F7;min-height:1
   <div style="max-width:1280px;margin:0 auto">
     <div class="ptitle" id="ptitle">Project Tracker</div>
     <div class="psub" id="psub"></div>
-    <div class="tabs-bar">
+    <div class="tabs-bar" style="margin-top:8px">
       <button class="tb active" onclick="sv('dashboard')">Dashboard</button>
       <button class="tb" onclick="sv('tracker')">Project Tracker</button>
       <button class="tb" onclick="sv('activity')">Activity Breakdown</button>
@@ -398,6 +413,33 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#F5F0F7;min-height:1
   <div class="cfrow" id="cfilters"></div>
   <div id="rlist"></div>
   <div class="info-box">Recommendations update automatically as you edit project data.</div>
+</div>
+
+<!-- WEEKLY VIEW -->
+<div class="view" id="view-weekly">
+  <!-- Weekly header -->
+  <div style="background:linear-gradient(135deg,#4A1759,#68217D);border-radius:10px;padding:14px 18px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="color:#fff;font-weight:800;font-size:16px" id="weekly-title">Weekly Standup</div>
+      <div style="color:rgba(255,255,255,.6);font-size:9px;margin-top:2px" id="weekly-subtitle"></div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <select class="fsel" id="weekly-lead" onchange="renderWeekly()" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)"><option value="">All Leads</option><option>Berenicia</option><option>Jacques</option><option>Letlhogonolo</option><option>Wendy</option><option>Beverley</option><option>David</option><option>Danesha</option></select>
+      <select class="fsel" id="weekly-range" onchange="renderWeekly()" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)">
+        <option value="7">This Week</option>
+        <option value="14">Last 2 Weeks</option>
+        <option value="30">This Month</option>
+        <option value="999">All Time</option>
+      </select>
+    </div>
+  </div>
+  <!-- Sub-tabs -->
+  <div style="display:flex;gap:0;margin-bottom:12px;background:#fff;border-radius:8px;border:1px solid #D6C8DB;overflow:hidden">
+    <button id="wtab-updates" onclick="setWeeklyTab('updates')" style="flex:1;padding:9px;font-size:10px;font-weight:700;cursor:pointer;border:none;background:#68217D;color:#fff;font-family:inherit">&#128221; Project Updates</button>
+    <button id="wtab-tasks" onclick="setWeeklyTab('tasks')" style="flex:1;padding:9px;font-size:10px;font-weight:700;cursor:pointer;border:none;background:#fff;color:#595959;border-left:1px solid #D6C8DB;font-family:inherit">&#9989; Tasks</button>
+    <button id="wtab-adhoc" onclick="setWeeklyTab('adhoc')" style="flex:1;padding:9px;font-size:10px;font-weight:700;cursor:pointer;border:none;background:#fff;color:#595959;border-left:1px solid #D6C8DB;font-family:inherit">&#9889; Ad Hoc</button>
+  </div>
+  <div id="weekly-body"></div>
 </div>
 
 <!-- PROJECT MODAL -->
@@ -720,10 +762,16 @@ function onRoleChange(){
   } else {
     _adminUnlocked = false;
   }
-  renderTracker();
-  if(curView==='dashboard') renderDash();
-  if(curView==='activity') renderActivity();
-  if(curView==='taskboard') renderTaskBoard();
+  // Leadership defaults to Weekly view
+  if(sel.value === 'Leadership' && curView !== 'weekly'){
+    sv('weekly');
+  } else {
+    renderTracker();
+    if(curView==='dashboard') renderDash();
+    if(curView==='activity') renderActivity();
+    if(curView==='taskboard') renderTaskBoard();
+    if(curView==='weekly') renderWeekly();
+  }
   updateImportVisibility();
 }
 function updateImportVisibility(){
@@ -731,14 +779,14 @@ function updateImportVisibility(){
   if(importBtn) importBtn.style.display = getRole()==='Admin' ? '' : 'none';
 }
 
-const VTITLES={tracker:'Project Tracker',dashboard:'Dashboard',activity:'Activity Breakdown',taskboard:'Task Board',gantt:'Gantt Chart',benefits:'Results & Benefits',charts:'Charts & Reports',recs:'Recommendations'};
+const VTITLES={tracker:'Project Tracker',dashboard:'Dashboard',activity:'Activity Breakdown',taskboard:'Task Board',gantt:'Gantt Chart',benefits:'Results & Benefits',charts:'Charts & Reports',recs:'Recommendations',weekly:'Weekly Update'};
 let curView='tracker';
 function sv(v){
   curView=v;
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   const vids=['dashboard','tracker','activity','taskboard','gantt','charts','benefits','recs'];
-  document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('active',vids[i]===v));
+  // .nb nav buttons removed - single tab bar only
   document.querySelectorAll('.tb').forEach((b,i)=>b.classList.toggle('active',vids[i]===v));
   document.getElementById('ptitle').textContent=VTITLES[v];
   updateSub();
@@ -749,6 +797,7 @@ function sv(v){
   if(v==='benefits')renderBenefits();
   if(v==='charts'){populateChartProjFilter();renderCharts();}
   if(v==='recs')renderRecs();
+  if(v==='weekly')renderWeekly();
 }
 function updateSub(){
   const ip=projects.filter(p=>p.status==='In Progress').length;
@@ -1897,7 +1946,7 @@ function genRecs(){
   return recs.sort((a,b)=>order[a.severity]-order[b.severity]);
 }
 function urgentRecs(){return genRecs().filter(r=>r.severity==='critical'||r.severity==='high').length;}
-function updateBadge(){const n=urgentRecs();document.getElementById('rbadge').textContent=n;document.getElementById('rbadge2').textContent=n;updateStatusStrip();}
+function updateBadge(){const n=urgentRecs();var rb=document.getElementById('rbadge');if(rb)rb.textContent=n;document.getElementById('rbadge2').textContent=n;updateStatusStrip();}
 
 const SEVC={critical:{bg:'#FFDCE0',border:'#C00000',fg:'#C00000',dot:'#C00000',label:'Critical'},high:{bg:'#FCE4D6',border:'#C55A11',fg:'#C55A11',dot:'#C55A11',label:'High'},medium:{bg:'#FFF8DC',border:'#DBC25D',fg:'#6B5A10',dot:'#DBC25D',label:'Medium'},low:{bg:'#E2EFDA',border:'#89AB90',fg:'#375623',dot:'#89AB90',label:'Low'},info:{bg:'#DDE4EC',border:'#7A92AC',fg:'#3A3F60',dot:'#7A92AC',label:'Info'}};
 let rcatf='All';
@@ -2474,6 +2523,337 @@ function importData(event){
   };
   reader.readAsText(file);
 }
+
+
+
+// -- Weekly View (v2) ---------------------------------------------------------
+var _weeklyTab = 'updates';
+
+function setWeeklyTab(tab){
+  _weeklyTab = tab;
+  ['updates','tasks','adhoc'].forEach(function(t){
+    var btn = document.getElementById('wtab-'+t);
+    if(btn){
+      btn.style.background = t===tab ? '#68217D' : '#fff';
+      btn.style.color = t===tab ? '#fff' : '#595959';
+    }
+  });
+  renderWeeklyBody();
+}
+
+function renderWeekly(){
+  var leadF = (document.getElementById('weekly-lead')||{value:''}).value;
+  var rangeDays = parseInt((document.getElementById('weekly-range')||{value:'7'}).value)||7;
+  var today = new Date(); today.setHours(23,59,59,999);
+  var rangeLabel = rangeDays===7?'This Week':rangeDays===14?'Last 2 Weeks':rangeDays===30?'This Month':'All Time';
+
+  // Update header
+  var titleEl = document.getElementById('weekly-title');
+  var subEl = document.getElementById('weekly-subtitle');
+  if(titleEl) titleEl.textContent = 'Weekly Standup' + (leadF?' -- '+leadF:'');
+  if(subEl) subEl.textContent = rangeLabel+' -- '+new Date().toLocaleDateString('en-ZA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  renderWeeklyBody();
+}
+
+function parseUpdateDate(dt){
+  try{
+    // Format: "28 Mar 2026 09:15"
+    var parts = dt.trim().split(' ');
+    if(parts.length>=3){
+      return new Date(parts[1]+' '+parts[0]+' '+parts[2]+(parts[3]?' '+parts[3]:''));
+    }
+  }catch(e){}
+  return new Date(0);
+}
+
+function getWeeklyFilters(){
+  var leadF = (document.getElementById('weekly-lead')||{value:''}).value;
+  var rangeDays = parseInt((document.getElementById('weekly-range')||{value:'7'}).value)||7;
+  var today = new Date(); today.setHours(23,59,59,999);
+  var cutoff = new Date(); cutoff.setDate(cutoff.getDate()-rangeDays); cutoff.setHours(0,0,0,0);
+  return {leadF:leadF, rangeDays:rangeDays, today:today, cutoff:cutoff};
+}
+
+function renderWeeklyBody(){
+  var body = document.getElementById('weekly-body');
+  if(!body) return;
+  if(_weeklyTab==='updates') renderWeeklyUpdates(body);
+  else if(_weeklyTab==='tasks') renderWeeklyTasks(body);
+  else renderWeeklyAdhoc(body);
+}
+
+function weekSummaryStrip(vals){
+  var html = '<div style="display:grid;grid-template-columns:repeat('+vals.length+',1fr);gap:8px;margin-bottom:14px">';
+  vals.forEach(function(v){
+    html += '<div style="background:'+v.bg+';border-radius:9px;padding:11px 14px;text-align:center">'
+      +'<div style="font-size:22px;font-weight:800;color:'+v.fg+'">'+v.val+'</div>'
+      +'<div style="font-size:9px;color:'+v.fg+';margin-top:2px;font-weight:600;opacity:.85">'+v.label+'</div>'
+      +'</div>';
+  });
+  return html+'</div>';
+}
+
+function noDataBox(icon, title, sub){
+  return '<div class="info-box" style="text-align:center;padding:30px">'
+    +'<div style="font-size:32px;margin-bottom:10px">'+icon+'</div>'
+    +'<div style="font-weight:800;color:#4A1759;font-size:14px;margin-bottom:6px">'+title+'</div>'
+    +'<div style="font-size:10px;color:#595959">'+sub+'</div></div>';
+}
+
+// -- Updates sub-tab ----------------------------------------------------------
+function renderWeeklyUpdates(body){
+  var f = getWeeklyFilters();
+  var filtered = projectUpdates.filter(function(u){
+    if(f.leadF && u.author!==f.leadF) return false;
+    var d = parseUpdateDate(u.dateTime);
+    return f.rangeDays===999 || (d>=f.cutoff && d<=f.today);
+  });
+
+  if(!filtered.length){
+    body.innerHTML = noDataBox('&#128197;','No updates this period',
+      'Leads post updates by opening a project in the Tracker and scrolling to Project Updates');
+    return;
+  }
+
+  var byProject = {};
+  filtered.forEach(function(u){
+    if(!byProject[u.projId]) byProject[u.projId]=[];
+    byProject[u.projId].push(u);
+  });
+
+  var activeProjs = Object.keys(byProject).length;
+  var leads = [];
+  filtered.forEach(function(u){ if(leads.indexOf(u.author)<0) leads.push(u.author); });
+
+  var html = weekSummaryStrip([
+    {val:activeProjs, label:'Projects Updated', bg:'#E8D5EE', fg:'#68217D'},
+    {val:filtered.length, label:'Total Updates', bg:'#DDE4EC', fg:'#3A3F60'},
+    {val:leads.length, label:'Team Members Active', bg:'#E2EFDA', fg:'#375623'}
+  ]);
+
+  Object.keys(byProject).forEach(function(projId){
+    var proj = projects.find(function(p){ return String(p.id)===String(projId); });
+    if(!proj) return;
+    var updates = byProject[projId].slice().reverse();
+    var h = projectHealth(proj);
+    var pTasks = tasks.filter(function(t){ return t.projId===proj.id&&t.type==='task'; });
+    var done = pTasks.filter(function(t){ return t.status==='Complete'; }).length;
+    var priColors = {Critical:'#C00000',High:'#C55A11',Medium:'#DBC25D',Low:'#375623'};
+    var priPills = {Critical:{bg:'#FFDCE0',fg:'#C00000'},High:{bg:'#FCE4D6',fg:'#C55A11'},Medium:{bg:'#FFF8DC',fg:'#6B5A10'},Low:{bg:'#E2EFDA',fg:'#375623'}};
+
+    html += '<div class="card" style="margin-bottom:10px">'
+      +'<div style="background:var(--tsky);padding:9px 14px;display:flex;align-items:center;gap:10px;border-left:4px solid '+(priColors[proj.priority]||'#A6C4CF')+'">'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:12px;font-weight:800;color:#2F6070;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(proj.name)+'</div>'
+          +'<div style="font-size:9px;color:#2F6070;opacity:.75;margin-top:1px">Lead: '+esc(proj.lead)+' &middot; '+done+'/'+pTasks.length+' tasks complete</div>'
+        +'</div>'
+        +'<div style="display:flex;gap:5px;align-items:center;flex-shrink:0">'
+          +(priPills[proj.priority]?pill(proj.priority,priPills[proj.priority]):'')
+          +'<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:'+h.bg+';color:'+h.color+'">'+h.icon+' '+h.label+'</span>'
+          +pbar(proj.pct)
+        +'</div>'
+      +'</div>'
+      +'<div style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">';
+
+    updates.forEach(function(u){
+      html += '<div style="display:flex;gap:8px;align-items:flex-start">'
+        +avHtml(u.author,true)
+        +'<div style="flex:1;background:#FAFAFA;border-radius:7px;padding:8px 10px;border:1px solid #E8E0EC">'
+          +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">'
+            +'<span style="font-size:10px;font-weight:700;color:#4A1759">'+esc(u.author)+'</span>'
+            +'<span style="font-size:8px;color:#595959">'+esc(u.dateTime)+'</span>'
+          +'</div>'
+          +'<div style="font-size:10px;color:#333;line-height:1.5">'+esc(u.text)+'</div>'
+        +'</div></div>';
+    });
+    html += '</div></div>';
+  });
+
+  // Silent projects
+  if(f.rangeDays<=30 && !f.leadF){
+    var updatedIds = Object.keys(byProject).map(String);
+    var silent = projects.filter(function(p){
+      return p.status==='In Progress' && updatedIds.indexOf(String(p.id))<0;
+    });
+    if(silent.length){
+      html += '<div class="card" style="border:1px dashed #D6C8DB">'
+        +'<div style="padding:9px 14px;background:#F5F0F7">'
+          +'<div style="font-size:10px;font-weight:700;color:#4A1759">&#9888; No updates - Active projects</div>'
+          +'<div style="font-size:9px;color:#595959;margin-top:2px">These In Progress projects have no updates this period</div>'
+        +'</div><div style="padding:10px 14px;display:grid;gap:6px">';
+      silent.forEach(function(p){
+        var h=projectHealth(p);
+        html+='<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#fff;border-radius:6px;border:1px solid #E8E0EC">'
+          +avHtml(p.lead,true)
+          +'<div style="flex:1;font-size:10px;color:#4A1759;font-weight:600">'+esc(p.name)+'</div>'
+          +'<span style="font-size:9px;color:#595959">'+esc(p.lead)+'</span>'
+          +'<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:7px;background:'+h.bg+';color:'+h.color+'">'+h.label+'</span>'
+          +'</div>';
+      });
+      html += '</div></div>';
+    }
+  }
+  body.innerHTML = html;
+}
+
+// -- Tasks sub-tab -------------------------------------------------------------
+function renderWeeklyTasks(body){
+  var f = getWeeklyFilters();
+  var today = new Date(); today.setHours(0,0,0,0);
+  var nextWeek = new Date(today); nextWeek.setDate(nextWeek.getDate()+7);
+
+  // Get all project tasks relevant this week
+  var allTasks = tasks.filter(function(t){
+    if(t.type!=='task') return false;
+    if(f.leadF && t.owner!==f.leadF) return false;
+    var dueDate = t.end ? new Date(t.end) : null;
+    var overdue = dueDate && dueDate<today && t.status!=='Complete';
+    var dueThisWeek = dueDate && dueDate>=today && dueDate<=nextWeek;
+    var complete = t.status==='Complete';
+    return overdue || dueThisWeek || (complete && dueDate && dueDate>=f.cutoff);
+  });
+
+  if(!allTasks.length){
+    body.innerHTML = noDataBox('&#9989;','No tasks due this week',
+      'Tasks with due dates set in Activity Breakdown will appear here');
+    return;
+  }
+
+  // Summary
+  var overdueTasks = allTasks.filter(function(t){ var d=t.end?new Date(t.end):null; return d&&d<today&&t.status!=='Complete'; });
+  var dueSoon = allTasks.filter(function(t){ var d=t.end?new Date(t.end):null; return d&&d>=today&&d<=nextWeek&&t.status!=='Complete'; });
+  var completedTasks = allTasks.filter(function(t){ return t.status==='Complete'; });
+
+  var html = weekSummaryStrip([
+    {val:overdueTasks.length, label:'Overdue', bg:'#FFDCE0', fg:'#C00000'},
+    {val:dueSoon.length, label:'Due This Week', bg:'#FFF8DC', fg:'#6B5A10'},
+    {val:completedTasks.length, label:'Completed', bg:'#E2EFDA', fg:'#375623'}
+  ]);
+
+  // Group by lead
+  var byLead = {};
+  allTasks.forEach(function(t){
+    var owner = t.owner || 'Unassigned';
+    if(!byLead[owner]) byLead[owner]=[];
+    byLead[owner].push(t);
+  });
+
+  Object.keys(byLead).sort().forEach(function(lead){
+    var ltasks = byLead[lead];
+    html += '<div class="card" style="margin-bottom:10px">'
+      +'<div style="background:var(--primary);padding:8px 14px;display:flex;align-items:center;gap:8px">'
+        +avHtml(lead,false)
+        +'<span style="font-weight:800;font-size:11px;color:#fff">'+esc(lead)+'</span>'
+        +'<span style="font-size:9px;color:rgba(255,255,255,.6)">'+ltasks.length+' task'+(ltasks.length>1?'s':'')+'</span>'
+      +'</div>'
+      +'<div style="display:grid;gap:0">';
+
+    ltasks.forEach(function(t,i){
+      var proj = projects.find(function(p){ return p.id===t.projId; });
+      var dueDate = t.end ? new Date(t.end) : null;
+      var overdue = dueDate && dueDate<today && t.status!=='Complete';
+      var dueSoonFlag = dueDate && dueDate>=today && dueDate<=nextWeek && t.status!=='Complete';
+      var ss = SS(t.status);
+
+      html += '<div style="display:grid;grid-template-columns:1fr 100px 90px 90px;gap:8px;padding:8px 14px;align-items:center;background:'+(i%2===0?'#FCF5E3':'#fff')+';border-top:1px solid #E8E0EC">'
+        +'<div>'
+          +'<div style="font-size:10px;font-weight:600;color:#4A1759">'+esc(t.name)+'</div>'
+          +'<div style="font-size:8px;color:#595959;margin-top:1px">'+esc(proj?proj.name:'Ad Hoc')+'</div>'
+        +'</div>'
+        +'<div><span class="pill" style="background:'+ss.bg+';color:'+ss.fg+'">'+t.status+'</span></div>'
+        +'<div style="font-size:9px;color:'+(overdue?'#C00000':dueSoonFlag?'#C55A11':'#595959')+';font-weight:'+(overdue||dueSoonFlag?700:400)+'">'+
+          (t.end?(overdue?'Overdue: ':'')+t.end:'-')+'</div>'
+        +'<div>'+(proj?'<span style="font-size:8px;color:#595959">'+esc(proj.category)+'</span>':'')+'</div>'
+        +'</div>';
+    });
+    html += '</div></div>';
+  });
+
+  body.innerHTML = html;
+}
+
+// -- Ad Hoc sub-tab ------------------------------------------------------------
+function renderWeeklyAdhoc(body){
+  var f = getWeeklyFilters();
+  var today = new Date(); today.setHours(0,0,0,0);
+  var nextWeek = new Date(today); nextWeek.setDate(nextWeek.getDate()+7);
+
+  var filtered = adHocTasks.filter(function(t){
+    if(f.leadF && t.owner!==f.leadF) return false;
+    var dueDate = t.due ? new Date(t.due) : null;
+    var overdue = dueDate && dueDate<today && t.status!=='Complete';
+    var dueThisWeek = dueDate && dueDate>=today && dueDate<=nextWeek;
+    var recentComplete = t.status==='Complete' && dueDate && dueDate>=f.cutoff;
+    return overdue || dueThisWeek || recentComplete || (!dueDate && t.status!=='Complete');
+  });
+
+  var overdue = filtered.filter(function(t){ var d=t.due?new Date(t.due):null; return d&&d<today&&t.status!=='Complete'; });
+  var dueNow = filtered.filter(function(t){ var d=t.due?new Date(t.due):null; return d&&d>=today&&d<=nextWeek&&t.status!=='Complete'; });
+  var done = filtered.filter(function(t){ return t.status==='Complete'; });
+  var open = filtered.filter(function(t){ return t.status!=='Complete'&&(!t.due||new Date(t.due)>nextWeek); });
+
+  if(!filtered.length){
+    body.innerHTML = noDataBox('&#9889;','No ad hoc tasks this period',
+      'Add ad hoc tasks on the Task Board using the + Add Task button');
+    return;
+  }
+
+  var html = weekSummaryStrip([
+    {val:overdue.length, label:'Overdue', bg:'#FFDCE0', fg:'#C00000'},
+    {val:dueNow.length, label:'Due This Week', bg:'#FFF8DC', fg:'#6B5A10'},
+    {val:done.length, label:'Completed', bg:'#E2EFDA', fg:'#375623'},
+    {val:open.length, label:'Open / No Date', bg:'#E8E8E8', fg:'#595959'}
+  ]);
+
+  // Group by priority
+  var sections = [
+    {label:'Overdue', items:overdue, headerBg:'#FFDCE0', headerFg:'#C00000'},
+    {label:'Due This Week', items:dueNow, headerBg:'#FFF8DC', headerFg:'#6B5A10'},
+    {label:'Completed', items:done, headerBg:'#E2EFDA', headerFg:'#375623'},
+    {label:'Open / No Due Date', items:open, headerBg:'#E8E8E8', headerFg:'#595959'}
+  ];
+
+  sections.forEach(function(sec){
+    if(!sec.items.length) return;
+    html += '<div class="card" style="margin-bottom:10px">'
+      +'<div style="padding:8px 14px;background:'+sec.headerBg+';display:flex;align-items:center;justify-content:space-between">'
+        +'<span style="font-size:10px;font-weight:800;color:'+sec.headerFg+'">'+sec.label+'</span>'
+        +'<span style="font-size:9px;color:'+sec.headerFg+';opacity:.75">'+sec.items.length+' task'+(sec.items.length>1?'s':'')+'</span>'
+      +'</div>'
+      +'<div style="display:grid;gap:0">';
+
+    sec.items.forEach(function(t,i){
+      var ss = SS(t.status);
+      var ps = {Critical:{bg:'#FFDCE0',fg:'#C00000'},High:{bg:'#FCE4D6',fg:'#C55A11'},Medium:{bg:'#FFF8DC',fg:'#6B5A10'},Low:{bg:'#E2EFDA',fg:'#375623'}}[t.priority]||{bg:'#F0F0F0',fg:'#595959'};
+      var dueDate = t.due ? new Date(t.due) : null;
+      var isOverdue = dueDate && dueDate<today && t.status!=='Complete';
+
+      html += '<div style="display:grid;grid-template-columns:1fr 80px 80px 90px 80px;gap:8px;padding:8px 14px;align-items:center;background:'+(i%2===0?'#FCF5E3':'#fff')+';border-top:1px solid #E8E0EC">'
+        +'<div style="display:flex;align-items:center;gap:6px">'
+          +avHtml(t.owner||'?',true)
+          +'<div>'
+            +'<div style="font-size:10px;font-weight:600;color:#4A1759">'+esc(t.name)+'</div>'
+            +'<div style="font-size:8px;color:#595959">'+esc(t.owner||'Unassigned')+'</div>'
+          +'</div>'
+        +'</div>'
+        +'<div>'+pill(t.priority||'Medium',ps)+'</div>'
+        +'<div><span class="pill" style="background:'+ss.bg+';color:'+ss.fg+'">'+t.status+'</span></div>'
+        +'<div style="font-size:9px;color:'+(isOverdue?'#C00000':'#595959')+';font-weight:'+(isOverdue?700:400)+'">'+
+          (t.due?t.due:'-')+'</div>'
+        +'<div style="font-size:8px;color:#595959;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.notes||'')+'</div>'
+        +'</div>';
+    });
+    html += '</div></div>';
+  });
+
+  body.innerHTML = html;
+}
+
+
+function isMeeting(){ return _meetingMode; }
+
+
 
 // -- Inline editing ---------------------------------------------------------
 function startInlineEdit(span, taskId) {
