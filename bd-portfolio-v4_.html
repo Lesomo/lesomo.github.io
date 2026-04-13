@@ -770,7 +770,7 @@ function onRoleChange(){
     if(curView==='dashboard') renderDash();
     if(curView==='activity') renderActivity();
     if(curView==='taskboard') renderTaskBoard();
-    if(curView==='weekly') renderWeekly();
+    if(curView==='weekly' && window.renderWeekly) window.renderWeekly();
   }
   updateImportVisibility();
 }
@@ -797,7 +797,7 @@ function sv(v){
   if(v==='benefits')renderBenefits();
   if(v==='charts'){populateChartProjFilter();renderCharts();}
   if(v==='recs')renderRecs();
-  if(v==='weekly')renderWeekly();
+  if(v==='weekly'){ if(window.renderWeekly) window.renderWeekly(); }
 }
 function updateSub(){
   const ip=projects.filter(p=>p.status==='In Progress').length;
@@ -845,7 +845,29 @@ function renderTracker(){
       <div class="hm">${pill(p.status,SS(p.status))}</div>
       <div class="hm">${pill(p.approval,AS(p.approval))}</div>
       <div class="hm">${pbar(p.pct)}</div>
-      <div class="hm">${(function(){var h=projectHealth(p);return'<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:'+h.bg+';color:'+h.color+'">'+h.icon+' '+h.label+'</span>';})()}</div>
+      <div class="hm">${
+// -- Meeting / Presentation Mode ----------------------------------------------
+var _meetingMode = false;
+
+function toggleMeetingMode(){
+  _meetingMode = !_meetingMode;
+  var btn = document.getElementById('meeting-btn');
+  if(_meetingMode){
+    document.body.classList.add('meeting-mode');
+    if(btn){ btn.textContent = 'Exit Present'; btn.style.background = 'rgba(192,0,0,.5)'; }
+    showToast('Presentation mode on');
+  } else {
+    document.body.classList.remove('meeting-mode');
+    if(btn){ btn.innerHTML = '&#127909; Present'; btn.style.background = 'rgba(255,255,255,.15)'; }
+    showToast('Presentation mode off');
+  }
+  if(curView==='tracker') renderTracker();
+  if(curView==='activity') renderActivity();
+  if(curView==='taskboard') renderTaskBoard();
+  if(curView==='weekly') renderWeekly();
+}
+
+(function(){var h=projectHealth(p);return'<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:'+h.bg+';color:'+h.color+'">'+h.icon+' '+h.label+'</span>';})()}</div>
       <div>${role!=='Leadership'?`<button onclick="openModal(${p.id})" style="background:#E8D5EE;color:#68217D;border:none;border-radius:5px;padding:3px 7px;cursor:pointer;font-size:9px;font-weight:700;font-family:inherit">Edit</button>`:''}</div>
     </div>`;
   }).join('');
@@ -3300,6 +3322,10 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   loadFromSupabase();
 });
+
+// Expose weekly functions for use outside IIFE
+  window.renderWeekly = renderWeekly;
+  window.setWeeklyTab = setWeeklyTab;
 
 })(); // end IIFE
 
