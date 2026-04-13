@@ -1295,7 +1295,7 @@ function renderStatusTable() {
     const isPool = loc === 'Pool A' || loc === 'Pool B';
     const rowStyle = isPool ? 'background:#EBF3FB;' : '';
     html += `<tr style="${rowStyle}">
-      <td style="font-weight:600;">${loc}${isPool ? ' <span style="font-size:10px;color:#2E5597;font-weight:700;">POOL</span>' : ''}</td>
+      <td style="font-weight:600;">${loc}</td>
       <td style="text-align:center;"><span class="count-pill pill-a">${a}</span></td>
       <td style="text-align:center;"><span class="count-pill" style="background:#FFF2CC;color:#8B6914;">${minor}</span></td>
       <td style="text-align:center;"><span class="count-pill" style="background:#FCE4D6;color:#C00000;">${major}</span></td>
