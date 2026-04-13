@@ -553,16 +553,22 @@ function stopScannerSup() {
 }
 
 async function supSetAsset(val) {
-  currentAssetNo = val;
   const conf = document.getElementById('supAssetConfirmed');
-  if (!val) { conf.style.display = 'none'; checkSupReady(); return; }
-
-  // Validate format before looking up
-  if (!isValidBarcode(val)) {
+  if (!val) {
+    currentAssetNo = '';
     conf.style.display = 'none';
     checkSupReady();
     return;
   }
+
+  // Validate format before looking up
+  if (!isValidBarcode(val)) {
+    currentAssetNo = '';
+    conf.style.display = 'none';
+    checkSupReady();
+    return;
+  }
+  currentAssetNo = val;
 
   document.getElementById('supAssetVal').textContent = val;
   document.getElementById('supMachineType').textContent = 'Looking up...';
@@ -757,6 +763,127 @@ function formatMins(mins) {
   return h > 0 ? `${h}hr ${m}min` : `${m}min`;
 }
 
+function formatWallClock(ms) {
+  // Format raw elapsed milliseconds as wall-clock duration
+  const totalMins = Math.floor(ms / 60000);
+  const h = Math.floor(totalMins / 60);
+  const m = totalMins % 60;
+  if (h >= 24) return Math.floor(h/24) + 'd ' + (h%24) + 'h ' + m + 'min';
+  return h > 0 ? h + 'h ' + m + 'min' : m + 'min';
+}
+
+// ── SHIFT-AWARE TIME CALCULATION ─────────────────────────────────────────────
+// Shift hours: Mon–Thu 07:45–16:45 (540 min), Fri 07:45–15:30 (465 min)
+// Weekends: no shift
+
+function getShiftForDate(date) {
+  const day = date.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  if (day === 0 || day === 6) return null; // Weekend — no shift
+  const shiftStart = new Date(date);
+  shiftStart.setHours(7, 45, 0, 0);
+  const shiftEnd = new Date(date);
+  if (day === 5) {
+    shiftEnd.setHours(15, 30, 0, 0); // Friday
+  } else {
+    shiftEnd.setHours(16, 45, 0, 0); // Mon–Thu
+  }
+  return { start: shiftStart, end: shiftEnd };
+}
+
+function nextShiftStart(fromDate) {
+  // Find the next shift start after fromDate
+  const d = new Date(fromDate);
+  d.setDate(d.getDate() + 1);
+  for (let i = 0; i < 7; i++) {
+    const shift = getShiftForDate(d);
+    if (shift) {
+      return shift.start;
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return null;
+}
+
+function shiftAwareMinutes(startISO, endISO) {
+  // Count only minutes within valid shift windows between two timestamps
+  if (!startISO || !endISO) return 0;
+  let current = new Date(startISO);
+  const end   = new Date(endISO);
+  if (current >= end) return 0;
+
+  let totalMins = 0;
+  let safetyLimit = 0; // prevent infinite loop
+
+  while (current < end && safetyLimit < 50) {
+    safetyLimit++;
+    const shift = getShiftForDate(current);
+
+    if (!shift) {
+      // Weekend or no shift — jump to next shift start
+      const next = nextShiftStart(current);
+      if (!next) break;
+      current = next;
+      continue;
+    }
+
+    // Clamp current to shift start if before shift
+    if (current < shift.start) current = new Date(shift.start);
+
+    // If still before end and within shift
+    if (current >= shift.end) {
+      // Past shift end — jump to next shift start
+      const next = nextShiftStart(current);
+      if (!next) break;
+      current = next;
+      continue;
+    }
+
+    // Count minutes within this shift window
+    const segEnd = end < shift.end ? end : shift.end;
+    totalMins += Math.round((segEnd - current) / 60000);
+    current = new Date(segEnd);
+
+    if (current < shift.end) break; // Resolved within this shift — done
+    // Otherwise loop to next shift
+    const next = nextShiftStart(current);
+    if (!next) break;
+    current = next;
+  }
+
+  return totalMins;
+}
+
+function shiftAwareElapsed(startISO) {
+  // Shift-aware minutes from start to now
+  return shiftAwareMinutes(startISO, new Date().toISOString());
+}
+
+// ── LIVE TIMER ────────────────────────────────────────────────────────────────
+let liveTimerInterval = null;
+let liveTimerStart    = null;
+
+function startLiveTimer(reportedISO) {
+  stopLiveTimer();
+  liveTimerStart = reportedISO;
+  liveTimerInterval = setInterval(() => {
+    const wallEl  = document.getElementById('wallClockPill');
+    const shiftEl = document.getElementById('shiftTimePill');
+    if (!wallEl || !shiftEl) { stopLiveTimer(); return; }
+    const wallMs    = Date.now() - new Date(liveTimerStart).getTime();
+    const shiftMins = shiftAwareElapsed(liveTimerStart);
+    wallEl.textContent  = formatWallClock(wallMs);
+    shiftEl.textContent = formatMins(shiftMins);
+  }, 30000); // update every 30 seconds
+}
+
+function stopLiveTimer() {
+  if (liveTimerInterval) {
+    clearInterval(liveTimerInterval);
+    liveTimerInterval = null;
+    liveTimerStart    = null;
+  }
+}
+
 function switchMechTab(tab) {
   document.querySelectorAll('.mech-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -786,7 +913,25 @@ function openJobDetail(id) {
   let timesHTML = `<div class="time-pill"><div class="time-pill-label">Reported</div><div class="time-pill-value">${j.reported_time ? new Date(j.reported_time).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : '—'}</div></div>`;
   if (j.investigate_time) timesHTML += `<div class="time-pill"><div class="time-pill-label">Investigated</div><div class="time-pill-value">${new Date(j.investigate_time).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'})}</div></div>`;
   if (j.resolved_time) timesHTML += `<div class="time-pill"><div class="time-pill-label">Resolved</div><div class="time-pill-value">${new Date(j.resolved_time).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'})}</div></div>`;
-  if (j.total_downtime_minutes) timesHTML += `<div class="time-pill" style="background:#FCE4D6;"><div class="time-pill-label">Total downtime</div><div class="time-pill-value" style="color:#843C0C;">${formatMins(j.total_downtime_minutes)}</div></div>`;
+  if (j.total_downtime_minutes) timesHTML += `<div class="time-pill" style="background:#FCE4D6;"><div class="time-pill-label">Production lost</div><div class="time-pill-value" style="color:#843C0C;">${formatMins(j.total_downtime_minutes)}</div></div>`;
+
+  // For open/investigating incidents — show live wall clock AND shift-adjusted time
+  if (j.status !== 'Resolved' && j.reported_time) {
+    const wallMs       = Date.now() - new Date(j.reported_time).getTime();
+    const shiftMins    = shiftAwareElapsed(j.reported_time);
+    timesHTML += `
+      <div class="time-pill" style="background:#FFF2CC;border:1px solid #C9A84C;">
+        <div class="time-pill-label" style="color:#8B6914;">⏱ Open for</div>
+        <div class="time-pill-value" style="color:#8B6914;" id="wallClockPill">${formatWallClock(wallMs)}</div>
+      </div>
+      <div class="time-pill" style="background:#FCE4D6;border:1px solid #C00000;">
+        <div class="time-pill-label" style="color:#843C0C;">📉 Production lost</div>
+        <div class="time-pill-value" style="color:#843C0C;" id="shiftTimePill">${formatMins(shiftMins)}</div>
+      </div>`;
+    // Start live timer
+    startLiveTimer(j.reported_time);
+  }
+
   document.getElementById('detailTimes').innerHTML = timesHTML;
 
   // Show correct action section
@@ -814,6 +959,7 @@ function openJobDetail(id) {
 }
 
 function backToList() {
+  stopLiveTimer();
   document.getElementById('mechListView').style.display = 'block';
   document.getElementById('mechDetailView').style.display = 'none';
   fetchJobs();
@@ -823,8 +969,8 @@ async function markInvestigate() {
   const btn = document.getElementById('investigateBtn');
   btn.disabled = true; btn.textContent = 'Updating...';
   const now = new Date().toISOString();
-  const reported = currentJobData.reported_time ? new Date(currentJobData.reported_time) : new Date();
-  const responseMins = Math.round((new Date(now) - reported) / 60000);
+  // Shift-aware response time — only counts production minutes from reported to now
+  const responseMins = shiftAwareMinutes(currentJobData.reported_time, now);
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/downtime_log?id=eq.' + currentJobId, {
       method: 'PATCH',
@@ -857,8 +1003,17 @@ async function markResolved() {
   const now = new Date().toISOString();
   const reported    = currentJobData.reported_time    ? new Date(currentJobData.reported_time)    : new Date();
   const investigate = currentJobData.investigate_time ? new Date(currentJobData.investigate_time) : new Date();
-  const totalMins   = Math.round((new Date(now) - reported)    / 60000);
-  const repairMins  = Math.round((new Date(now) - investigate) / 60000);
+
+  // Shift-aware total downtime — only counts production minutes lost
+  const totalMins  = shiftAwareMinutes(currentJobData.reported_time, now);
+  // Repair time — shift-aware from investigation to resolution
+  const repairMins = currentJobData.investigate_time
+    ? shiftAwareMinutes(currentJobData.investigate_time, now)
+    : totalMins;
+  // Response time — shift-aware from reported to investigation
+  const responseMins = currentJobData.investigate_time
+    ? shiftAwareMinutes(currentJobData.reported_time, currentJobData.investigate_time)
+    : 0;
 
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/downtime_log?id=eq.' + currentJobId, {
