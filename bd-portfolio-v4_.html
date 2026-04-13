@@ -424,8 +424,8 @@ body.meeting-mode .trow:hover { background:inherit !important; }
       <div style="color:rgba(255,255,255,.6);font-size:9px;margin-top:2px" id="weekly-subtitle"></div>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-      <select class="fsel" id="weekly-lead" onchange="renderWeekly()" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)"><option value="">All Leads</option><option>Berenicia</option><option>Jacques</option><option>Letlhogonolo</option><option>Wendy</option><option>Beverley</option><option>David</option><option>Danesha</option></select>
-      <select class="fsel" id="weekly-range" onchange="renderWeekly()" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)">
+      <select class="fsel" id="weekly-lead" onchange="if(window.renderWeekly)window.renderWeekly()" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)"><option value="">All Leads</option><option>Berenicia</option><option>Jacques</option><option>Letlhogonolo</option><option>Wendy</option><option>Beverley</option><option>David</option><option>Danesha</option></select>
+      <select class="fsel" id="weekly-range" onchange="if(window.renderWeekly)window.renderWeekly()" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)">
         <option value="7">This Week</option>
         <option value="14">Last 2 Weeks</option>
         <option value="30">This Month</option>
@@ -435,9 +435,9 @@ body.meeting-mode .trow:hover { background:inherit !important; }
   </div>
   <!-- Sub-tabs -->
   <div style="display:flex;gap:0;margin-bottom:12px;background:#fff;border-radius:8px;border:1px solid #D6C8DB;overflow:hidden">
-    <button id="wtab-updates" onclick="setWeeklyTab('updates')" style="flex:1;padding:9px;font-size:10px;font-weight:700;cursor:pointer;border:none;background:#68217D;color:#fff;font-family:inherit">&#128221; Project Updates</button>
-    <button id="wtab-tasks" onclick="setWeeklyTab('tasks')" style="flex:1;padding:9px;font-size:10px;font-weight:700;cursor:pointer;border:none;background:#fff;color:#595959;border-left:1px solid #D6C8DB;font-family:inherit">&#9989; Tasks</button>
-    <button id="wtab-adhoc" onclick="setWeeklyTab('adhoc')" style="flex:1;padding:9px;font-size:10px;font-weight:700;cursor:pointer;border:none;background:#fff;color:#595959;border-left:1px solid #D6C8DB;font-family:inherit">&#9889; Ad Hoc</button>
+    <button id="wtab-updates" onclick="window.setWeeklyTab('updates')" style="flex:1;padding:9px;font-size:10px;font-weight:700;cursor:pointer;border:none;background:#68217D;color:#fff;font-family:inherit">&#128221; Project Updates</button>
+    <button id="wtab-tasks" onclick="window.setWeeklyTab('tasks')" style="flex:1;padding:9px;font-size:10px;font-weight:700;cursor:pointer;border:none;background:#fff;color:#595959;border-left:1px solid #D6C8DB;font-family:inherit">&#9989; Tasks</button>
+    <button id="wtab-adhoc" onclick="window.setWeeklyTab('adhoc')" style="flex:1;padding:9px;font-size:10px;font-weight:700;cursor:pointer;border:none;background:#fff;color:#595959;border-left:1px solid #D6C8DB;font-family:inherit">&#9889; Ad Hoc</button>
   </div>
   <div id="weekly-body"></div>
 </div>
