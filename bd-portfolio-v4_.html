@@ -640,6 +640,27 @@ try {
   }
 } catch(e){}
 
+
+// -- Meeting / Presentation Mode ----------------------------------------------
+var _meetingMode = false;
+function toggleMeetingMode(){
+  _meetingMode = !_meetingMode;
+  var btn = document.getElementById('meeting-btn');
+  if(_meetingMode){
+    document.body.classList.add('meeting-mode');
+    if(btn){btn.textContent='Exit Present';btn.style.background='rgba(192,0,0,.5)';}
+    showToast('Presentation mode on');
+  } else {
+    document.body.classList.remove('meeting-mode');
+    if(btn){btn.innerHTML='&#127909; Present';btn.style.background='rgba(255,255,255,.15)';}
+    showToast('Presentation mode off');
+  }
+  if(curView==='tracker')renderTracker();
+  if(curView==='activity')renderActivity();
+  if(curView==='taskboard')renderTaskBoard();
+  if(window.renderWeekly&&curView==='weekly')window.renderWeekly();
+}
+
 // -- Constants -----------------------------------------------------------------
 const PHASES=['Initiation & Scoping','Planning','Execution','Monitoring & Control','Closure'];
 const PTASKS={'Initiation & Scoping':['Project charter sign-off','Stakeholder mapping','Scope definition'],'Planning':['Project plan','Resource plan','Risk register','Communication plan'],'Execution':['Core deliverable 1','Core deliverable 2','Stakeholder updates','Issue & change management'],'Monitoring & Control':['Progress reporting','Quality review','Budget tracking'],'Closure':['Deliverable sign-off','Lessons learned','Handover & BAU transition']};
@@ -700,6 +721,7 @@ const AS=a=>({Approved:{bg:'#89AB90',fg:'#2E4F34'},Proposed:{bg:'#DBC25D',fg:'#6
 const CS=c=>({'Operations':{bg:'#A6C4CF',fg:'#2F6070'},'People & Training':{bg:'#E8D5EE',fg:'#68217D'},'Technology & Assets':{bg:'#CFCFB7',fg:'#7A7A58'},'Finance':{bg:'#DBC25D',fg:'#6B5A10'}}[c]||{bg:'#F0F0F0',fg:'#595959'});
 const KCAT=c=>({Financial:{bg:'#E2EFDA',fg:'#375623',dot:'#375623'},Efficiency:{bg:'#E8D5EE',fg:'#68217D',dot:'#68217D'},People:{bg:'#DDE4EC',fg:'#3A3F60',dot:'#7A92AC'},Quality:{bg:'#FCF5E3',fg:'#6B5A10',dot:'#DBC25D'},Custom:{bg:'#FCE4D6',fg:'#C55A11',dot:'#C55A11'}}[c]||{bg:'#F0F0F0',fg:'#595959',dot:'#595959'});
 function pill(l,s){return`<span class="pill" style="background:${s.bg};color:${s.fg}">${esc(l)}</span>`;}
+function phBadge(p){var h=projectHealth(p);return '<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:'+h.bg+';color:'+h.color+'">'+(h.icon||'')+' '+h.label+'</span>';}
 function projectHealth(p){
   if(p.status==='Complete') return {label:'Complete',color:'#375623',bg:'#E2EFDA',icon:'&#10003;'};
   if(p.status==='On Hold')  return {label:'On Hold', color:'#7A4A40',bg:'#D5A99C',icon:'&#9646;'};
@@ -764,13 +786,13 @@ function onRoleChange(){
   }
   // Leadership defaults to Weekly view
   if(sel.value === 'Leadership' && curView !== 'weekly'){
-    if(window.renderWeekly) { curView='weekly'; document.querySelectorAll('.view').forEach(function(el){el.classList.remove('active');}); var wv=document.getElementById('view-weekly'); if(wv) wv.classList.add('active'); window.renderWeekly(); } else { sv('weekly'); }
+    sv('weekly');
   } else {
     renderTracker();
     if(curView==='dashboard') renderDash();
     if(curView==='activity') renderActivity();
     if(curView==='taskboard') renderTaskBoard();
-    if(curView==='weekly' && window.renderWeekly) window.renderWeekly();
+    if(curView==='weekly') renderWeekly();
   }
   updateImportVisibility();
 }
@@ -797,7 +819,7 @@ function sv(v){
   if(v==='benefits')renderBenefits();
   if(v==='charts'){populateChartProjFilter();renderCharts();}
   if(v==='recs')renderRecs();
-  if(v==='weekly'){ if(window.renderWeekly) window.renderWeekly(); }
+  if(v==='weekly'&&window.renderWeekly)window.renderWeekly();
 }
 function updateSub(){
   const ip=projects.filter(p=>p.status==='In Progress').length;
@@ -845,29 +867,7 @@ function renderTracker(){
       <div class="hm">${pill(p.status,SS(p.status))}</div>
       <div class="hm">${pill(p.approval,AS(p.approval))}</div>
       <div class="hm">${pbar(p.pct)}</div>
-      <div class="hm">${
-// -- Meeting / Presentation Mode ----------------------------------------------
-var _meetingMode = false;
-
-function toggleMeetingMode(){
-  _meetingMode = !_meetingMode;
-  var btn = document.getElementById('meeting-btn');
-  if(_meetingMode){
-    document.body.classList.add('meeting-mode');
-    if(btn){ btn.textContent = 'Exit Present'; btn.style.background='rgba(192,0,0,.5)'; }
-    showToast('Presentation mode on');
-  } else {
-    document.body.classList.remove('meeting-mode');
-    if(btn){ btn.innerHTML='&#127909; Present'; btn.style.background='rgba(255,255,255,.15)'; }
-    showToast('Presentation mode off');
-  }
-  if(curView==='tracker') renderTracker();
-  if(curView==='activity') renderActivity();
-  if(curView==='taskboard') renderTaskBoard();
-  if(window.renderWeekly && curView==='weekly') window.renderWeekly();
-}
-
-(function(){var h=projectHealth(p);return'<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:'+h.bg+';color:'+h.color+'">'+h.icon+' '+h.label+'</span>';})()}</div>
+      <div class="hm">${phBadge(p)}</div>
       <div>${role!=='Leadership'?`<button onclick="openModal(${p.id})" style="background:#E8D5EE;color:#68217D;border:none;border-radius:5px;padding:3px 7px;cursor:pointer;font-size:9px;font-weight:700;font-family:inherit">Edit</button>`:''}</div>
     </div>`;
   }).join('');
@@ -3323,12 +3323,11 @@ document.addEventListener('DOMContentLoaded', function(){
   loadFromSupabase();
 });
 
-  // Expose IIFE functions for use outside
-  window.renderWeekly = renderWeekly;
-  window.setWeeklyTab = setWeeklyTab;
-  window.renderWeeklyUpdates = renderWeeklyUpdates;
-  window.renderWeeklyTasks = renderWeeklyTasks;
-  window.renderWeeklyAdhoc = renderWeeklyAdhoc;
+  window.renderWeekly=renderWeekly;
+  window.setWeeklyTab=setWeeklyTab;
+  window.renderWeeklyUpdates=renderWeeklyUpdates;
+  window.renderWeeklyTasks=renderWeeklyTasks;
+  window.renderWeeklyAdhoc=renderWeeklyAdhoc;
 
 })(); // end IIFE
 
