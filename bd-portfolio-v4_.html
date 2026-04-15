@@ -569,8 +569,17 @@ body.meeting-mode .trow:hover { background:inherit !important; }
         <div><label class="fl">Target Value</label><input class="fi" id="kpitgt" type="number" placeholder="0"/></div>
       </div>
       <div class="mrow">
-        <div><label class="fl">Actual Value</label><input class="fi" id="kpiact" type="number" placeholder="0"/></div>
+        <div>
+          <label class="fl">Direction</label>
+          <select class="fi" id="kpidir">
+            <option value="higher">Higher is better (e.g. savings, adoption rate)</option>
+            <option value="lower">Lower is better (e.g. downtime, defects, cost)</option>
+          </select>
+        </div>
         <div><label class="fl">Notes / Source</label><input class="fi" id="kpinotes" type="text" placeholder="e.g. Q2 audit"/></div>
+      </div>
+      <div class="mrow">
+        <div><label class="fl">Actual Value</label><input class="fi" id="kpiact" type="number" placeholder="0"/></div>
       </div>
       <!-- Time series section - shown only when editing existing KPI -->
       <div id="kpi-ts-section" style="display:none;border-top:1px solid #D6C8DB;padding-top:12px;margin-top:8px;background:#FAFAFA;border-radius:6px;padding:12px">
@@ -850,7 +859,7 @@ function renderTracker(){
   function kpiDot(pid){
     const pk=kpis.filter(k=>k.projId===pid&&k.target>0);
     if(!pk.length)return'';
-    const avg=pk.reduce((a,k)=>a+(k.actual/k.target*100),0)/pk.length;
+    const avg=pk.reduce((a,k)=>a+kpiAchievement(k),0)/pk.length;
     const col=avg>=100?'#375623':avg>=80?'#DBC25D':'#C00000';
     return`<span title="KPI: ${Math.round(avg)}% of target" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${col};margin-left:4px;vertical-align:middle"></span>`;
   }
@@ -1366,6 +1375,24 @@ function renderPhases(p){
   return frag;
 }
 
+function kpiAchievement(k){
+  if(!k.target || k.target===0) return 0;
+  var dir = k.direction || 'higher';
+  if(dir === 'lower'){
+    // Lower is better: achievement = target/actual * 100
+    // e.g. target=30% downtime, actual=22% -> 30/22*100 = 136% (exceeded target)
+    if(k.actual === 0) return 150; // achieved zero = maximum
+    return Math.round(k.target / k.actual * 100);
+  } else {
+    return Math.round(k.actual / k.target * 100);
+  }
+}
+function kpiRag(pct){
+  if(pct>=100) return {color:'#375623',bg:'#E2EFDA'};
+  if(pct>=80)  return {color:'#C55A11',bg:'#FFF8DC'};
+  return             {color:'#C00000',bg:'#FFDCE0'};
+}
+
 function renderKPISection(p){
   const pk=kpis.filter(k=>k.projId===p.id);
   return`<div style="background:#F5F0F7;border-top:1px solid #D6C8DB;padding:10px 12px">
@@ -1377,10 +1404,11 @@ function renderKPISection(p){
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
       ${pk.map(k=>{
         const kc=KCAT(k.category);
-        const rawPct=k.target>0?Math.round(k.actual/k.target*100):0;
+        const rawPct=k.target>0?kpiAchievement(k):0;
         const pct=Math.min(100,rawPct); // bar capped at 100%
-        const rag=rawPct>=100?'#375623':rawPct>=80?'#DBC25D':'#C00000';
-        const ragbg=rawPct>=100?'#E2EFDA':rawPct>=80?'#FFF8DC':'#FFDCE0';
+        const _rag=kpiRag(rawPct);
+        const rag=_rag.color;
+        const ragbg=_rag.bg;
         const unit=k.unit==='R'?'R ':k.unit==='%'?'':'';
         const suffix=k.unit==='%'?'%':k.unit!=='R'?` ${k.unit}`:'';
         const fmt=v=>k.unit==='R'?fmtR(v):`${unit}${v}${suffix}`;
@@ -1431,6 +1459,7 @@ function openKPIModal(projId,kpiId){
     document.getElementById('kpitgt').value=k.target;
     document.getElementById('kpiact').value=k.actual;
     document.getElementById('kpinotes').value=k.notes||'';
+    document.getElementById('kpidir').value=k.direction||'higher';
   }else{
     document.getElementById('kpicat').value='Financial';
     document.getElementById('kpiname').value='';
@@ -1438,6 +1467,7 @@ function openKPIModal(projId,kpiId){
     document.getElementById('kpitgt').value='';
     document.getElementById('kpiact').value='';
     document.getElementById('kpinotes').value='';
+    document.getElementById('kpidir').value='higher';
   }
   // Show/hide time series section
   var tsSection = document.getElementById('kpi-ts-section');
@@ -1459,7 +1489,7 @@ function saveKPI(){
   try {
   var existing = kpiEditId ? kpis.find(function(k){ return String(k.id)===String(kpiEditId); }) : null;
   var existingTS = existing ? (existing.timeSeries||[]) : [];
-  var d={projId:kpiProjId,category:document.getElementById('kpicat').value,name:document.getElementById('kpiname').value,unit:document.getElementById('kpiunit').value,target:parseFloat(document.getElementById('kpitgt').value)||0,actual:parseFloat(document.getElementById('kpiact').value)||0,notes:document.getElementById('kpinotes').value};
+  var d={projId:kpiProjId,category:document.getElementById('kpicat').value,name:document.getElementById('kpiname').value,unit:document.getElementById('kpiunit').value,target:parseFloat(document.getElementById('kpitgt').value)||0,actual:parseFloat(document.getElementById('kpiact').value)||0,notes:document.getElementById('kpinotes').value,direction:document.getElementById('kpidir').value||'higher'};
   var isNewKpi = !kpiEditId;
   if(kpiEditId){
     var idx=kpis.findIndex(function(k){ return String(k.id)===String(kpiEditId); });
@@ -1865,9 +1895,9 @@ function renderBenefits(){
   const finKPIs=kpis.filter(k=>k.category==='Financial'&&k.unit==='R');
   const totalTarget=finKPIs.reduce((a,k)=>a+k.target,0);
   const totalActual=finKPIs.reduce((a,k)=>a+k.actual,0);
-  const onTrack=kpis.filter(k=>k.target>0&&k.actual/k.target>=1).length;
-  const amber=kpis.filter(k=>k.target>0&&k.actual/k.target>=.8&&k.actual/k.target<1).length;
-  const atRisk=kpis.filter(k=>k.target>0&&k.actual/k.target<.8).length;
+  const onTrack=kpis.filter(k=>k.target>0&&kpiAchievement(k)>=100).length;
+  const amber=kpis.filter(k=>k.target>0&&kpiAchievement(k)>=80&&kpiAchievement(k)<100).length;
+  const atRisk=kpis.filter(k=>k.target>0&&kpiAchievement(k)<80).length;
   const noKpi=projects.filter(p=>!kpis.some(k=>k.projId===p.id)).length;
 
   document.getElementById('benrow').innerHTML=[
@@ -2227,7 +2257,7 @@ function renderCharts() {
   var kpiA = kpiProjs.map(function(p){
     var pk = fk.filter(function(k){ return k.projId === p.id && k.target > 0; });
     if (!pk.length) return null;
-    var avg = Math.round(pk.reduce(function(a,k){ return a + k.actual/k.target*100; }, 0) / pk.length);
+    var avg = Math.round(pk.reduce(function(a,k){ return a + kpiAchievement(k); }, 0) / pk.length);
     return { name: p.name.length > 22 ? p.name.slice(0,20) + '...' : p.name, avg: avg };
   }).filter(Boolean).sort(function(a,b){ return b.avg - a.avg; });
   if (kpiA.length) {
@@ -2249,10 +2279,11 @@ function renderCharts() {
     gw.innerHTML = '<div style="font-size:10px;color:#595959;font-style:italic;padding:16px">No KPIs with targets defined.</div>';
   } else {
     gkpis.forEach(function(k) {
-      var rawPct = Math.round(k.actual / k.target * 100);
+      var rawPct = k.target>0 ? kpiAchievement(k) : 0;
       var pct = Math.min(100, rawPct); // arc capped at 100%
-      var rag = rawPct>=100 ? '#375623' : rawPct>=80 ? '#DBC25D' : '#C00000';
-      var ragBg = rawPct>=100 ? '#E2EFDA' : rawPct>=80 ? '#FFF8DC' : '#FFDCE0';
+      var _gr = kpiRag(rawPct);
+      var rag = _gr.color;
+      var ragBg = _gr.bg;
       var r=38, cx=50, cy=52;
       var endA = Math.PI + Math.min(1, pct/100) * Math.PI;
       var x2 = cx + r * Math.cos(endA), y2 = cy + r * Math.sin(endA);
@@ -2289,7 +2320,7 @@ function renderCharts() {
     hm += '<div style="font-size:9px;color:#4A1759;font-weight:600;padding:4px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:'+lW+'px;min-width:'+lW+'px" title="'+esc(p.name)+'">'+esc(nm)+'</div>';
     kCats.forEach(function(cat) {
       var pk = fk.filter(function(k){ return k.projId===p.id && k.category===cat && k.target>0; });
-      var v = pk.length ? Math.round(pk.reduce(function(a,k){ return a+k.actual/k.target*100; },0)/pk.length) : null;
+      var v = pk.length ? Math.round(pk.reduce(function(a,k){ return a+kpiAchievement(k); },0)/pk.length) : null;
       var rc = ragC(v);
       hm += '<div style="background:'+rc.bg+';border-radius:3px;height:28px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:'+rc.fg+'">'+rc.lbl+'</div>';
     });
@@ -3059,13 +3090,14 @@ function dbToKpi(r, tsRows) {
   return {
     id: r.id, projId: r.project_id, category: r.category,
     name: r.name, unit: r.unit, target: r.target, actual: r.actual,
-    notes: r.notes || '', timeSeries: ts
+    notes: r.notes || '', direction: r.direction || 'higher', timeSeries: ts
   };
 }
 function kpiToDb(k) {
   return {
     project_id: k.projId, category: k.category, name: k.name,
-    unit: k.unit, target: k.target || 0, actual: k.actual || 0, notes: k.notes || ''
+    unit: k.unit, target: k.target || 0, actual: k.actual || 0,
+    notes: k.notes || '', direction: k.direction || 'higher'
   };
 }
 function dbToAdhoc(r) {
