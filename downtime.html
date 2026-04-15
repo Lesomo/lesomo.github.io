@@ -335,6 +335,26 @@ textarea { min-height: 90px; resize: vertical; }
 
     <!-- Investigate section -->
     <div id="investigateSection" style="display:none">
+      <div class="field" style="margin-bottom:12px;">
+        <label>Your name</label>
+        <select id="investigateMechName" onchange="saveMechName();">
+          <option value="">Select your name...</option>
+          <option>Ashley</option>
+          <option>Bernard</option>
+          <option>Bradwin</option>
+          <option>Keenan</option>
+          <option>Khanyisa</option>
+          <option>Lele</option>
+          <option>Monray</option>
+          <option>Nur</option>
+          <option>Phillip</option>
+          <option>Phumzi</option>
+          <option>Rameez</option>
+          <option>Ralton</option>
+          <option>Riedaw</option>
+          <option>Wallied</option>
+        </select>
+      </div>
       <button class="submit-btn navy" id="investigateBtn" onclick="markInvestigate()" style="margin-bottom:14px;">
         Investigate — Take this job
       </button>
@@ -725,6 +745,11 @@ function jobCardHTML(j) {
   const pillClass   = j.status === 'Resolved' ? 'pill-completed' : j.status === 'Investigating' ? 'pill-investigating' : 'pill-open';
   const time = j.reported_time ? new Date(j.reported_time).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' }) : '—';
   const downtime = j.total_downtime_minutes ? formatMins(j.total_downtime_minutes) : '';
+  const mechInfo = j.status === 'Investigating' && j.mechanic
+    ? ` &nbsp;|&nbsp; 🔧 ${j.mechanic}`
+    : j.status === 'Resolved' && j.mechanic
+    ? ` &nbsp;|&nbsp; ✓ ${j.mechanic}`
+    : '';
   return `<div class="job-card ${statusClass}" onclick="openJobDetail(${j.id})">
     <div class="job-card-top">
       <div class="job-card-asset">${j.asset_no || '—'}</div>
@@ -732,7 +757,7 @@ function jobCardHTML(j) {
     </div>
     <div class="job-card-line">${j.line || '—'} &nbsp;|&nbsp; ${j.machine_type || '—'}</div>
     <div class="job-card-fault">${j.fault || '—'}</div>
-    <div class="job-card-meta">Reported: ${time}${downtime ? ' &nbsp;|&nbsp; Downtime: ' + downtime : ''}</div>
+    <div class="job-card-meta">Reported: ${time}${downtime ? ' &nbsp;|&nbsp; Downtime: ' + downtime : ''}${mechInfo}</div>
   </div>`;
 }
 
@@ -907,7 +932,9 @@ function openJobDetail(id) {
     <div class="detail-type">${j.machine_type || ''}</div>
     <div class="detail-line">${j.line} &nbsp;|&nbsp; <span class="status-pill ${j.status==='Resolved'?'pill-completed':j.status==='Investigating'?'pill-investigating':'pill-open'}">${j.status}</span></div>
     <div class="detail-fault">Fault: ${j.fault}</div>
-    <div class="detail-time">Reported by ${j.reported_by} at ${j.reported_time ? new Date(j.reported_time).toLocaleString('en-ZA',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) : '—'}</div>`;
+    <div class="detail-time">Reported by ${j.reported_by} at ${j.reported_time ? new Date(j.reported_time).toLocaleString('en-ZA',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) : '—'}</div>
+    ${j.mechanic && j.status === 'Investigating' ? `<div class="detail-time" style="color:#2E5597;font-weight:600;opacity:1;">🔧 Being investigated by ${j.mechanic}</div>` : ''}
+    ${j.mechanic && j.status === 'Resolved'      ? `<div class="detail-time" style="color:#3B6D11;font-weight:600;opacity:1;">✓ Resolved by ${j.mechanic}</div>` : ''}`;
 
   // Time pills
   let timesHTML = `<div class="time-pill"><div class="time-pill-label">Reported</div><div class="time-pill-value">${j.reported_time ? new Date(j.reported_time).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : '—'}</div></div>`;
@@ -967,6 +994,9 @@ function backToList() {
 }
 
 async function markInvestigate() {
+  const mechSel = document.getElementById('investigateMechName');
+  const mechName = mechSel ? mechSel.value : '';
+  if (!mechName) { showToast('Please select your name before taking this job.', 'error'); return; }
   const btn = document.getElementById('investigateBtn');
   btn.disabled = true; btn.textContent = 'Updating...';
   const now = new Date().toISOString();
@@ -976,7 +1006,7 @@ async function markInvestigate() {
     const res = await fetch(SUPABASE_URL + '/rest/v1/downtime_log?id=eq.' + currentJobId, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ status: 'Investigating', investigate_time: now, response_minutes: responseMins })
+      body: JSON.stringify({ status: 'Investigating', investigate_time: now, response_minutes: responseMins, mechanic: mechName })
     });
     if (res.ok) {
       showToast('Job card taken — go fix it!', 'success');
@@ -1320,10 +1350,12 @@ function loadMechName() {
   try {
     const saved = localStorage.getItem('pmt_mechanic');
     if (!saved) return;
-    const mechSel  = document.getElementById('mechName');
-    const partsSel = document.getElementById('partsRequestMechanic');
-    if (mechSel)  mechSel.value  = saved;
-    if (partsSel) partsSel.value = saved;
+    const mechSel    = document.getElementById('mechName');
+    const partsSel   = document.getElementById('partsRequestMechanic');
+    const investSel  = document.getElementById('investigateMechName');
+    if (mechSel)   mechSel.value   = saved;
+    if (partsSel)  partsSel.value  = saved;
+    if (investSel) investSel.value = saved;
   } catch(e) {}
 }
 
