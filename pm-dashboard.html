@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6c2c84">
+<title>PMT — PM Dashboard</title>
+<style>
+  :root{
+    --purple:#6c2c84; --blue:#7b92ac; --lime:#8dc63f;
+    --ink:#1f1733; --paper:#f4f1f7; --card:#ffffff;
+    --line:#e3dded; --muted:#6b6478;
+    --red:#c0392b; --amber:#e0892a; --green:#2e9e5b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:var(--paper); color:var(--ink); line-height:1.5; padding-bottom:50px;
+  }
+  header{
+    background:linear-gradient(135deg,var(--purple),#4e2061);
+    color:#fff; padding:18px 16px; position:sticky; top:0; z-index:20;
+    box-shadow:0 2px 12px rgba(0,0,0,.18);
+  }
+  header h1{font-size:1.1rem;font-weight:700;letter-spacing:.3px;}
+  header .sub{font-size:.72rem;opacity:.8;margin-top:2px;}
+  .wrap{max-width:680px;margin:0 auto;padding:16px;}
+  .card{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:18px;margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(31,23,51,.05);
+  }
+  .card h2{font-size:.92rem;color:var(--purple);margin-bottom:14px;}
+  .card h2 .hint{font-size:.68rem;color:var(--muted);font-weight:500;}
+  /* headline stat tiles */
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .stat{
+    border:1px solid var(--line);border-radius:12px;padding:14px;
+    text-align:center;background:#fcfbfd;
+  }
+  .stat .num{font-size:1.7rem;font-weight:800;line-height:1.1;}
+  .stat .lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.5px;font-weight:700;margin-top:3px;}
+  .stat.red .num{color:var(--red);}
+  .stat.amber .num{color:var(--amber);}
+  .stat.green .num{color:var(--green);}
+  .stat.purple .num{color:var(--purple);}
+  /* compliance bar */
+  .compbar{height:14px;border-radius:8px;background:#ece7f0;
+    overflow:hidden;margin:8px 0 4px;}
+  .compbar > span{display:block;height:100%;border-radius:8px;}
+  /* generic rows */
+  .row{display:flex;justify-content:space-between;align-items:center;
+    padding:9px 0;border-bottom:1px solid var(--line);font-size:.85rem;gap:10px;}
+  .row:last-child{border-bottom:none;}
+  .pill{display:inline-block;padding:3px 9px;border-radius:20px;
+    font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+  .pill.red{background:#fbeaea;color:var(--red);}
+  .pill.amber{background:#fdf3e6;color:var(--amber);}
+  .pill.green{background:#e9f6ee;color:var(--green);}
+  .meta{font-size:.76rem;color:var(--muted);}
+  /* horizontal bar chart (system areas) */
+  .hbar{margin:9px 0;}
+  .hbar .top{display:flex;justify-content:space-between;
+    font-size:.78rem;margin-bottom:3px;}
+  .hbar .track{height:11px;background:#ece7f0;border-radius:6px;overflow:hidden;}
+  .hbar .fill{height:100%;border-radius:6px;background:var(--amber);}
+  /* attention feed */
+  .attn{border-left:3px solid var(--amber);background:#fdf8f1;
+    border-radius:0 9px 9px 0;padding:9px 11px;margin-bottom:8px;}
+  .attn .head{font-size:.8rem;font-weight:700;}
+  .attn .body{font-size:.78rem;color:var(--muted);margin-top:2px;}
+  .empty{text-align:center;color:var(--muted);font-size:.82rem;padding:16px 0;}
+  .spin{display:inline-block;width:15px;height:15px;border:2px solid var(--purple);
+    border-top-color:transparent;border-radius:50%;animation:sp .7s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+  .loading{text-align:center;padding:18px 0;}
+  .refresh{background:#efeaf3;color:var(--purple);border:none;border-radius:9px;
+    padding:9px 14px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;}
+  .errbox{background:#fbeaea;color:#902c22;border-radius:9px;
+    padding:10px 12px;font-size:.82rem;}
+  .corr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+  .corr .box{border:1px solid var(--line);border-radius:11px;padding:13px;text-align:center;}
+  .corr .box .t{font-size:.72rem;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.4px;}
+  .corr .box .v{font-size:1.5rem;font-weight:800;margin-top:4px;}
+  .note{font-size:.72rem;color:var(--muted);margin-top:8px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PMT · PM Dashboard</h1>
+  <div class="sub">Prestige Clothing — preventative maintenance overview</div>
+</header>
+
+<div class="wrap">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <div class="meta" id="lastUpdated">Loading…</div>
+    <button class="refresh" onclick="loadAll()">↻ Refresh</button>
+  </div>
+
+  <!-- 1. HEADLINE COUNTS + COMPLIANCE -->
+  <div class="card">
+    <h2>Overview</h2>
+    <div class="stats" id="statTiles">
+      <div class="loading"><span class="spin"></span></div>
+    </div>
+    <div id="complianceBox" style="margin-top:14px"></div>
+  </div>
+
+  <!-- 2. OVERDUE LIST -->
+  <div class="card">
+    <h2>Overdue machines <span class="hint">— worst first</span></h2>
+    <div id="overdueList"><div class="loading"><span class="spin"></span></div></div>
+  </div>
+
+  <!-- 3. ATTENTION BY SYSTEM AREA -->
+  <div class="card">
+    <h2>Attention flags by system area <span class="hint">— last 90 days</span></h2>
+    <div id="systemBars"><div class="loading"><span class="spin"></span></div></div>
+    <div id="attnFeed" style="margin-top:14px"></div>
+  </div>
+
+  <!-- 4. PM vs DOWNTIME -->
+  <div class="card">
+    <h2>PM compliance vs downtime <span class="hint">— last 90 days</span></h2>
+    <div id="corrBox"><div class="loading"><span class="spin"></span></div></div>
+  </div>
+
+</div>
+
+<script>
+/* ============ CONFIG ============ */
+const SB_URL = 'https://tdrlvyblmcqctifcikhq.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkcmx2eWJsbWNxY3RpZmNpa2hxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NzYwNzEsImV4cCI6MjA4OTM1MjA3MX0.pZKNtb_CzDEPYk90sx0JRhsv1MOV75S3gv2oYFqVOWw';
+
+const H = { 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY };
+async function sb(path){
+  const res = await fetch(SB_URL + '/rest/v1/' + path, { headers:H });
+  if(!res.ok){ throw new Error('Supabase '+res.status+': '+(await res.text())); }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : [];
+}
+const today = () => new Date().toISOString().slice(0,10);
+function daysAgo(n){
+  const d = new Date(); d.setDate(d.getDate()-n);
+  return d.toISOString().slice(0,10);
+}
+function diffDays(a,b){
+  return Math.round((new Date(a+'T00:00:00') - new Date(b+'T00:00:00'))/86400000);
+}
+function cap(s){ return s ? s.charAt(0).toUpperCase()+s.slice(1) : s; }
+function esc(s){ return String(s==null?'':s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ============ MAIN LOAD ============ */
+async function loadAll(){
+  document.getElementById('lastUpdated').textContent = 'Loading…';
+  await Promise.all([
+    loadOverview(),       // also feeds overdue list
+    loadSystemAttention(),
+    loadCorrelation()
+  ]);
+  document.getElementById('lastUpdated').textContent =
+    'Updated ' + new Date().toLocaleString();
+}
+
+/* ---- 1 + 2. Overview tiles, compliance, overdue list ---- */
+async function loadOverview(){
+  const tiles   = document.getElementById('statTiles');
+  const compBox = document.getElementById('complianceBox');
+  const odList  = document.getElementById('overdueList');
+  try{
+    // active schedules drive overdue / due-soon counts
+    const scheds = await sb('pm_schedules?active=eq.true&select=asset_no,asset_type,service_type,next_due_date,assigned_to&order=next_due_date.asc&limit=2000');
+    const t = today();
+    let overdue=0, dueSoon=0;
+    const overdueRows=[];
+    scheds.forEach(s => {
+      const d = diffDays(s.next_due_date, t);
+      if(d < 0){ overdue++; overdueRows.push({...s, late:-d}); }
+      else if(d <= 7){ dueSoon++; }
+    });
+
+    // completed PMs — all-time count + on-time compliance
+    const logs = await sb('pm_log?select=id,asset_no,service_type,completed_date,machine_condition&order=completed_date.desc&limit=3000');
+
+    tiles.innerHTML =
+      tile(scheds.length,'Active schedules','purple') +
+      tile(overdue,'Overdue', overdue?'red':'green') +
+      tile(dueSoon,'Due within 7 days', dueSoon?'amber':'green') +
+      tile(logs.length,'PMs completed','green');
+
+    // ---- compliance: of schedules with a known last cycle, how many
+    //      were completed on/before their due date. We approximate using
+    //      pm_log vs the schedule's expected cadence is complex; instead
+    //      we use a clear, honest proxy: of all CURRENT active schedules,
+    //      what % are NOT overdue (i.e. on track right now).
+    const onTrack = scheds.length - overdue;
+    const pct = scheds.length ? Math.round(onTrack/scheds.length*100) : 0;
+    const col = pct>=85 ? 'var(--green)' : pct>=60 ? 'var(--amber)' : 'var(--red)';
+    compBox.innerHTML =
+      '<div style="font-size:.8rem;font-weight:700;color:var(--muted);">'+
+        'SCHEDULES ON TRACK</div>'+
+      '<div class="compbar"><span style="width:'+pct+'%;background:'+col+'"></span></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:.78rem;">'+
+        '<span><b style="font-size:1.05rem;color:'+col+'">'+pct+'%</b> on track</span>'+
+        '<span class="meta">'+onTrack+' of '+scheds.length+' not overdue</span></div>'+
+      '<div class="note">On track = schedule\'s next service is not past due. '+
+        'Improves as overdue machines get serviced.</div>';
+
+    // ---- overdue list ----
+    if(!overdueRows.length){
+      odList.innerHTML = '<div class="empty">Nothing overdue — all schedules on track.</div>';
+    } else {
+      overdueRows.sort((a,b)=>b.late-a.late);
+      odList.innerHTML = overdueRows.slice(0,40).map(r =>
+        '<div class="row">'+
+          '<span><b>'+esc(r.asset_no)+'</b> '+
+            '<span class="meta">'+esc(r.asset_type||'—')+' · '+cap(r.service_type)+
+            (r.assigned_to?' · '+esc(r.assigned_to):'')+'</span></span>'+
+          '<span class="pill red">'+r.late+'d late</span>'+
+        '</div>'
+      ).join('') +
+      (overdueRows.length>40 ? '<div class="note">+ '+(overdueRows.length-40)+
+        ' more not shown.</div>' : '');
+    }
+  }catch(e){
+    tiles.innerHTML = '<div class="errbox">'+esc(e.message)+'</div>';
+    compBox.innerHTML=''; odList.innerHTML='';
+  }
+}
+function tile(num,lbl,cls){
+  return '<div class="stat '+cls+'"><div class="num">'+num+
+         '</div><div class="lbl">'+lbl+'</div></div>';
+}
+
+/* ---- 3. Attention flags by system area ---- */
+async function loadSystemAttention(){
+  const bars = document.getElementById('systemBars');
+  const feed = document.getElementById('attnFeed');
+  try{
+    // pm_log_items joined to pm_log for date filtering, via embedded resource
+    const since = daysAgo(90);
+    const items = await sb('pm_log_items?outcome=eq.attention'+
+      '&select=item_text,system_area,item_note,pm_log!inner(asset_no,completed_date)'+
+      '&pm_log.completed_date=gte.'+since+
+      '&order=id.desc&limit=500');
+
+    if(!items.length){
+      bars.innerHTML = '<div class="empty">No attention flags in the last 90 days.</div>';
+      feed.innerHTML = '';
+      return;
+    }
+    // count per system area
+    const byArea = {};
+    items.forEach(i => { byArea[i.system_area] = (byArea[i.system_area]||0)+1; });
+    const max = Math.max(...Object.values(byArea));
+    const order = Object.entries(byArea).sort((a,b)=>b[1]-a[1]);
+
+    bars.innerHTML = order.map(([area,n]) =>
+      '<div class="hbar">'+
+        '<div class="top"><span><b>'+cap(area)+'</b></span><span>'+n+'</span></div>'+
+        '<div class="track"><div class="fill" style="width:'+
+          Math.round(n/max*100)+'%"></div></div>'+
+      '</div>'
+    ).join('');
+
+    // recent attention feed (most recent 8)
+    feed.innerHTML =
+      '<div style="font-size:.78rem;font-weight:700;color:var(--muted);'+
+        'margin-bottom:8px;">RECENT ATTENTION ITEMS</div>' +
+      items.slice(0,8).map(i =>
+        '<div class="attn">'+
+          '<div class="head">'+esc(i.pm_log.asset_no)+' · '+cap(i.system_area)+'</div>'+
+          '<div class="body">'+esc(i.item_note || i.item_text)+
+            ' <span class="meta">— '+esc(i.pm_log.completed_date)+'</span></div>'+
+        '</div>'
+      ).join('');
+  }catch(e){
+    bars.innerHTML = '<div class="errbox">'+esc(e.message)+'</div>';
+    feed.innerHTML='';
+  }
+}
+
+/* ---- 4. PM compliance vs downtime ---- */
+async function loadCorrelation(){
+  const box = document.getElementById('corrBox');
+  try{
+    const since = daysAgo(90);
+    // assets that had a PM in the window
+    const pmLogs = await sb('pm_log?completed_date=gte.'+since+
+      '&select=asset_no&limit=3000');
+    const pmAssets = new Set(pmLogs.map(r=>r.asset_no));
+
+    // downtime incidents in the same window
+    const dt = await sb('downtime_log?reported_time=gte.'+since+'T00:00:00'+
+      '&select=asset_no,total_downtime_minutes&limit=3000');
+
+    if(!pmLogs.length || !dt.length){
+      box.innerHTML = '<div class="empty">Not enough data yet.<br>'+
+        '<span class="note">This compares downtime for machines that have had '+
+        'a PM against those that haven\'t. It becomes meaningful once PM and '+
+        'downtime history build up over a few cycles.</span></div>';
+      return;
+    }
+
+    // split downtime incidents into "asset had a PM" vs "no PM"
+    let pmInc=0, pmMin=0, noInc=0, noMin=0;
+    dt.forEach(d => {
+      const mins = d.total_downtime_minutes || 0;
+      if(pmAssets.has(d.asset_no)){ pmInc++; pmMin+=mins; }
+      else { noInc++; noMin+=mins; }
+    });
+    const pmAvg = pmInc ? Math.round(pmMin/pmInc) : 0;
+    const noAvg = noInc ? Math.round(noMin/noInc) : 0;
+
+    box.innerHTML =
+      '<div class="corr">'+
+        '<div class="box"><div class="t">Had a PM</div>'+
+          '<div class="v" style="color:var(--green)">'+pmInc+'</div>'+
+          '<div class="meta">downtime incidents · avg '+pmAvg+' min</div></div>'+
+        '<div class="box"><div class="t">No PM</div>'+
+          '<div class="v" style="color:var(--red)">'+noInc+'</div>'+
+          '<div class="meta">downtime incidents · avg '+noAvg+' min</div></div>'+
+      '</div>'+
+      '<div class="note">Machines serviced in the last 90 days vs those not, '+
+        'compared by downtime incidents in the same period. Counts depend on '+
+        'how many machines have PM history — read as a trend, not a verdict, '+
+        'until coverage builds.</div>';
+  }catch(e){
+    box.innerHTML = '<div class="errbox">'+esc(e.message)+'</div>';
+  }
+}
+
+/* ============ INIT ============ */
+loadAll();
+</script>
+</body>
+</html>
