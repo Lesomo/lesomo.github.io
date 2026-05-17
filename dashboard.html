@@ -473,6 +473,7 @@ tbody td {
     <div class="dash-tab" onclick="switchDashTab('downtime')">Downtime</div>
     <div class="dash-tab" onclick="switchDashTab('lifecycle')">Asset Lifecycle</div>
     <div class="dash-tab" onclick="switchDashTab('inventory')">Inventory</div>
+    <div class="dash-tab" onclick="switchDashTab('linechange')">Line Change</div>
   </div>
 
   <!-- ═══ ASSET TRACKING PANEL ═══ -->
@@ -1021,7 +1022,96 @@ tbody td {
       </div>
     </div>
 
+
   </div><!-- end panel-inventory -->
+
+  <!-- LINE CHANGE PANEL -->
+  <div class="dash-panel" id="panel-linechange">
+
+    <div class="filter-bar" style="margin-bottom:14px;">
+      <label>Line:</label>
+      <select id="lcLine" onchange="loadLineChange()" style="padding:7px 11px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;min-width:120px;">
+        <option value="">All lines</option>
+        <option>Line 1</option><option>Line 2</option><option>Line 3</option><option>Line 4</option>
+        <option>Line 5</option><option>Line 6</option><option>Line 7</option><option>Line 8</option>
+        <option>Line 9</option><option>Line 10</option><option>Line 11</option><option>Line 12</option>
+        <option>Line 13</option><option>Line 14</option><option>Line 15</option><option>Line 16</option>
+        <option>Line 17</option><option>Line 18</option><option>Line 19</option><option>Line 20</option>
+        <option>Line 21</option><option>Line 22</option><option>Line 23</option><option>Line 24</option>
+        <option>Pool A</option><option>Pool B</option>
+      </select>
+      <label>From:</label>
+      <input type="date" id="lcDateFrom" onchange="loadLineChange()">
+      <label>To:</label>
+      <input type="date" id="lcDateTo" onchange="loadLineChange()">
+      <select id="lcDirection" onchange="loadLineChange()" style="padding:7px 11px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;">
+        <option value="">All movements</option>
+        <option value="in">In only</option>
+        <option value="out">Out only</option>
+      </select>
+      <button class="filter-clear" onclick="clearLcFilter()">Clear</button>
+      <span class="filter-info" id="lcFilterInfo"></span>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="dt-kpi-grid" style="margin-bottom:16px;">
+      <div class="dt-kpi" style="border-left:4px solid #1F3864;">
+        <div class="dt-kpi-label">Total movements</div>
+        <div class="dt-kpi-value" id="lcKpiTotal">--</div>
+      </div>
+      <div class="dt-kpi" style="border-left:4px solid #70AD47;">
+        <div class="dt-kpi-label">Assets in</div>
+        <div class="dt-kpi-value" id="lcKpiIn">--</div>
+      </div>
+      <div class="dt-kpi" style="border-left:4px solid #ED7D31;">
+        <div class="dt-kpi-label">Assets out</div>
+        <div class="dt-kpi-value" id="lcKpiOut">--</div>
+      </div>
+      <div class="dt-kpi" style="border-left:4px solid #2E5597;">
+        <div class="dt-kpi-label">Net change</div>
+        <div class="dt-kpi-value" id="lcKpiNet">--</div>
+      </div>
+      <div class="dt-kpi" style="border-left:4px solid #6B3FA0;">
+        <div class="dt-kpi-label">Avg dwell time</div>
+        <div class="dt-kpi-value" id="lcKpiDwell">--</div>
+      </div>
+      <div class="dt-kpi" style="border-left:4px solid #C00000;">
+        <div class="dt-kpi-label">Repeat movers</div>
+        <div class="dt-kpi-value" id="lcKpiRepeat">--</div>
+      </div>
+    </div>
+
+    <!-- MOVEMENT CHART -->
+    <div class="chart-card" style="margin-bottom:14px;">
+      <div class="chart-title">Movement activity</div>
+      <div class="chart-sub">Assets in vs out per day</div>
+      <div class="chart-wrap" style="height:200px;"><canvas id="lcChart"></canvas></div>
+    </div>
+
+    <!-- MOVEMENT LOG TABLE -->
+    <div class="chart-card" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div class="chart-title">Movement log</div>
+          <div class="chart-sub">All asset movements &mdash; most recent first. <span style="color:#C00000;font-weight:600;">[DT]</span> = open downtime incident</div>
+        </div>
+        <button onclick="exportLcCsv()" style="padding:7px 14px;background:#1F3864;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Export CSV</button>
+      </div>
+      <div style="overflow-x:auto;" id="lcTableWrap">
+        <div style="text-align:center;padding:40px;color:#bbb;font-size:14px;">Select a line and date range to view movements</div>
+      </div>
+    </div>
+
+    <!-- CURRENTLY ON LINE -->
+    <div class="chart-card" style="margin-bottom:14px;">
+      <div class="chart-title">Currently on line</div>
+      <div class="chart-sub">Assets whose most recent scan is this line &mdash; live snapshot</div>
+      <div style="overflow-x:auto;" id="lcCurrentWrap">
+        <div style="text-align:center;padding:30px;color:#bbb;font-size:14px;">Select a line above</div>
+      </div>
+    </div>
+
+  </div><!-- end panel-linechange -->
 
   <!-- STORAGE INDICATOR -->
   <div class="storage-bar-card">
@@ -3333,11 +3423,12 @@ function renderPartsLineChart() {
 }
 
 function switchDashTab(tab) {
-  const tabs = ['assets','downtime','lifecycle','inventory'];
+  const tabs = ['assets','downtime','lifecycle','inventory','linechange'];
   document.querySelectorAll('.dash-tab').forEach((t,i) => t.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.dash-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + tab).classList.add('active');
   if (tab === 'downtime')   loadDowntimeData();
+  if (tab === 'linechange')  initLineChange();
   if (tab === 'lifecycle')  { lcAssets = []; } // reset cache so it rebuilds from latest data
   if (tab === 'inventory')  loadInventoryData();
 }
@@ -3347,6 +3438,268 @@ loadData();
 loadEfficiencyTarget();
 startAutoRefresh();
 fetchStorageUsage();
+
+// ── LINE CHANGE ───────────────────────────────────────────────
+let lcChart = null;
+let lcMovements = [];
+
+function initLineChange() {
+  const today = getTodayStr();
+  const week  = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+  if (!document.getElementById('lcDateFrom').value) {
+    document.getElementById('lcDateFrom').value = week;
+    document.getElementById('lcDateTo').value   = today;
+  }
+  loadLineChange();
+}
+
+function clearLcFilter() {
+  document.getElementById('lcLine').value      = '';
+  document.getElementById('lcDateFrom').value  = '';
+  document.getElementById('lcDateTo').value    = '';
+  document.getElementById('lcDirection').value = '';
+  document.getElementById('lcFilterInfo').textContent = '';
+  document.getElementById('lcTableWrap').innerHTML =
+    '<div style="text-align:center;padding:40px;color:#bbb;font-size:14px;">Select a line and date range to view movements</div>';
+  document.getElementById('lcCurrentWrap').innerHTML =
+    '<div style="text-align:center;padding:30px;color:#bbb;font-size:14px;">Select a line above</div>';
+  ['lcKpiTotal','lcKpiIn','lcKpiOut','lcKpiNet','lcKpiDwell','lcKpiRepeat']
+    .forEach(id => document.getElementById(id).textContent = '--');
+  if (lcChart) { lcChart.destroy(); lcChart = null; }
+}
+
+async function loadLineChange() {
+  const line      = document.getElementById('lcLine').value;
+  const dateFrom  = document.getElementById('lcDateFrom').value;
+  const dateTo    = document.getElementById('lcDateTo').value;
+  const direction = document.getElementById('lcDirection').value;
+
+  document.getElementById('lcTableWrap').innerHTML =
+    '<div style="text-align:center;padding:30px;color:#bbb;">Loading...</div>';
+
+  // Fetch scans for date range
+  let url = SUPABASE_URL + '/rest/v1/scan_log?select=id,asset_no,machine_type,location,status,mechanic,scan_timestamp&order=asset_no.asc,scan_timestamp.asc&limit=5000';
+  if (dateFrom) url += '&scan_timestamp=gte.' + dateFrom + 'T00:00:00';
+  if (dateTo)   url += '&scan_timestamp=lte.' + dateTo   + 'T23:59:59';
+
+  let scans = [];
+  try {
+    const res = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
+    scans = await res.json();
+  } catch(e) { showToast('Failed to load scan data', 'error'); return; }
+
+  // Build movement events — compare consecutive scans per asset
+  const byAsset = {};
+  scans.forEach(s => { if (!byAsset[s.asset_no]) byAsset[s.asset_no] = []; byAsset[s.asset_no].push(s); });
+
+  lcMovements = [];
+  Object.values(byAsset).forEach(assetScans => {
+    assetScans.sort((a,b) => new Date(a.scan_timestamp) - new Date(b.scan_timestamp));
+    for (let i = 1; i < assetScans.length; i++) {
+      const prev = assetScans[i-1];
+      const curr = assetScans[i];
+      if (prev.location !== curr.location) {
+        if (!line || prev.location === line || curr.location === line) {
+          lcMovements.push({
+            asset_no:     curr.asset_no,
+            machine_type: curr.machine_type || prev.machine_type || '--',
+            from_loc:     prev.location,
+            to_loc:       curr.location,
+            direction:    curr.location === line ? 'in' : (prev.location === line ? 'out' : 'transfer'),
+            mechanic:     curr.mechanic || '--',
+            timestamp:    curr.scan_timestamp,
+            dwell_ms:     new Date(curr.scan_timestamp) - new Date(prev.scan_timestamp),
+          });
+        }
+      }
+    }
+  });
+
+  // Apply direction filter
+  let filtered = lcMovements;
+  if (direction === 'in')  filtered = lcMovements.filter(m => m.direction === 'in');
+  if (direction === 'out') filtered = lcMovements.filter(m => m.direction === 'out');
+  filtered.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  // Open downtime assets for flagging
+  const dtAssets = new Set((allDowntime || [])
+    .filter(d => d.status !== 'Resolved').map(d => d.asset_no));
+
+  renderLcKPIs(filtered);
+  renderLcChart(filtered);
+  renderLcTable(filtered, dtAssets);
+  if (line) renderLcCurrent(line);
+
+  document.getElementById('lcFilterInfo').textContent =
+    filtered.length + ' movements' +
+    (line ? ' on ' + line : ' across all lines') +
+    (dateFrom || dateTo ? ' from ' + (dateFrom || '...') + ' to ' + (dateTo || '...') : '');
+}
+
+function renderLcKPIs(movements) {
+  const inCount  = movements.filter(m => m.direction === 'in').length;
+  const outCount = movements.filter(m => m.direction === 'out').length;
+  const net      = inCount - outCount;
+  const dwells   = movements.filter(m => m.dwell_ms > 3600000).map(m => m.dwell_ms);
+  const avgDwell = dwells.length > 0
+    ? Math.round(dwells.reduce((a,b) => a+b, 0) / dwells.length / 3600000) : 0;
+  const assetCounts = {};
+  movements.forEach(m => { assetCounts[m.asset_no] = (assetCounts[m.asset_no] || 0) + 1; });
+  const repeatCount = Object.values(assetCounts).filter(c => c > 1).length;
+
+  document.getElementById('lcKpiTotal').textContent  = movements.length;
+  document.getElementById('lcKpiIn').textContent     = inCount;
+  document.getElementById('lcKpiOut').textContent    = outCount;
+  const netEl = document.getElementById('lcKpiNet');
+  netEl.textContent = (net >= 0 ? '+' : '') + net;
+  netEl.style.color = net > 0 ? '#70AD47' : net < 0 ? '#C00000' : '#555';
+  document.getElementById('lcKpiDwell').textContent  = avgDwell > 0 ? avgDwell + 'h' : '--';
+  document.getElementById('lcKpiRepeat').textContent = repeatCount;
+}
+
+function renderLcChart(movements) {
+  const dayIn = {}, dayOut = {};
+  movements.forEach(m => {
+    const day = m.timestamp.split('T')[0];
+    if (m.direction === 'in')  dayIn[day]  = (dayIn[day]  || 0) + 1;
+    if (m.direction === 'out') dayOut[day] = (dayOut[day] || 0) + 1;
+  });
+  const days = [...new Set([...Object.keys(dayIn), ...Object.keys(dayOut)])].sort();
+  if (lcChart) { lcChart.destroy(); lcChart = null; }
+  if (days.length === 0) return;
+  const labels = days.map(d => { const p = d.split('-'); return p[2]+'/'+p[1]; });
+  const ctx = document.getElementById('lcChart').getContext('2d');
+  lcChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'In',  data: days.map(d => dayIn[d]  || 0), backgroundColor: '#70AD47', borderRadius: 4 },
+        { label: 'Out', data: days.map(d => dayOut[d] || 0), backgroundColor: '#ED7D31', borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#888', maxRotation: 45, minRotation: 45 } },
+        y: { grid: { color: '#f0f2f5' }, ticks: { font: { size: 10 }, color: '#888', stepSize: 1 }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+function renderLcTable(movements, dtAssets) {
+  const wrap = document.getElementById('lcTableWrap');
+  if (movements.length === 0) {
+    wrap.innerHTML = '<div style="text-align:center;padding:40px;color:#bbb;font-size:14px;">No movements found for selected filters</div>';
+    return;
+  }
+  let html = '<table class="sl-table"><thead><tr>' +
+    '<th>Direction</th><th>Asset</th><th>Machine type</th>' +
+    '<th>From</th><th>To</th><th>Mechanic</th>' +
+    '<th>Date</th><th>Time</th><th>Dwell</th><th>Note</th>' +
+    '</tr></thead><tbody>';
+
+  movements.forEach(m => {
+    const dt    = new Date(m.timestamp);
+    const date  = dt.toLocaleDateString('en-ZA', { day: '2-digit', month: '2-digit' });
+    const time  = dt.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
+    const badge = m.direction === 'in'
+      ? '<span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:#E2EFDA;color:#2D7D46;">IN</span>'
+      : '<span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:#FCE4D6;color:#C00000;">OUT</span>';
+    const h     = Math.floor(m.dwell_ms / 3600000);
+    const d     = Math.floor(h / 24);
+    const dwell = m.dwell_ms > 3600000 ? (d > 0 ? d + 'd ' + (h % 24) + 'h' : h + 'h') : '--';
+    const flag  = dtAssets.has(m.asset_no) ? ' <span style="color:#C00000;font-size:10px;font-weight:700;">[DT]</span>' : '';
+    const note  = m.from_loc === 'Pool A' || m.from_loc === 'Pool B' ? 'from storage' :
+                  m.to_loc   === 'Pool A' || m.to_loc   === 'Pool B' ? 'to storage' :
+                  (m.to_loc.toLowerCase().includes('line') && m.from_loc.toLowerCase().includes('line')) ? 'line transfer' : '';
+    html += '<tr>' +
+      '<td>' + badge + '</td>' +
+      '<td><strong>' + m.asset_no + '</strong>' + flag + '</td>' +
+      '<td style="color:#555;font-size:12px;">' + m.machine_type + '</td>' +
+      '<td style="color:#888;font-size:12px;">' + m.from_loc + '</td>' +
+      '<td style="color:#888;font-size:12px;">' + m.to_loc + '</td>' +
+      '<td style="font-size:12px;">' + m.mechanic + '</td>' +
+      '<td style="font-size:12px;">' + date + '</td>' +
+      '<td style="font-size:12px;">' + time + '</td>' +
+      '<td style="font-size:12px;color:#888;">' + dwell + '</td>' +
+      '<td style="font-size:11px;color:#aaa;">' + note + '</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+async function renderLcCurrent(line) {
+  const wrap = document.getElementById('lcCurrentWrap');
+  wrap.innerHTML = '<div style="text-align:center;padding:20px;color:#bbb;">Loading...</div>';
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/scan_log?select=asset_no,machine_type,location,status,mechanic,scan_timestamp&order=scan_timestamp.desc&limit=2000',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    const scans = await res.json();
+    const latest = {};
+    scans.forEach(s => { if (!latest[s.asset_no]) latest[s.asset_no] = s; });
+    const onLine = Object.values(latest).filter(s => s.location === line);
+    if (onLine.length === 0) {
+      wrap.innerHTML = '<div style="text-align:center;padding:30px;color:#bbb;">No assets currently on ' + line + '</div>';
+      return;
+    }
+    let html = '<div style="font-size:12px;color:#888;margin-bottom:8px;">' + onLine.length + ' asset(s) currently on ' + line + '</div>';
+    html += '<table class="sl-table"><thead><tr><th>Asset</th><th>Machine type</th><th>Status</th><th>Last mechanic</th><th>Last scanned</th></tr></thead><tbody>';
+    onLine.sort((a,b) => a.asset_no.localeCompare(b.asset_no)).forEach(s => {
+      const dt = new Date(s.scan_timestamp);
+      const ts = dt.toLocaleDateString('en-ZA', { day: '2-digit', month: '2-digit' }) + ' ' +
+                 dt.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
+      const sc = s.status === 'Active / In Use' ? '#2D7D46' :
+                 (s.status || '').startsWith('Under Maintenance') ? '#C00000' : '#888';
+      html += '<tr>' +
+        '<td><strong>' + s.asset_no + '</strong></td>' +
+        '<td style="color:#555;font-size:12px;">' + (s.machine_type || '--') + '</td>' +
+        '<td><span style="font-size:11px;font-weight:700;color:' + sc + ';">' + (s.status || '--') + '</span></td>' +
+        '<td style="font-size:12px;">' + (s.mechanic || '--') + '</td>' +
+        '<td style="font-size:12px;color:#888;">' + ts + '</td>' +
+        '</tr>';
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  } catch(e) {
+    wrap.innerHTML = '<div style="text-align:center;padding:20px;color:#bbb;">Failed to load current assets</div>';
+  }
+}
+
+function exportLcCsv() {
+  if (!lcMovements || lcMovements.length === 0) { showToast('No data to export', 'error'); return; }
+  const headers = ['Direction','Asset','Machine Type','From','To','Mechanic','Date','Time','Dwell (hours)','Note'];
+  const rows = lcMovements.map(m => {
+    const dt    = new Date(m.timestamp);
+    const dwell = m.dwell_ms > 0 ? (m.dwell_ms / 3600000).toFixed(1) : '';
+    const note  = m.from_loc === 'Pool A' || m.from_loc === 'Pool B' ? 'from storage' :
+                  m.to_loc   === 'Pool A' || m.to_loc   === 'Pool B' ? 'to storage' :
+                  (m.to_loc.toLowerCase().includes('line') && m.from_loc.toLowerCase().includes('line')) ? 'line transfer' : '';
+    return [
+      m.direction.toUpperCase(), m.asset_no, m.machine_type,
+      m.from_loc, m.to_loc, m.mechanic,
+      dt.toLocaleDateString('en-ZA'),
+      dt.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' }),
+      dwell, note
+    ].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',');
+  });
+  const csv  = [headers.join(','), ...rows].join('
+');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'PMT_LineChange_' + getTodayStr() + '.csv';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast('Exported ' + lcMovements.length + ' movements', 'success');
+}
+// ── END LINE CHANGE ───────────────────────────────────────────
+
 </script>
 </body>
 </html>
