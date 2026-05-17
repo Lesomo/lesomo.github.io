@@ -609,27 +609,29 @@ tbody td {
   <!-- ═══ DOWNTIME PANEL ═══ -->
   <div class="dash-panel" id="panel-downtime">
 
-    <!-- Downtime filters -->
-    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;">
-      <div class="filter-bar" style="margin:0;flex:1;min-width:260px;">
-        <label>Filter by date:</label>
-        <input type="date" id="dtDateFrom" onchange="applyDtFilter()">
-        <span class="filter-sep">to</span>
-        <input type="date" id="dtDateTo" onchange="applyDtFilter()">
-        <button class="filter-clear" onclick="clearDtFilter()">Clear</button>
-        <span class="filter-info" id="dtFilterInfo"></span>
-      </div>
-      <!-- Section filter buttons -->
+    <!-- Downtime filters — two-row layout -->
+
+    <!-- Row 1: Date filter -->
+    <div class="filter-bar" style="margin-bottom:10px;">
+      <label>Filter by date:</label>
+      <input type="date" id="dtDateFrom" onchange="applyDtFilter()">
+      <span class="filter-sep">to</span>
+      <input type="date" id="dtDateTo" onchange="applyDtFilter()">
+      <button class="filter-clear" onclick="clearDtFilter()">Clear</button>
+      <span class="filter-info" id="dtFilterInfo"></span>
+    </div>
+
+    <!-- Row 2: Section buttons + efficiency target -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
         <span style="font-size:12px;font-weight:700;color:#555;white-space:nowrap;">Section:</span>
-        <button id="sectionAll"    onclick="setSectionFilter('all')"    class="section-btn active"   style="--sc:#1F3864;">All lines</button>
-        <button id="sectionGreen"  onclick="setSectionFilter('green')"  class="section-btn"          style="--sc:#2D7D46;">Green (L1–6)</button>
-        <button id="sectionYellow" onclick="setSectionFilter('yellow')" class="section-btn"          style="--sc:#C9A84C;">Yellow (L7–11)</button>
-        <button id="sectionPurple" onclick="setSectionFilter('purple')" class="section-btn"          style="--sc:#6B3FA0;">Purple (L14–18)</button>
-        <button id="sectionBlue"   onclick="setSectionFilter('blue')"   class="section-btn"          style="--sc:#1B4F8A;">Blue (L19–24)</button>
+        <button id="sectionAll"    onclick="setSectionFilter('all')"    class="section-btn active" style="--sc:#1F3864;">All lines</button>
+        <button id="sectionGreen"  onclick="setSectionFilter('green')"  class="section-btn"        style="--sc:#2D7D46;">Green (L1–6)</button>
+        <button id="sectionYellow" onclick="setSectionFilter('yellow')" class="section-btn"        style="--sc:#C9A84C;">Yellow (L7–11)</button>
+        <button id="sectionPurple" onclick="setSectionFilter('purple')" class="section-btn"        style="--sc:#6B3FA0;">Purple (L14–18)</button>
+        <button id="sectionBlue"   onclick="setSectionFilter('blue')"   class="section-btn"        style="--sc:#1B4F8A;">Blue (L19–24)</button>
       </div>
-      <!-- Efficiency target -->
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;">
+      <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:12px;font-weight:700;color:#555;white-space:nowrap;">Eff. target:</span>
         <input type="number" id="effTargetInput" value="90" min="50" max="100" step="1"
           style="width:64px;padding:5px 8px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;"
