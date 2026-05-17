@@ -1022,9 +1022,7 @@ tbody td {
       </div>
     </div>
 
-
   </div><!-- end panel-inventory -->
-
   <!-- LINE CHANGE PANEL -->
   <div class="dash-panel" id="panel-linechange">
 
@@ -1053,7 +1051,7 @@ tbody td {
       <span class="filter-info" id="lcFilterInfo"></span>
     </div>
 
-    <!-- KPI ROW -->
+    <!-- KPI row -->
     <div class="dt-kpi-grid" style="margin-bottom:16px;">
       <div class="dt-kpi" style="border-left:4px solid #1F3864;">
         <div class="dt-kpi-label">Total movements</div>
@@ -1081,19 +1079,19 @@ tbody td {
       </div>
     </div>
 
-    <!-- MOVEMENT CHART -->
+    <!-- Movement chart -->
     <div class="chart-card" style="margin-bottom:14px;">
       <div class="chart-title">Movement activity</div>
-      <div class="chart-sub">Assets in vs out per day</div>
+      <div class="chart-sub">Assets in vs out per day for selected period</div>
       <div class="chart-wrap" style="height:200px;"><canvas id="lcChart"></canvas></div>
     </div>
 
-    <!-- MOVEMENT LOG TABLE -->
+    <!-- Movement log table -->
     <div class="chart-card" style="margin-bottom:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
         <div>
           <div class="chart-title">Movement log</div>
-          <div class="chart-sub">All asset movements &mdash; most recent first. <span style="color:#C00000;font-weight:600;">[DT]</span> = open downtime incident</div>
+          <div class="chart-sub">All asset movements — most recent first. [DT] = open downtime incident</div>
         </div>
         <button onclick="exportLcCsv()" style="padding:7px 14px;background:#1F3864;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Export CSV</button>
       </div>
@@ -1102,10 +1100,10 @@ tbody td {
       </div>
     </div>
 
-    <!-- CURRENTLY ON LINE -->
+    <!-- Currently on line snapshot -->
     <div class="chart-card" style="margin-bottom:14px;">
       <div class="chart-title">Currently on line</div>
-      <div class="chart-sub">Assets whose most recent scan is this line &mdash; live snapshot</div>
+      <div class="chart-sub">Assets whose most recent scan is this line — live snapshot</div>
       <div style="overflow-x:auto;" id="lcCurrentWrap">
         <div style="text-align:center;padding:30px;color:#bbb;font-size:14px;">Select a line above</div>
       </div>
@@ -3439,8 +3437,9 @@ loadEfficiencyTarget();
 startAutoRefresh();
 fetchStorageUsage();
 
-// ── LINE CHANGE ───────────────────────────────────────────────
+// ═══ LINE CHANGE ═════════════════════════════════════════════════════════════
 let lcChart = null;
+let lcAllScans = [];
 let lcMovements = [];
 
 function initLineChange() {
@@ -3458,14 +3457,11 @@ function clearLcFilter() {
   document.getElementById('lcDateFrom').value  = '';
   document.getElementById('lcDateTo').value    = '';
   document.getElementById('lcDirection').value = '';
-  document.getElementById('lcFilterInfo').textContent = '';
-  document.getElementById('lcTableWrap').innerHTML =
-    '<div style="text-align:center;padding:40px;color:#bbb;font-size:14px;">Select a line and date range to view movements</div>';
-  document.getElementById('lcCurrentWrap').innerHTML =
-    '<div style="text-align:center;padding:30px;color:#bbb;font-size:14px;">Select a line above</div>';
-  ['lcKpiTotal','lcKpiIn','lcKpiOut','lcKpiNet','lcKpiDwell','lcKpiRepeat']
-    .forEach(id => document.getElementById(id).textContent = '--');
+  document.getElementById('lcTableWrap').innerHTML   = '<div style="text-align:center;padding:40px;color:#bbb;font-size:14px;">Select a line and date range to view movements</div>';
+  document.getElementById('lcCurrentWrap').innerHTML = '<div style="text-align:center;padding:30px;color:#bbb;font-size:14px;">Select a line above</div>';
+  ['lcKpiTotal','lcKpiIn','lcKpiOut','lcKpiNet','lcKpiDwell','lcKpiRepeat'].forEach(id => document.getElementById(id).textContent = '--');
   if (lcChart) { lcChart.destroy(); lcChart = null; }
+  document.getElementById('lcFilterInfo').textContent = '';
 }
 
 async function loadLineChange() {
@@ -3474,30 +3470,26 @@ async function loadLineChange() {
   const dateTo    = document.getElementById('lcDateTo').value;
   const direction = document.getElementById('lcDirection').value;
 
-  document.getElementById('lcTableWrap').innerHTML =
-    '<div style="text-align:center;padding:30px;color:#bbb;">Loading...</div>';
+  document.getElementById('lcTableWrap').innerHTML = '<div style="text-align:center;padding:30px;color:#bbb;">Loading...</div>';
 
-  // Fetch scans for date range
   let url = SUPABASE_URL + '/rest/v1/scan_log?select=id,asset_no,machine_type,location,status,mechanic,scan_timestamp&order=asset_no.asc,scan_timestamp.asc&limit=5000';
   if (dateFrom) url += '&scan_timestamp=gte.' + dateFrom + 'T00:00:00';
   if (dateTo)   url += '&scan_timestamp=lte.' + dateTo   + 'T23:59:59';
 
-  let scans = [];
   try {
     const res = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
-    scans = await res.json();
+    lcAllScans = await res.json();
   } catch(e) { showToast('Failed to load scan data', 'error'); return; }
 
-  // Build movement events — compare consecutive scans per asset
+  // Build movement events by comparing consecutive scans per asset
   const byAsset = {};
-  scans.forEach(s => { if (!byAsset[s.asset_no]) byAsset[s.asset_no] = []; byAsset[s.asset_no].push(s); });
+  lcAllScans.forEach(s => { if (!byAsset[s.asset_no]) byAsset[s.asset_no] = []; byAsset[s.asset_no].push(s); });
 
   lcMovements = [];
-  Object.values(byAsset).forEach(assetScans => {
-    assetScans.sort((a,b) => new Date(a.scan_timestamp) - new Date(b.scan_timestamp));
-    for (let i = 1; i < assetScans.length; i++) {
-      const prev = assetScans[i-1];
-      const curr = assetScans[i];
+  Object.values(byAsset).forEach(scans => {
+    scans.sort((a,b) => new Date(a.scan_timestamp) - new Date(b.scan_timestamp));
+    for (let i = 1; i < scans.length; i++) {
+      const prev = scans[i-1], curr = scans[i];
       if (prev.location !== curr.location) {
         if (!line || prev.location === line || curr.location === line) {
           lcMovements.push({
@@ -3515,15 +3507,12 @@ async function loadLineChange() {
     }
   });
 
-  // Apply direction filter
   let filtered = lcMovements;
   if (direction === 'in')  filtered = lcMovements.filter(m => m.direction === 'in');
   if (direction === 'out') filtered = lcMovements.filter(m => m.direction === 'out');
   filtered.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-  // Open downtime assets for flagging
-  const dtAssets = new Set((allDowntime || [])
-    .filter(d => d.status !== 'Resolved').map(d => d.asset_no));
+  const dtAssets = new Set((allDowntime || []).filter(d => d.status !== 'Resolved').map(d => d.asset_no));
 
   renderLcKPIs(filtered);
   renderLcChart(filtered);
@@ -3533,7 +3522,7 @@ async function loadLineChange() {
   document.getElementById('lcFilterInfo').textContent =
     filtered.length + ' movements' +
     (line ? ' on ' + line : ' across all lines') +
-    (dateFrom || dateTo ? ' from ' + (dateFrom || '...') + ' to ' + (dateTo || '...') : '');
+    (dateFrom || dateTo ? ' | ' + (dateFrom || '...') + ' to ' + (dateTo || '...') : '');
 }
 
 function renderLcKPIs(movements) {
@@ -3541,18 +3530,17 @@ function renderLcKPIs(movements) {
   const outCount = movements.filter(m => m.direction === 'out').length;
   const net      = inCount - outCount;
   const dwells   = movements.filter(m => m.dwell_ms > 3600000).map(m => m.dwell_ms);
-  const avgDwell = dwells.length > 0
-    ? Math.round(dwells.reduce((a,b) => a+b, 0) / dwells.length / 3600000) : 0;
+  const avgDwell = dwells.length > 0 ? Math.round(dwells.reduce((a,b) => a+b,0) / dwells.length / 3600000) : 0;
   const assetCounts = {};
-  movements.forEach(m => { assetCounts[m.asset_no] = (assetCounts[m.asset_no] || 0) + 1; });
+  movements.forEach(m => { assetCounts[m.asset_no] = (assetCounts[m.asset_no]||0)+1; });
   const repeatCount = Object.values(assetCounts).filter(c => c > 1).length;
 
   document.getElementById('lcKpiTotal').textContent  = movements.length;
   document.getElementById('lcKpiIn').textContent     = inCount;
   document.getElementById('lcKpiOut').textContent    = outCount;
   const netEl = document.getElementById('lcKpiNet');
-  netEl.textContent = (net >= 0 ? '+' : '') + net;
-  netEl.style.color = net > 0 ? '#70AD47' : net < 0 ? '#C00000' : '#555';
+  netEl.textContent  = (net >= 0 ? '+' : '') + net;
+  netEl.style.color  = net > 0 ? '#70AD47' : net < 0 ? '#C00000' : '#555';
   document.getElementById('lcKpiDwell').textContent  = avgDwell > 0 ? avgDwell + 'h' : '--';
   document.getElementById('lcKpiRepeat').textContent = repeatCount;
 }
@@ -3567,15 +3555,14 @@ function renderLcChart(movements) {
   const days = [...new Set([...Object.keys(dayIn), ...Object.keys(dayOut)])].sort();
   if (lcChart) { lcChart.destroy(); lcChart = null; }
   if (days.length === 0) return;
-  const labels = days.map(d => { const p = d.split('-'); return p[2]+'/'+p[1]; });
   const ctx = document.getElementById('lcChart').getContext('2d');
   lcChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels,
+      labels: days.map(d => { const p = d.split('-'); return p[2]+'/'+p[1]; }),
       datasets: [
         { label: 'In',  data: days.map(d => dayIn[d]  || 0), backgroundColor: '#70AD47', borderRadius: 4 },
-        { label: 'Out', data: days.map(d => dayOut[d] || 0), backgroundColor: '#ED7D31', borderRadius: 4 },
+        { label: 'Out', data: days.map(d => dayOut[d] || 0), backgroundColor: '#ED7D31', borderRadius: 4 }
       ]
     },
     options: {
@@ -3600,20 +3587,19 @@ function renderLcTable(movements, dtAssets) {
     '<th>From</th><th>To</th><th>Mechanic</th>' +
     '<th>Date</th><th>Time</th><th>Dwell</th><th>Note</th>' +
     '</tr></thead><tbody>';
-
   movements.forEach(m => {
-    const dt    = new Date(m.timestamp);
-    const date  = dt.toLocaleDateString('en-ZA', { day: '2-digit', month: '2-digit' });
-    const time  = dt.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
+    const dt   = new Date(m.timestamp);
+    const date = dt.toLocaleDateString('en-ZA', {day:'2-digit',month:'2-digit'});
+    const time = dt.toLocaleTimeString('en-ZA', {hour:'2-digit',minute:'2-digit'});
     const badge = m.direction === 'in'
       ? '<span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:#E2EFDA;color:#2D7D46;">IN</span>'
       : '<span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:#FCE4D6;color:#C00000;">OUT</span>';
     const h     = Math.floor(m.dwell_ms / 3600000);
     const d     = Math.floor(h / 24);
-    const dwell = m.dwell_ms > 3600000 ? (d > 0 ? d + 'd ' + (h % 24) + 'h' : h + 'h') : '--';
-    const flag  = dtAssets.has(m.asset_no) ? ' <span style="color:#C00000;font-size:10px;font-weight:700;">[DT]</span>' : '';
+    const dwell = m.dwell_ms > 3600000 ? (d > 0 ? d + 'd ' + (h%24) + 'h' : h + 'h') : '--';
+    const flag  = dtAssets.has(m.asset_no) ? ' <span style="font-size:10px;color:#C00000;" title="Open downtime incident">[DT]</span>' : '';
     const note  = m.from_loc === 'Pool A' || m.from_loc === 'Pool B' ? 'from storage' :
-                  m.to_loc   === 'Pool A' || m.to_loc   === 'Pool B' ? 'to storage' :
+                  m.to_loc   === 'Pool A' || m.to_loc   === 'Pool B' ? 'to storage'   :
                   (m.to_loc.toLowerCase().includes('line') && m.from_loc.toLowerCase().includes('line')) ? 'line transfer' : '';
     html += '<tr>' +
       '<td>' + badge + '</td>' +
@@ -3652,15 +3638,13 @@ async function renderLcCurrent(line) {
     html += '<table class="sl-table"><thead><tr><th>Asset</th><th>Machine type</th><th>Status</th><th>Last mechanic</th><th>Last scanned</th></tr></thead><tbody>';
     onLine.sort((a,b) => a.asset_no.localeCompare(b.asset_no)).forEach(s => {
       const dt = new Date(s.scan_timestamp);
-      const ts = dt.toLocaleDateString('en-ZA', { day: '2-digit', month: '2-digit' }) + ' ' +
-                 dt.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
-      const sc = s.status === 'Active / In Use' ? '#2D7D46' :
-                 (s.status || '').startsWith('Under Maintenance') ? '#C00000' : '#888';
+      const ts = dt.toLocaleDateString('en-ZA',{day:'2-digit',month:'2-digit'}) + ' ' + dt.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
+      const sc = s.status === 'Active / In Use' ? '#2D7D46' : (s.status||'').startsWith('Under Maintenance') ? '#C00000' : '#888';
       html += '<tr>' +
         '<td><strong>' + s.asset_no + '</strong></td>' +
-        '<td style="color:#555;font-size:12px;">' + (s.machine_type || '--') + '</td>' +
-        '<td><span style="font-size:11px;font-weight:700;color:' + sc + ';">' + (s.status || '--') + '</span></td>' +
-        '<td style="font-size:12px;">' + (s.mechanic || '--') + '</td>' +
+        '<td style="color:#555;font-size:12px;">' + (s.machine_type||'--') + '</td>' +
+        '<td><span style="font-size:11px;font-weight:700;color:' + sc + ';">' + (s.status||'--') + '</span></td>' +
+        '<td style="font-size:12px;">' + (s.mechanic||'--') + '</td>' +
         '<td style="font-size:12px;color:#888;">' + ts + '</td>' +
         '</tr>';
     });
@@ -3673,32 +3657,27 @@ async function renderLcCurrent(line) {
 
 function exportLcCsv() {
   if (!lcMovements || lcMovements.length === 0) { showToast('No data to export', 'error'); return; }
-  const headers = ['Direction','Asset','Machine Type','From','To','Mechanic','Date','Time','Dwell (hours)','Note'];
+  const headers = ['Direction','Asset','Machine Type','From','To','Mechanic','Date','Time','Dwell (hours)'];
   const rows = lcMovements.map(m => {
     const dt    = new Date(m.timestamp);
-    const dwell = m.dwell_ms > 0 ? (m.dwell_ms / 3600000).toFixed(1) : '';
-    const note  = m.from_loc === 'Pool A' || m.from_loc === 'Pool B' ? 'from storage' :
-                  m.to_loc   === 'Pool A' || m.to_loc   === 'Pool B' ? 'to storage' :
-                  (m.to_loc.toLowerCase().includes('line') && m.from_loc.toLowerCase().includes('line')) ? 'line transfer' : '';
+    const dwell = m.dwell_ms > 0 ? (m.dwell_ms/3600000).toFixed(1) : '';
     return [
       m.direction.toUpperCase(), m.asset_no, m.machine_type,
       m.from_loc, m.to_loc, m.mechanic,
       dt.toLocaleDateString('en-ZA'),
-      dt.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' }),
-      dwell, note
-    ].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',');
+      dt.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}),
+      dwell
+    ].map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',');
   });
-  const csv  = [headers.join(','), ...rows].join('
-');
+  const csv  = [headers.join(','), ...rows].join('\r\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url; a.download = 'PMT_LineChange_' + getTodayStr() + '.csv';
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   showToast('Exported ' + lcMovements.length + ' movements', 'success');
 }
-// ── END LINE CHANGE ───────────────────────────────────────────
+// ═══ END LINE CHANGE ══════════════════════════════════════════════════════════
 
 </script>
 </body>
