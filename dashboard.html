@@ -909,11 +909,12 @@ tbody td {
       </div>
       <div class="tab-view active" id="faultView-heatmap">
         <div class="hm-legend">
-          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#f5f5f5;border:1px solid #ddd;"></div> None</div>
-          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#FAEEDA;"></div> Low</div>
-          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#F5C4B3;"></div> Medium</div>
-          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#F0997B;"></div> High</div>
-          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#D85A30;"></div> Very high</div>
+          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#f5f5f5;border:1px solid #e8e8e8;"></div> None</div>
+          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#C0DD97;"></div> Low</div>
+          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#FAEEDA;"></div> Moderate</div>
+          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#F5C4B3;"></div> High</div>
+          <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#F0997B;"></div> Very high</div>
+          <div class="hm-leg-item" style="margin-left:auto;color:#aaa;font-style:italic;">scale relative to selected period</div>
         </div>
         <div class="hm-wrap" id="faultHeatmapContainer">
           <div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">Loading...</div>
@@ -1049,13 +1050,14 @@ tbody td {
             <div class="view-tab" onclick="switchLcFaultView('table')">Table</div>
           </div>
 
-          <!-- Heatmap legend (reuse downtime tab styling) -->
+          <!-- Heatmap legend (inline colors so they render even without .hm-cell context) -->
           <div class="hm-legend">
-            <div class="hm-leg-item"><div class="hm-leg-dot c-empty"></div>None</div>
-            <div class="hm-leg-item"><div class="hm-leg-dot c-mostly"></div>1 occurrence</div>
-            <div class="hm-leg-item"><div class="hm-leg-dot c-mixed"></div>Low</div>
-            <div class="hm-leg-item"><div class="hm-leg-dot c-some-maint"></div>Moderate</div>
-            <div class="hm-leg-item"><div class="hm-leg-dot c-high-maint"></div>High</div>
+            <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#f5f5f5;border:1px solid #e8e8e8;"></div>None</div>
+            <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#C0DD97;"></div>Low</div>
+            <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#FAEEDA;"></div>Moderate</div>
+            <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#F5C4B3;"></div>High</div>
+            <div class="hm-leg-item"><div class="hm-leg-dot" style="background:#F0997B;"></div>Very high</div>
+            <div class="hm-leg-item" style="margin-left:auto;color:#aaa;font-style:italic;">scale relative to this asset</div>
           </div>
 
           <div id="lcFaultView-heatmap" class="tab-view active">
