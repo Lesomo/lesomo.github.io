@@ -3289,27 +3289,45 @@ function renderLcFaultHeatmap(incidents, assetLines) {
 
   let html = '<table class="hm-table"><thead><tr><th class="row-hdr">Fault</th>';
   assetLines.forEach(l => { html += `<th>${String(l).replace('Line ', 'L')}</th>`; });
-  html += '<th style="font-size:10px;color:#555;">Total</th></tr></thead><tbody>';
+  html += '<th style="font-size:10px;color:#555;">Total</th>';
+  html += '<th style="font-size:10px;color:#555;padding-left:10px;border-left:1px solid #eee;">Downtime</th>';
+  html += '</tr></thead><tbody>';
+
+  // Helper: sum total_downtime_minutes for resolved incidents matching a predicate
+  // (matches the KPI logic — open/investigating incidents have no final duration yet)
+  const sumDt = pred => incidents
+    .filter(i => i.status === 'Resolved' && pred(i))
+    .reduce((s, i) => s + (i.total_downtime_minutes || 0), 0);
 
   rows.forEach(ft => {
     const rowTotal = incidents.filter(r => r.fault === ft).length;
     if (rowTotal === 0) return; // skip fault types this asset has never had
+    const rowDt    = sumDt(r => r.fault === ft);
+    const dtLabel  = rowDt > 0 ? fmtMins(rowDt) : '\u2014';
+    const dtTitle  = rowDt > 0
+      ? rowDt + ' min total across resolved incidents'
+      : 'No resolved downtime recorded';
     html += `<tr><td class="hm-row-label" style="font-size:11px;">${ft}</td>`;
     assetLines.forEach(line => {
       const cnt = incidents.filter(r => r.fault === ft && r.line === line).length;
       const cls = faultCellClass(cnt, maxCount);
       html += `<td class="hm-cell ${cls}" title="${line} \u2014 ${ft}: ${cnt} incident${cnt !== 1 ? 's' : ''}">${cnt > 0 ? cnt : ''}</td>`;
     });
-    html += `<td style="text-align:center;font-weight:700;font-size:11px;color:#555;">${rowTotal}</td></tr>`;
+    html += `<td style="text-align:center;font-weight:700;font-size:11px;color:#555;">${rowTotal}</td>`;
+    html += `<td style="text-align:center;font-size:11px;color:${rowDt>0?'#843C0C':'#bbb'};padding-left:10px;border-left:1px solid #eee;white-space:nowrap;" title="${dtTitle}">${dtLabel}</td>`;
+    html += `</tr>`;
   });
 
   // Column totals row
+  const grandDt = sumDt(() => true);
   html += '<tr><td class="hm-row-label" style="font-size:11px;font-weight:700;">Total</td>';
   assetLines.forEach(line => {
     const lt = incidents.filter(r => r.line === line).length;
     html += `<td style="text-align:center;font-weight:700;font-size:11px;color:#555;">${lt || ''}</td>`;
   });
-  html += `<td style="text-align:center;font-weight:700;font-size:11px;color:#1a1a1a;">${incidents.length}</td></tr>`;
+  html += `<td style="text-align:center;font-weight:700;font-size:11px;color:#1a1a1a;">${incidents.length}</td>`;
+  html += `<td style="text-align:center;font-weight:700;font-size:11px;color:#843C0C;padding-left:10px;border-left:1px solid #eee;white-space:nowrap;">${grandDt > 0 ? fmtMins(grandDt) : '\u2014'}</td>`;
+  html += `</tr>`;
 
   html += '</tbody></table>';
   container.innerHTML = html;
@@ -3333,25 +3351,39 @@ function renderLcFaultTable(incidents, assetLines) {
 
   let html = '<table class="sl-table"><thead><tr><th>Line</th>';
   cols.forEach(ft => { html += `<th class="num" style="font-size:10px;">${ft.length > 20 ? ft.substring(0, 18) + '\u2026' : ft}</th>`; });
-  html += '<th class="num">Total</th></tr></thead><tbody>';
+  html += '<th class="num">Total</th>';
+  html += '<th class="num" style="border-left:1px solid #eee;">Downtime</th>';
+  html += '</tr></thead><tbody>';
+
+  // Helper — same logic as the heatmap: only resolved incidents contribute downtime
+  const sumDt = pred => incidents
+    .filter(i => i.status === 'Resolved' && pred(i))
+    .reduce((s, i) => s + (i.total_downtime_minutes || 0), 0);
 
   assetLines.forEach(line => {
     const lineRecs = incidents.filter(r => r.line === line);
+    const lineDt   = sumDt(r => r.line === line);
     html += `<tr><td style="font-weight:600;white-space:nowrap;">${line}</td>`;
     cols.forEach(ft => {
       const cnt = lineRecs.filter(r => r.fault === ft).length;
       html += `<td style="text-align:center;">${cnt > 0 ? `<span class="count-pill" style="background:#F5C4B3;color:#712B13;">${cnt}</span>` : '<span style="color:#ccc;">\u2014</span>'}</td>`;
     });
-    html += `<td style="text-align:center;font-weight:700;">${lineRecs.length}</td></tr>`;
+    html += `<td style="text-align:center;font-weight:700;">${lineRecs.length}</td>`;
+    html += `<td style="text-align:center;font-weight:600;color:${lineDt>0?'#843C0C':'#bbb'};white-space:nowrap;border-left:1px solid #eee;">${lineDt > 0 ? fmtMins(lineDt) : '\u2014'}</td>`;
+    html += `</tr>`;
   });
 
   // Column-total row
+  const grandDt = sumDt(() => true);
   html += '<tr style="border-top:2px solid #eee;"><td style="font-weight:700;">Total</td>';
   cols.forEach(ft => {
-    const total = incidents.filter(r => r.fault === ft).length;
-    html += `<td style="text-align:center;font-weight:700;">${total || '\u2014'}</td>`;
+    const total   = incidents.filter(r => r.fault === ft).length;
+    const totalDt = sumDt(r => r.fault === ft);
+    html += `<td style="text-align:center;font-weight:700;">${total || '\u2014'}${totalDt > 0 ? '<br><span style="font-size:10px;font-weight:600;color:#843C0C;">' + fmtMins(totalDt) + '</span>' : ''}</td>`;
   });
-  html += `<td style="text-align:center;font-weight:700;color:#1a1a1a;">${incidents.length}</td></tr>`;
+  html += `<td style="text-align:center;font-weight:700;color:#1a1a1a;">${incidents.length}</td>`;
+  html += `<td style="text-align:center;font-weight:700;color:#843C0C;white-space:nowrap;border-left:1px solid #eee;">${grandDt > 0 ? fmtMins(grandDt) : '\u2014'}</td>`;
+  html += `</tr>`;
 
   html += '</tbody></table>';
   container.innerHTML = html;
