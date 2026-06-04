@@ -1070,12 +1070,44 @@ tbody td {
       </div>
     </div>
 
-    <!-- Timeline -->
-    <div id="lcTimeline" style="display:none">
-      <div class="chart-card">
-        <div class="chart-title">Full history timeline</div>
-        <div class="chart-sub" id="lcTimelineSub"></div>
-        <div id="lcTimelineContent" style="margin-top:14px;"></div>
+    <!-- Timeline (collapsible, with year/month filter) -->
+    <div id="lcTimelineSection" style="display:none">
+      <div class="lc-collapse-card">
+        <div class="lc-collapse-header" onclick="toggleLcSection('lcTimelineBody','lcTimelineExpandLbl')">
+          <div class="lc-collapse-title">
+            <span>Full history timeline</span>
+            <span id="lcTimelineBadge" class="lc-collapse-badge lc-badge-grey"></span>
+          </div>
+          <span class="lc-expand-lbl" id="lcTimelineExpandLbl">Expand &#9660;</span>
+        </div>
+        <div class="lc-collapse-body" id="lcTimelineBody">
+          <!-- Filter row -->
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #f0f2f5;">
+            <label style="font-size:12px;font-weight:700;color:#555;">Filter:</label>
+            <select id="lcTimelineYear" onchange="renderLcTimeline()" style="padding:7px 11px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;min-width:110px;">
+              <option value="">All years</option>
+            </select>
+            <select id="lcTimelineMonth" onchange="renderLcTimeline()" style="padding:7px 11px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;min-width:130px;">
+              <option value="">All months</option>
+              <option value="01">January</option>
+              <option value="02">February</option>
+              <option value="03">March</option>
+              <option value="04">April</option>
+              <option value="05">May</option>
+              <option value="06">June</option>
+              <option value="07">July</option>
+              <option value="08">August</option>
+              <option value="09">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+            <button onclick="clearLcTimelineFilter()" class="filter-clear">Clear</button>
+            <span id="lcTimelineFilterInfo" style="font-size:12px;color:#888;margin-left:auto;"></span>
+          </div>
+          <div class="chart-sub" id="lcTimelineSub" style="margin-bottom:14px;"></div>
+          <div id="lcTimelineContent"></div>
+        </div>
       </div>
     </div>
 
@@ -2827,6 +2859,7 @@ function switchFaultView(name) {
 // ── ASSET PROFILE ─────────────────────────────────────────────────────────────
 let lcDebounceTimer = null;
 let lcAssets = [];
+let lcAllTimelineEvents = [];
 
 function lcSearchDebounce() {
   clearTimeout(lcDebounceTimer);
@@ -2879,8 +2912,8 @@ async function loadLifecycle() {
   document.getElementById('lcKpiRow').style.display       = 'none';
   document.getElementById('lcPartsSection').style.display = 'none';
   document.getElementById('lcPMSection').style.display    = 'none';
-  document.getElementById('lcFaultSection').style.display = 'none';
-  document.getElementById('lcTimeline').style.display     = 'none';
+  document.getElementById('lcFaultSection').style.display    = 'none';
+  document.getElementById('lcTimelineSection').style.display = 'none';
   document.getElementById('lcEmpty').style.display        = 'block';
   document.getElementById('lcAssetType').textContent      = '';
 
@@ -3017,20 +3050,32 @@ async function loadLifecycle() {
   renderLcFaultSection(incidents);
 
   // Timeline
-  const events = [];
-  scans.forEach(s     => events.push({ type: 'scan',     time: s.scan_timestamp,  data: s }));
-  incidents.forEach(i => events.push({ type: 'incident', time: i.reported_time,   data: i }));
-  events.sort((a, b) => new Date(b.time) - new Date(a.time));
+  // Timeline — store events in module scope so filters can re-render without re-fetching
+  lcAllTimelineEvents = [];
+  scans.forEach(s     => lcAllTimelineEvents.push({ type: 'scan',     time: s.scan_timestamp,  data: s }));
+  incidents.forEach(i => lcAllTimelineEvents.push({ type: 'incident', time: i.reported_time,   data: i }));
+  lcAllTimelineEvents.sort((a, b) => new Date(b.time) - new Date(a.time));
 
-  document.getElementById('lcTimelineSub').textContent =
-    scans.length + ' scan' + (scans.length !== 1 ? 's' : '') + ' and ' +
-    incidents.length + ' incident' + (incidents.length !== 1 ? 's' : '') + ' — newest first';
+  // Populate year dropdown with years actually present (descending)
+  const years = [...new Set(lcAllTimelineEvents
+    .map(e => e.time ? String(e.time).substring(0, 4) : null)
+    .filter(Boolean)
+  )].sort().reverse();
+  const yearSel = document.getElementById('lcTimelineYear');
+  yearSel.innerHTML = '<option value="">All years</option>' +
+    years.map(y => '<option value="' + y + '">' + y + '</option>').join('');
+  document.getElementById('lcTimelineMonth').value = '';
+  document.getElementById('lcTimelineFilterInfo').textContent = '';
 
-  document.getElementById('lcTimelineContent').innerHTML =
-    '<div class="timeline">' + events.map(e => renderTimelineItem(e)).join('') + '</div>';
+  // Badge in the collapse header shows total event count
+  document.getElementById('lcTimelineBadge').textContent =
+    lcAllTimelineEvents.length + ' event' + (lcAllTimelineEvents.length !== 1 ? 's' : '');
 
-  document.getElementById('lcTimeline').style.display = 'block';
-  document.getElementById('lcEmpty').style.display    = 'none';
+  // Render (default = no filter)
+  renderLcTimeline();
+
+  document.getElementById('lcTimelineSection').style.display = 'block';
+  document.getElementById('lcEmpty').style.display           = 'none';
 }
 
 // ── STATUS RENDERER ──────────────────────────────────────────────
@@ -3321,6 +3366,66 @@ function switchLcFaultView(name) {
   });
   document.getElementById('lcFaultView-heatmap').classList.toggle('active', name === 'heatmap');
   document.getElementById('lcFaultView-table').classList.toggle('active', name === 'table');
+}
+
+// ── TIMELINE FILTER & RENDER ─────────────────────────────────────
+// Reads the Year/Month dropdowns and renders only matching events.
+// Events are kept in lcAllTimelineEvents so filter changes are instant
+// and don't trigger another Supabase fetch.
+function renderLcTimeline() {
+  const year  = document.getElementById('lcTimelineYear').value;   // "" or "2025"
+  const month = document.getElementById('lcTimelineMonth').value;  // "" or "03"
+
+  let filtered = lcAllTimelineEvents;
+  if (year || month) {
+    filtered = lcAllTimelineEvents.filter(e => {
+      if (!e.time) return false;
+      const ts = String(e.time);
+      if (year  && ts.substring(0, 4) !== year)   return false;
+      if (month && ts.substring(5, 7) !== month)  return false;
+      return true;
+    });
+  }
+
+  const total = lcAllTimelineEvents.length;
+  const shown = filtered.length;
+  const scanCount = filtered.filter(e => e.type === 'scan').length;
+  const incCount  = filtered.filter(e => e.type === 'incident').length;
+
+  // Sub-label
+  if (shown === 0) {
+    document.getElementById('lcTimelineSub').textContent = 'No events match the selected period.';
+  } else {
+    document.getElementById('lcTimelineSub').textContent =
+      scanCount + ' scan' + (scanCount !== 1 ? 's' : '') + ' and ' +
+      incCount  + ' incident' + (incCount  !== 1 ? 's' : '') + ' — newest first';
+  }
+
+  // Filter info — only show count when a filter is active
+  const infoEl = document.getElementById('lcTimelineFilterInfo');
+  if (year || month) {
+    infoEl.textContent = 'Showing ' + shown + ' of ' + total + ' event' + (total !== 1 ? 's' : '');
+    infoEl.style.color = shown === 0 ? '#C00000' : '#888';
+  } else {
+    infoEl.textContent = '';
+  }
+
+  // Render
+  const contentEl = document.getElementById('lcTimelineContent');
+  if (shown === 0) {
+    contentEl.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:13px;">' +
+      (total === 0 ? 'No events recorded.' : 'Try a different year or month, or clear the filter.') +
+      '</div>';
+  } else {
+    contentEl.innerHTML = '<div class="timeline">' +
+      filtered.map(e => renderTimelineItem(e)).join('') + '</div>';
+  }
+}
+
+function clearLcTimelineFilter() {
+  document.getElementById('lcTimelineYear').value  = '';
+  document.getElementById('lcTimelineMonth').value = '';
+  renderLcTimeline();
 }
 
 // ── COLLAPSIBLE TOGGLE ───────────────────────────────────────────
