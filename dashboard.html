@@ -983,10 +983,10 @@ tbody td {
           <div class="lc-kpi-value" id="lcKpiPartsReq">—</div>
           <div class="lc-kpi-sub">transactions</div>
         </div>
-        <div class="lc-kpi teal">
-          <div class="lc-kpi-label">Total Parts Qty</div>
-          <div class="lc-kpi-value" id="lcKpiPartsQty">—</div>
-          <div class="lc-kpi-sub">units issued</div>
+        <div class="lc-kpi green" id="lcKpiMTBFCard">
+          <div class="lc-kpi-label">MTBF</div>
+          <div class="lc-kpi-value" id="lcKpiMTBF" style="font-size:20px;">—</div>
+          <div class="lc-kpi-sub" id="lcKpiMTBFSub">mean time between failures</div>
         </div>
         <div class="lc-kpi purple">
           <div class="lc-kpi-label">PM Activities</div>
@@ -998,6 +998,18 @@ tbody td {
           <div class="lc-kpi-value" style="font-size:18px;" id="lcKpiLastSeen">—</div>
           <div class="lc-kpi-sub" id="lcKpiLastLine"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- Recurrence alert — only shown when same fault repeats ≥3 times in 7 days -->
+    <div id="lcRecurrenceAlert" style="display:none;background:#FFF5F5;border:1.5px solid #F7C1C1;border-left:5px solid #C00000;border-radius:10px;padding:14px 18px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#C00000;margin-bottom:8px;">
+        <span style="font-size:18px;">&#9888;</span>
+        <span id="lcRecurrenceTitle">Recurring fault detected</span>
+      </div>
+      <div id="lcRecurrenceList" style="margin-bottom:6px;"></div>
+      <div style="font-size:11px;color:#888;font-style:italic;margin-top:8px;border-top:1px solid #F7C1C1;padding-top:8px;">
+        Three or more of the same fault within seven days &mdash; possible incomplete fix worth investigating.
       </div>
     </div>
 
@@ -2909,13 +2921,14 @@ async function loadLifecycle() {
   document.getElementById('lcSuggestions').style.display = 'none';
 
   // Hide everything
-  document.getElementById('lcKpiRow').style.display       = 'none';
-  document.getElementById('lcPartsSection').style.display = 'none';
-  document.getElementById('lcPMSection').style.display    = 'none';
+  document.getElementById('lcKpiRow').style.display          = 'none';
+  document.getElementById('lcRecurrenceAlert').style.display = 'none';
+  document.getElementById('lcPartsSection').style.display    = 'none';
+  document.getElementById('lcPMSection').style.display       = 'none';
   document.getElementById('lcFaultSection').style.display    = 'none';
   document.getElementById('lcTimelineSection').style.display = 'none';
-  document.getElementById('lcEmpty').style.display        = 'block';
-  document.getElementById('lcAssetType').textContent      = '';
+  document.getElementById('lcEmpty').style.display           = 'block';
+  document.getElementById('lcAssetType').textContent         = '';
 
   if (!assetNo) return;
 
@@ -2976,8 +2989,6 @@ async function loadLifecycle() {
     .filter(i => i.status === 'Resolved')
     .reduce((s, i) => s + (i.total_downtime_minutes || 0), 0);
 
-  const totalPartsQty  = parts.reduce((s, p) => s + (p.quantity || 0), 0);
-
   // Last activity — most recent of scan or incident
   let lastActivityDate = null;
   let lastActivityLoc  = '—';
@@ -3027,7 +3038,46 @@ async function loadLifecycle() {
   }
 
   document.getElementById('lcKpiPartsReq').textContent   = parts.length;
-  document.getElementById('lcKpiPartsQty').textContent   = totalPartsQty;
+
+  // MTBF — Mean Time Between Failures
+  // Formula: span between first and last incident / (count − 1)
+  // Needs ≥ 2 incidents to compute. Color-code the card border by value.
+  const mtbfCard  = document.getElementById('lcKpiMTBFCard');
+  const mtbfValEl = document.getElementById('lcKpiMTBF');
+  const mtbfSubEl = document.getElementById('lcKpiMTBFSub');
+  mtbfCard.classList.remove('green', 'orange', 'red', 'teal');
+  if (incidents.length >= 2) {
+    const sortedInc = [...incidents]
+      .filter(i => i.reported_time)
+      .sort((a, b) => new Date(a.reported_time) - new Date(b.reported_time));
+    if (sortedInc.length >= 2) {
+      const spanMs   = new Date(sortedInc[sortedInc.length - 1].reported_time) - new Date(sortedInc[0].reported_time);
+      const gapMs    = spanMs / (sortedInc.length - 1);
+      const gapDays  = gapMs / (1000 * 60 * 60 * 24);
+      const gapHours = gapMs / (1000 * 60 * 60);
+      if (gapDays >= 1) {
+        mtbfValEl.textContent = gapDays >= 10 ? Math.round(gapDays) + ' days' : gapDays.toFixed(1) + ' days';
+      } else if (gapHours >= 1) {
+        mtbfValEl.textContent = gapHours.toFixed(1) + ' hrs';
+      } else {
+        mtbfValEl.textContent = '< 1 hr';
+      }
+      mtbfSubEl.textContent = 'avg across ' + sortedInc.length + ' incidents';
+      // Color thresholds: red <7d, orange 7–30d, green ≥30d
+      if      (gapDays < 7)  mtbfCard.classList.add('red');
+      else if (gapDays < 30) mtbfCard.classList.add('orange');
+      else                   mtbfCard.classList.add('green');
+    } else {
+      mtbfValEl.textContent = '—';
+      mtbfSubEl.textContent = 'needs ≥ 2 incidents';
+      mtbfCard.classList.add('green');
+    }
+  } else {
+    mtbfValEl.textContent = '—';
+    mtbfSubEl.textContent = incidents.length === 1 ? 'needs ≥ 2 incidents' : 'no failures recorded';
+    mtbfCard.classList.add('green');
+  }
+
   document.getElementById('lcKpiPM').textContent         = pmLogs.length;
   document.getElementById('lcKpiPMSub').textContent      = lastPM
     ? 'last: ' + lastPM.completed_date + ' (' + (lastPM.service_type || '—') + ')'
@@ -3039,6 +3089,9 @@ async function loadLifecycle() {
     (lastActivityType ? '<br><span style="font-size:10px;color:#bbb;">via ' + lastActivityType + '</span>' : '');
 
   document.getElementById('lcKpiRow').style.display = 'block';
+
+  // Recurrence alert — top-level banner, only shown if patterns are detected
+  renderLcRecurrenceAlert(incidents);
 
   // Parts section
   renderLcParts(parts);
@@ -3227,6 +3280,90 @@ function renderLcPM(pmLogs) {
 
   html += '</tbody></table>';
   tableEl.innerHTML = html;
+}
+
+// ── RECURRENCE DETECTION ─────────────────────────────────────────
+// Flags when the same fault recurs ≥ RECURRENCE_MIN times within
+// RECURRENCE_DAYS days. The point is to catch incomplete fixes —
+// if "thread breaking" hits 3× in a week, the underlying issue
+// probably wasn't actually resolved.
+const RECURRENCE_MIN  = 3;
+const RECURRENCE_DAYS = 7;
+
+function findRecurrencePatterns(incidents) {
+  const WINDOW_MS = RECURRENCE_DAYS * 24 * 60 * 60 * 1000;
+
+  // Group timestamps by fault (skip records missing either)
+  const byFault = {};
+  incidents.forEach(i => {
+    if (!i.fault || !i.reported_time) return;
+    const t = new Date(i.reported_time).getTime();
+    if (isNaN(t)) return;
+    if (!byFault[i.fault]) byFault[i.fault] = [];
+    byFault[i.fault].push(t);
+  });
+
+  const patterns = [];
+  Object.entries(byFault).forEach(([fault, times]) => {
+    times.sort((a, b) => a - b);
+    let i = 0;
+    while (i < times.length) {
+      // Find longest run starting at i where (times[j] - times[i]) <= WINDOW_MS
+      let j = i;
+      while (j + 1 < times.length && (times[j + 1] - times[i]) <= WINDOW_MS) j++;
+      const count = j - i + 1;
+      if (count >= RECURRENCE_MIN) {
+        const spanDays = (times[j] - times[i]) / (1000 * 60 * 60 * 24);
+        patterns.push({
+          fault,
+          count,
+          first: new Date(times[i]),
+          last:  new Date(times[j]),
+          spanDays: spanDays
+        });
+        i = j + 1; // skip past this cluster (avoid overlapping reports)
+      } else {
+        i++;
+      }
+    }
+  });
+
+  // Sort: most severe first (highest count, then most recent)
+  patterns.sort((a, b) => b.count - a.count || b.last - a.last);
+  return patterns;
+}
+
+function renderLcRecurrenceAlert(incidents) {
+  const banner = document.getElementById('lcRecurrenceAlert');
+  const patterns = findRecurrencePatterns(incidents);
+
+  if (patterns.length === 0) {
+    banner.style.display = 'none';
+    return;
+  }
+
+  // Title with pattern count
+  const total = patterns.length;
+  document.getElementById('lcRecurrenceTitle').textContent =
+    total === 1
+      ? 'Recurring fault detected'
+      : total + ' recurring fault patterns detected';
+
+  // Detail rows
+  document.getElementById('lcRecurrenceList').innerHTML = patterns.map(p => {
+    const spanLbl = p.spanDays < 1
+      ? 'within ' + Math.round(p.spanDays * 24) + ' hours'
+      : 'within ' + (p.spanDays < 1.5 ? '1' : Math.round(p.spanDays)) + ' day' + (p.spanDays < 1.5 ? '' : 's');
+    return '<div style="font-size:13px;color:#555;padding:5px 0;display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap;">' +
+           '<div><strong style="color:#1a1a1a;">' + p.fault + '</strong> &mdash; ' +
+           '<span style="color:#C00000;font-weight:600;">' + p.count + ' occurrences</span> ' + spanLbl + '</div>' +
+           '<div style="font-size:11px;color:#888;white-space:nowrap;">' +
+           formatShortDate(p.first.toISOString()) + ' &rarr; ' + formatShortDate(p.last.toISOString()) +
+           '</div>' +
+           '</div>';
+  }).join('');
+
+  banner.style.display = 'block';
 }
 
 // ── FAULT × LINE HEATMAP (asset-scoped) ──────────────────────────
