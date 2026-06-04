@@ -1032,6 +1032,42 @@ tbody td {
       </div>
     </div>
 
+    <!-- Fault × Line heatmap section (asset-scoped) -->
+    <div id="lcFaultSection" style="display:none;">
+      <div class="lc-collapse-card">
+        <div class="lc-collapse-header" onclick="toggleLcSection('lcFaultBody','lcFaultExpandLbl')">
+          <div class="lc-collapse-title">
+            <span>Fault history by line</span>
+            <span id="lcFaultBadge" class="lc-collapse-badge" style="background:#FCE4D6;color:#843C0C;"></span>
+          </div>
+          <span class="lc-expand-lbl" id="lcFaultExpandLbl">Expand ▼</span>
+        </div>
+        <div class="lc-collapse-body" id="lcFaultBody">
+          <!-- View toggle (heatmap / table) -->
+          <div class="view-tabs" style="margin-bottom:12px;">
+            <div class="view-tab active" onclick="switchLcFaultView('heatmap')">Heatmap</div>
+            <div class="view-tab" onclick="switchLcFaultView('table')">Table</div>
+          </div>
+
+          <!-- Heatmap legend (reuse downtime tab styling) -->
+          <div class="hm-legend">
+            <div class="hm-leg-item"><div class="hm-leg-dot c-empty"></div>None</div>
+            <div class="hm-leg-item"><div class="hm-leg-dot c-mostly"></div>1 occurrence</div>
+            <div class="hm-leg-item"><div class="hm-leg-dot c-mixed"></div>Low</div>
+            <div class="hm-leg-item"><div class="hm-leg-dot c-some-maint"></div>Moderate</div>
+            <div class="hm-leg-item"><div class="hm-leg-dot c-high-maint"></div>High</div>
+          </div>
+
+          <div id="lcFaultView-heatmap" class="tab-view active">
+            <div class="hm-wrap" id="lcFaultHeatmapContainer"></div>
+          </div>
+          <div id="lcFaultView-table" class="tab-view">
+            <div id="lcFaultTableContainer" style="overflow-x:auto;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Timeline -->
     <div id="lcTimeline" style="display:none">
       <div class="chart-card">
@@ -2841,6 +2877,7 @@ async function loadLifecycle() {
   document.getElementById('lcKpiRow').style.display       = 'none';
   document.getElementById('lcPartsSection').style.display = 'none';
   document.getElementById('lcPMSection').style.display    = 'none';
+  document.getElementById('lcFaultSection').style.display = 'none';
   document.getElementById('lcTimeline').style.display     = 'none';
   document.getElementById('lcEmpty').style.display        = 'block';
   document.getElementById('lcAssetType').textContent      = '';
@@ -2973,6 +3010,9 @@ async function loadLifecycle() {
 
   // PM section
   renderLcPM(pmLogs);
+
+  // Fault × Line heatmap (asset-scoped, mirrors downtime tab logic)
+  renderLcFaultSection(incidents);
 
   // Timeline
   const events = [];
@@ -3140,6 +3180,145 @@ function renderLcPM(pmLogs) {
 
   html += '</tbody></table>';
   tableEl.innerHTML = html;
+}
+
+// ── FAULT × LINE HEATMAP (asset-scoped) ──────────────────────────
+// Mirrors renderFaultHeatmap / renderFaultTable on the downtime tab,
+// but uses only this asset's incidents and only lines where this
+// asset has actually been down. Reuses FAULT_TYPES, hm-* CSS, and
+// faultCellClass() from the downtime tab so the look is identical.
+function renderLcFaultSection(incidents) {
+  const section = document.getElementById('lcFaultSection');
+  const badge   = document.getElementById('lcFaultBadge');
+
+  if (!incidents || incidents.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  // Distinct lines this asset has been down on
+  const assetLines = [...new Set(incidents.map(i => i.line).filter(Boolean))].sort((a, b) => {
+    const na = parseInt(String(a).replace(/\D/g, ''), 10);
+    const nb = parseInt(String(b).replace(/\D/g, ''), 10);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return String(a).localeCompare(String(b));
+  });
+
+  if (assetLines.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  badge.textContent = incidents.length + ' incident' + (incidents.length !== 1 ? 's' : '') +
+                      ' across ' + assetLines.length + ' line' + (assetLines.length !== 1 ? 's' : '');
+
+  renderLcFaultHeatmap(incidents, assetLines);
+  renderLcFaultTable(incidents, assetLines);
+
+  // Default to closed (consistent with Parts and PM sections)
+  document.getElementById('lcFaultBody').classList.remove('lc-open');
+  document.getElementById('lcFaultExpandLbl').textContent = 'Expand \u25BC';
+  section.style.display = 'block';
+}
+
+function renderLcFaultHeatmap(incidents, assetLines) {
+  const container = document.getElementById('lcFaultHeatmapContainer');
+
+  // Build counts per (fault, line), and also capture any faults this asset
+  // has that aren't in the canonical FAULT_TYPES list (e.g. "Other", legacy)
+  const knownFaults  = FAULT_TYPES;
+  const customFaults = [...new Set(
+    incidents.map(i => i.fault).filter(f => f && !knownFaults.includes(f))
+  )];
+  const rows = [...knownFaults, ...customFaults];
+
+  let maxCount = 0;
+  rows.forEach(ft => {
+    assetLines.forEach(line => {
+      const cnt = incidents.filter(r => r.fault === ft && r.line === line).length;
+      if (cnt > maxCount) maxCount = cnt;
+    });
+  });
+
+  let html = '<table class="hm-table"><thead><tr><th class="row-hdr">Fault</th>';
+  assetLines.forEach(l => { html += `<th>${String(l).replace('Line ', 'L')}</th>`; });
+  html += '<th style="font-size:10px;color:#555;">Total</th></tr></thead><tbody>';
+
+  rows.forEach(ft => {
+    const rowTotal = incidents.filter(r => r.fault === ft).length;
+    if (rowTotal === 0) return; // skip fault types this asset has never had
+    html += `<tr><td class="hm-row-label" style="font-size:11px;">${ft}</td>`;
+    assetLines.forEach(line => {
+      const cnt = incidents.filter(r => r.fault === ft && r.line === line).length;
+      const cls = faultCellClass(cnt, maxCount);
+      html += `<td class="hm-cell ${cls}" title="${line} \u2014 ${ft}: ${cnt} incident${cnt !== 1 ? 's' : ''}">${cnt > 0 ? cnt : ''}</td>`;
+    });
+    html += `<td style="text-align:center;font-weight:700;font-size:11px;color:#555;">${rowTotal}</td></tr>`;
+  });
+
+  // Column totals row
+  html += '<tr><td class="hm-row-label" style="font-size:11px;font-weight:700;">Total</td>';
+  assetLines.forEach(line => {
+    const lt = incidents.filter(r => r.line === line).length;
+    html += `<td style="text-align:center;font-weight:700;font-size:11px;color:#555;">${lt || ''}</td>`;
+  });
+  html += `<td style="text-align:center;font-weight:700;font-size:11px;color:#1a1a1a;">${incidents.length}</td></tr>`;
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderLcFaultTable(incidents, assetLines) {
+  const container = document.getElementById('lcFaultTableContainer');
+
+  const knownFaults  = FAULT_TYPES;
+  const customFaults = [...new Set(
+    incidents.map(i => i.fault).filter(f => f && !knownFaults.includes(f))
+  )];
+  const cols = [...knownFaults, ...customFaults].filter(ft =>
+    incidents.some(r => r.fault === ft)
+  );
+
+  if (cols.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;">No fault data</div>';
+    return;
+  }
+
+  let html = '<table class="sl-table"><thead><tr><th>Line</th>';
+  cols.forEach(ft => { html += `<th class="num" style="font-size:10px;">${ft.length > 20 ? ft.substring(0, 18) + '\u2026' : ft}</th>`; });
+  html += '<th class="num">Total</th></tr></thead><tbody>';
+
+  assetLines.forEach(line => {
+    const lineRecs = incidents.filter(r => r.line === line);
+    html += `<tr><td style="font-weight:600;white-space:nowrap;">${line}</td>`;
+    cols.forEach(ft => {
+      const cnt = lineRecs.filter(r => r.fault === ft).length;
+      html += `<td style="text-align:center;">${cnt > 0 ? `<span class="count-pill" style="background:#F5C4B3;color:#712B13;">${cnt}</span>` : '<span style="color:#ccc;">\u2014</span>'}</td>`;
+    });
+    html += `<td style="text-align:center;font-weight:700;">${lineRecs.length}</td></tr>`;
+  });
+
+  // Column-total row
+  html += '<tr style="border-top:2px solid #eee;"><td style="font-weight:700;">Total</td>';
+  cols.forEach(ft => {
+    const total = incidents.filter(r => r.fault === ft).length;
+    html += `<td style="text-align:center;font-weight:700;">${total || '\u2014'}</td>`;
+  });
+  html += `<td style="text-align:center;font-weight:700;color:#1a1a1a;">${incidents.length}</td></tr>`;
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function switchLcFaultView(name) {
+  document.querySelectorAll('.view-tab').forEach(t => {
+    const onclick = t.getAttribute('onclick') || '';
+    if (onclick.includes('switchLcFaultView')) {
+      t.classList.toggle('active', onclick.includes("'" + name + "'"));
+    }
+  });
+  document.getElementById('lcFaultView-heatmap').classList.toggle('active', name === 'heatmap');
+  document.getElementById('lcFaultView-table').classList.toggle('active', name === 'table');
 }
 
 // ── COLLAPSIBLE TOGGLE ───────────────────────────────────────────
