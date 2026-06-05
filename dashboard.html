@@ -1583,6 +1583,23 @@ tbody td {
       </div>
     </div>
 
+    <!-- Recurring fixes detail (directly drills into the "Recurring Fixes" KPI) -->
+    <div id="mRecSection" style="display:none;">
+      <div class="lc-collapse-card">
+        <div class="lc-collapse-header" onclick="toggleLcSection('mRecBody','mRecExpandLbl')">
+          <div class="lc-collapse-title">
+            <span>Recurring fixes</span>
+            <span id="mRecBadge" class="lc-collapse-badge" style="background:#FCE4D6;color:#C00000;"></span>
+          </div>
+          <span class="lc-expand-lbl" id="mRecExpandLbl">Expand &#9660;</span>
+        </div>
+        <div class="lc-collapse-body" id="mRecBody">
+          <div class="chart-sub" style="margin-bottom:12px;">Fixes where the same fault on the same asset came back within 14 days. Color-coded gap: red &lt; 3 days, orange 3&ndash;7 days.</div>
+          <div id="mRecTable" style="overflow-x:auto;"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Workload distribution heatmap -->
     <div id="mWorkloadSection" style="display:none;">
       <div class="lc-collapse-card">
@@ -5018,6 +5035,7 @@ async function loadMechanicsData() {
     ? 'Select a mechanic above to view their performance profile'
     : 'Loading mechanic data...';
   document.getElementById('mechKpiRow').style.display     = 'none';
+  document.getElementById('mRecSection').style.display      = 'none';
   document.getElementById('mWorkloadSection').style.display = 'none';
   document.getElementById('mAssetSection').style.display    = 'none';
   document.getElementById('mPMSection').style.display       = 'none';
@@ -5187,7 +5205,7 @@ function computeTeamMedians(downtimePool, pmPool, excludeMech) {
 // ── MAIN RENDER ──────────────────────────────────────────────────
 function selectMechanic() {
   const mechName = document.getElementById('mechSelect').value;
-  const sections = ['mechKpiRow','mWorkloadSection','mAssetSection','mPMSection','mIncSection'];
+  const sections = ['mechKpiRow','mRecSection','mWorkloadSection','mAssetSection','mPMSection','mIncSection'];
 
   if (!mechName) {
     sections.forEach(id => document.getElementById(id).style.display = 'none');
@@ -5205,6 +5223,7 @@ function selectMechanic() {
   document.getElementById('mechEmpty').style.display = 'none';
 
   renderMechKPIs(m, team);
+  renderMechRecurring(m, dtPool);
   renderMechWorkload(m);
   renderMechAssets(m);
   renderMechPMs(m);
@@ -5300,6 +5319,101 @@ function renderMechKPIs(m, team) {
   }
 
   document.getElementById('mechKpiRow').style.display = 'block';
+}
+
+// ── SECTION: RECURRING FIXES DETAIL ──────────────────────────────
+// Drills into the "Recurring Fixes" KPI: for each of this mechanic's
+// resolved incidents, find the matching recurrence (same asset + same
+// fault, within FTF_DAYS afterwards) and surface them in a table.
+// Useful for asking the actual question: is this person struggling on
+// a specific fault, a specific asset, or is it scattered?
+function renderMechRecurring(m, downtimePool) {
+  const section = document.getElementById('mRecSection');
+  const FTF_MS  = FTF_DAYS * 24 * 60 * 60 * 1000;
+
+  // Build pairs: [originalFix, theRecurrenceIncident]
+  // Only consider assessable fixes (resolved more than FTF_DAYS ago).
+  const now   = Date.now();
+  const pairs = [];
+  m.myResolved.forEach(d => {
+    if (!d.resolved_time) return;
+    const rMs = new Date(d.resolved_time).getTime();
+    if ((now - rMs) < FTF_MS) return; // not yet assessable
+
+    // Find the EARLIEST recurrence within the window (could be more than one;
+    // we surface the closest one for "came back after" gap)
+    let nextRecurrence = null;
+    downtimePool.forEach(o => {
+      if (o.id === d.id) return;
+      if (o.asset_no !== d.asset_no) return;
+      if (o.fault !== d.fault) return;
+      if (!o.reported_time) return;
+      const oMs = new Date(o.reported_time).getTime();
+      if (oMs <= rMs) return;
+      if (oMs > rMs + FTF_MS) return;
+      if (!nextRecurrence || oMs < new Date(nextRecurrence.reported_time).getTime()) {
+        nextRecurrence = o;
+      }
+    });
+
+    if (nextRecurrence) pairs.push({ fix: d, recurrence: nextRecurrence });
+  });
+
+  if (pairs.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  // Sort: most recent first
+  pairs.sort((a, b) => (b.fix.resolved_time || '').localeCompare(a.fix.resolved_time || ''));
+
+  document.getElementById('mRecBadge').textContent =
+    pairs.length + ' fix' + (pairs.length !== 1 ? 'es' : '') + ' came back';
+
+  let html = '<table class="sl-table"><thead><tr>' +
+    '<th>Fix date</th><th>Asset</th><th>Line</th><th>Fault</th>' +
+    '<th class="num">Repair time</th><th class="num">Came back after</th>' +
+    '<th>Re-fixed by</th><th>&nbsp;</th></tr></thead><tbody>';
+
+  pairs.forEach(p => {
+    const fixDate = formatShortDate(p.fix.resolved_time);
+    const recMs   = new Date(p.recurrence.reported_time).getTime();
+    const fixMs   = new Date(p.fix.resolved_time).getTime();
+    const gapDays = (recMs - fixMs) / (1000 * 60 * 60 * 24);
+
+    // Color-code gap severity
+    let gapColor = '#555';
+    let gapBg    = 'transparent';
+    if (gapDays < 3)      { gapColor = '#C00000'; gapBg = '#FCEBEB'; }
+    else if (gapDays < 7) { gapColor = '#843C0C'; gapBg = '#FCE4D6'; }
+
+    const gapLabel = gapDays < 1
+      ? Math.round(gapDays * 24) + ' hrs'
+      : gapDays < 1.5 ? '1 day' : Math.round(gapDays) + ' days';
+
+    const reFixer = p.recurrence.mechanic || '\u2014';
+    const sameMech = reFixer === p.fix.mechanic;
+
+    html += '<tr>' +
+      '<td style="font-size:12px;">' + fixDate + '</td>' +
+      '<td><strong>' + (p.fix.asset_no || '\u2014') + '</strong></td>' +
+      '<td style="font-size:12px;">' + (p.fix.line || '\u2014') + '</td>' +
+      '<td style="font-size:12px;">' + (p.fix.fault || '\u2014') + '</td>' +
+      '<td style="text-align:center;font-size:12px;">' +
+        (p.fix.repair_minutes != null ? fmtMins(p.fix.repair_minutes) : '\u2014') + '</td>' +
+      '<td style="text-align:center;"><span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;color:' + gapColor + ';background:' + gapBg + ';">' + gapLabel + '</span></td>' +
+      '<td style="font-size:12px;color:' + (sameMech ? '#555' : '#888') + ';">' +
+        reFixer + (sameMech ? '' : ' <span style="font-size:10px;color:#aaa;font-style:italic;">(different)</span>') + '</td>' +
+      '<td><button onclick="openAssetProfile(\'' + (p.fix.asset_no || '').replace(/'/g, "\\'") + '\')" style="padding:3px 9px;background:#2E5597;border:none;border-radius:6px;color:white;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">Asset</button></td>' +
+      '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('mRecTable').innerHTML = html;
+
+  document.getElementById('mRecBody').classList.remove('lc-open');
+  document.getElementById('mRecExpandLbl').textContent = 'Expand \u25BC';
+  section.style.display = 'block';
 }
 
 // ── SECTION: WORKLOAD HEATMAP ────────────────────────────────────
