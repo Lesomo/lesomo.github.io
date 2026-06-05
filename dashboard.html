@@ -1607,22 +1607,9 @@ tbody td {
       </div>
     </div>
 
-    <!-- Response & repair time trend -->
-    <div id="mTrendSection" style="display:none;">
-      <div class="lc-collapse-card">
-        <div class="lc-collapse-header" onclick="toggleLcSection('mTrendBody','mTrendExpandLbl')">
-          <div class="lc-collapse-title">
-            <span>Response &amp; repair time trend</span>
-            <span id="mTrendBadge" class="lc-collapse-badge lc-badge-grey"></span>
-          </div>
-          <span class="lc-expand-lbl" id="mTrendExpandLbl">Expand &#9660;</span>
-        </div>
-        <div class="lc-collapse-body" id="mTrendBody">
-          <div class="chart-sub" style="margin-bottom:12px;">Monthly averages with team median for context</div>
-          <div class="chart-wrap medium"><canvas id="mTrendChart"></canvas></div>
-        </div>
-      </div>
-    </div>
+    <!-- Response & repair time trend — REMOVED: monthly averages mask the variation that matters,
+         and aren't actionable without controlling for job mix / product type. The KPI sub-labels
+         already show comparison to team median, which is the useful signal. -->
 
     <!-- Asset coverage -->
     <div id="mAssetSection" style="display:none;">
@@ -5020,7 +5007,6 @@ function exportLcCsv() {
 
 let mDowntimeAll = [];   // all downtime_log records (filtered by date in-memory)
 let mPMAll       = [];   // all pm_log records
-let mTrendChart  = null;
 let mLoadedOnce  = false;
 
 const FTF_DAYS = 14; // first-time-fix verification window
@@ -5033,7 +5019,6 @@ async function loadMechanicsData() {
     : 'Loading mechanic data...';
   document.getElementById('mechKpiRow').style.display     = 'none';
   document.getElementById('mWorkloadSection').style.display = 'none';
-  document.getElementById('mTrendSection').style.display    = 'none';
   document.getElementById('mAssetSection').style.display    = 'none';
   document.getElementById('mPMSection').style.display       = 'none';
   document.getElementById('mIncSection').style.display      = 'none';
@@ -5202,7 +5187,7 @@ function computeTeamMedians(downtimePool, pmPool, excludeMech) {
 // ── MAIN RENDER ──────────────────────────────────────────────────
 function selectMechanic() {
   const mechName = document.getElementById('mechSelect').value;
-  const sections = ['mechKpiRow','mWorkloadSection','mTrendSection','mAssetSection','mPMSection','mIncSection'];
+  const sections = ['mechKpiRow','mWorkloadSection','mAssetSection','mPMSection','mIncSection'];
 
   if (!mechName) {
     sections.forEach(id => document.getElementById(id).style.display = 'none');
@@ -5221,7 +5206,6 @@ function selectMechanic() {
 
   renderMechKPIs(m, team);
   renderMechWorkload(m);
-  renderMechTrend(mechName, dtPool, pmPool);
   renderMechAssets(m);
   renderMechPMs(m);
   renderMechIncidents(m, dtPool);
@@ -5383,77 +5367,6 @@ function renderMechWorkload(m) {
   section.style.display = 'block';
 }
 
-// ── SECTION: TREND CHART ─────────────────────────────────────────
-function renderMechTrend(mechName, downtimePool, pmPool) {
-  const section = document.getElementById('mTrendSection');
-  const badge   = document.getElementById('mTrendBadge');
-
-  const my = downtimePool.filter(d => d.mechanic === mechName);
-  if (my.length < 2) { section.style.display = 'none'; return; }
-
-  const monthKey = ts => String(ts).substring(0, 7);
-  const months = [...new Set(my.map(d => d.reported_time).filter(Boolean).map(monthKey))].sort();
-
-  if (months.length < 2) { section.style.display = 'none'; return; }
-
-  const myResponseByMonth = {};
-  const myRepairByMonth   = {};
-  months.forEach(mo => {
-    const inMonth   = my.filter(d => monthKey(d.reported_time) === mo);
-    const responses = inMonth.filter(d => d.response_minutes != null).map(d => d.response_minutes);
-    const repairs   = inMonth.filter(d => d.status === 'Resolved' && d.repair_minutes != null).map(d => d.repair_minutes);
-    myResponseByMonth[mo] = responses.length ? responses.reduce((a, b) => a + b, 0) / responses.length : null;
-    myRepairByMonth[mo]   = repairs.length   ? repairs.reduce((a, b) => a + b, 0) / repairs.length     : null;
-  });
-
-  const teamResponseByMonth = {};
-  const teamRepairByMonth   = {};
-  months.forEach(mo => {
-    const inMonth = downtimePool.filter(d => d.mechanic !== mechName && monthKey(d.reported_time) === mo);
-    const responses = inMonth.filter(d => d.response_minutes != null).map(d => d.response_minutes).sort((a, b) => a - b);
-    const repairs   = inMonth.filter(d => d.status === 'Resolved' && d.repair_minutes != null).map(d => d.repair_minutes).sort((a, b) => a - b);
-    const med = arr => arr.length === 0 ? null : (arr.length % 2 === 0 ? (arr[arr.length / 2 - 1] + arr[arr.length / 2]) / 2 : arr[(arr.length - 1) / 2]);
-    teamResponseByMonth[mo] = med(responses);
-    teamRepairByMonth[mo]   = med(repairs);
-  });
-
-  badge.textContent = months.length + ' month' + (months.length !== 1 ? 's' : '') + ' of data';
-
-  const labels = months.map(mo => {
-    const parts = mo.split('-');
-    return new Date(parts[0], +parts[1] - 1, 1).toLocaleString('en', { month: 'short', year: '2-digit' });
-  });
-
-  if (mTrendChart) mTrendChart.destroy();
-  const ctx = document.getElementById('mTrendChart').getContext('2d');
-  mTrendChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        { label: 'My response',   data: months.map(mo => myResponseByMonth[mo]),   borderColor: '#ED7D31', backgroundColor: '#ED7D31', tension: 0.25, spanGaps: true },
-        { label: 'My repair',     data: months.map(mo => myRepairByMonth[mo]),     borderColor: '#C00000', backgroundColor: '#C00000', tension: 0.25, spanGaps: true },
-        { label: 'Team response', data: months.map(mo => teamResponseByMonth[mo]), borderColor: '#ED7D31', borderDash: [5,4], backgroundColor: 'transparent', pointRadius: 2, tension: 0.25, spanGaps: true },
-        { label: 'Team repair',   data: months.map(mo => teamRepairByMonth[mo]),   borderColor: '#C00000', borderDash: [5,4], backgroundColor: 'transparent', pointRadius: 2, tension: 0.25, spanGaps: true }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } },
-        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y == null ? '—' : Math.round(ctx.parsed.y) + ' min') } }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#888' } },
-        y: { grid: { color: '#f0f2f5' }, ticks: { font: { size: 10 }, color: '#888', callback: v => v + 'm' }, beginAtZero: true }
-      }
-    }
-  });
-
-  document.getElementById('mTrendBody').classList.remove('lc-open');
-  document.getElementById('mTrendExpandLbl').textContent = 'Expand \u25BC';
-  section.style.display = 'block';
-}
 
 // ── SECTION: ASSET COVERAGE ──────────────────────────────────────
 function renderMechAssets(m) {
